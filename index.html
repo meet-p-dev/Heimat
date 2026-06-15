@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Heimat"/>
+<meta name="theme-color" content="#0b0e1a"/>
+<title>Heimat</title>
+<script>window.HEIMAT_VERSION="V0.1";</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+input,select,button,textarea{font-family:inherit;font-size:16px;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+input:focus,select:focus,textarea:focus{outline:none}
+::-webkit-scrollbar{display:none}
+select{-webkit-appearance:none}
+@keyframes hFade{from{opacity:0}to{opacity:1}}
+@keyframes hRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.h-rise{animation:hRise .3s cubic-bezier(.22,1,.36,1) both}
+.h-press{transition:transform .12s ease}
+.h-press:active{transform:scale(.96)}
+.h-stagger>*{animation:hRise .24s cubic-bezier(.22,1,.36,1) both}
+.h-stagger>*:nth-child(2){animation-delay:30ms}
+.h-stagger>*:nth-child(3){animation-delay:60ms}
+.h-stagger>*:nth-child(4){animation-delay:90ms}
+.h-stagger>*:nth-child(n+5){animation-delay:120ms}
+.h-lbl{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:18px 2px 8px}
+</style>
+</head>
+<body>
+<div id="root"><div style="font-family:-apple-system,sans-serif;padding:40px 24px;text-align:center;color:#8B90A8;font-size:15px;line-height:1.6">Loading Heimat…<br><br>If this stays blank, open <b>index.html</b> through a local server (or the GitHub link), not by double-clicking a half-downloaded file.</div></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef}=React;
+
+/* ============ THEME ============ */
+const DK={bg:"#0b0e1a",card:"#161a2e",cardH:"#1e2236",border:"#262b45",txt:"#ffffff",txt2:"#8b90a8",txt3:"#565c78,",acc:"#7c8cf8",acc2:"#2b3cc4",green:"#4ade80",red:"#fb7185",amber:"#fbbf24",inp:"#1e2236"};
+const LT={bg:"#f4f5fb",card:"#ffffff",cardH:"#eef0f8",border:"#e3e6f0",txt:"#0b0e1a",txt2:"#6b7194",txt3:"#9aa0bd",acc:"#4f5bd5",acc2:"#3a46c0",green:"#16a34a",red:"#e11d48",amber:"#d97706",inp:"#ffffff"};
+
+/* ============ DATA ============ */
+const COUNTRIES=[
+ {n:"India",c:"INR",f:"🇮🇳"},{n:"China",c:"CNY",f:"🇨🇳"},{n:"Pakistan",c:"PKR",f:"🇵🇰"},
+ {n:"Nigeria",c:"NGN",f:"🇳🇬"},{n:"Turkey",c:"TRY",f:"🇹🇷"},{n:"Iran",c:"IRR",f:"🇮🇷"},
+ {n:"Bangladesh",c:"BDT",f:"🇧🇩"},{n:"Indonesia",c:"IDR",f:"🇮🇩"},{n:"Egypt",c:"EGP",f:"🇪🇬"},
+ {n:"Brazil",c:"BRL",f:"🇧🇷"},{n:"Vietnam",c:"VND",f:"🇻🇳"},{n:"Mexico",c:"MXN",f:"🇲🇽"},
+ {n:"Russia",c:"RUB",f:"🇷🇺"},{n:"Ukraine",c:"UAH",f:"🇺🇦"},{n:"Morocco",c:"MAD",f:"🇲🇦"},
+ {n:"Tunisia",c:"TND",f:"🇹🇳"},{n:"Ghana",c:"GHS",f:"🇬🇭"},{n:"Kenya",c:"KES",f:"🇰🇪"},
+ {n:"Philippines",c:"PHP",f:"🇵🇭"},{n:"Nepal",c:"NPR",f:"🇳🇵"},{n:"Sri Lanka",c:"LKR",f:"🇱🇰"},
+ {n:"Colombia",c:"COP",f:"🇨🇴"},{n:"Peru",c:"PEN",f:"🇵🇪"},{n:"Argentina",c:"ARS",f:"🇦🇷"},
+ {n:"South Africa",c:"ZAR",f:"🇿🇦"},{n:"Ethiopia",c:"ETB",f:"🇪🇹"},{n:"Thailand",c:"THB",f:"🇹🇭"},
+ {n:"Malaysia",c:"MYR",f:"🇲🇾"},{n:"Jordan",c:"JOD",f:"🇯🇴"},{n:"Lebanon",c:"LBP",f:"🇱🇧"},
+ {n:"Saudi Arabia",c:"SAR",f:"🇸🇦"},{n:"United States",c:"USD",f:"🇺🇸"},{n:"United Kingdom",c:"GBP",f:"🇬🇧"},
+ {n:"Kazakhstan",c:"KZT",f:"🇰🇿"},{n:"Uzbekistan",c:"UZS",f:"🇺🇿"},{n:"Azerbaijan",c:"AZN",f:"🇦🇿"},
+ {n:"Georgia",c:"GEL",f:"🇬🇪"},{n:"Algeria",c:"DZD",f:"🇩🇿"},{n:"Cameroon",c:"XAF",f:"🇨🇲"},
+ {n:"Other / not listed",c:"USD",f:"🌍"},
+];
+const HOSTS=[
+ {n:"Germany",c:"EUR",f:"🇩🇪"},{n:"Austria",c:"EUR",f:"🇦🇹"},{n:"Netherlands",c:"EUR",f:"🇳🇱"},
+ {n:"France",c:"EUR",f:"🇫🇷"},{n:"Italy",c:"EUR",f:"🇮🇹"},{n:"Spain",c:"EUR",f:"🇪🇸"},
+ {n:"United Kingdom",c:"GBP",f:"🇬🇧"},{n:"United States",c:"USD",f:"🇺🇸"},{n:"Canada",c:"CAD",f:"🇨🇦"},
+ {n:"Switzerland",c:"CHF",f:"🇨🇭"},{n:"Sweden",c:"SEK",f:"🇸🇪"},{n:"Australia",c:"AUD",f:"🇦🇺"},
+ {n:"Poland",c:"PLN",f:"🇵🇱"},{n:"Czechia",c:"CZK",f:"🇨🇿"},{n:"Ireland",c:"EUR",f:"🇮🇪"},
+];
+const CATS=[
+ {id:"rent",label:"Rent",icon:"🏠"},{id:"groceries",label:"Groceries",icon:"🛒"},
+ {id:"utilities",label:"Utilities",icon:"💡"},{id:"internet",label:"Internet",icon:"📶"},
+ {id:"eatout",label:"Eating out",icon:"🍽️"},{id:"transport",label:"Transport",icon:"🚆"},
+ {id:"household",label:"Household",icon:"🧻"},{id:"other",label:"Other",icon:"📦"},
+];
+const cat=id=>CATS.find(c=>c.id===id)||CATS[CATS.length-1];
+
+const LS={g:k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return null}},
+ s:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const tod=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
+const haptic=(ms=10)=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch{}};
+const money=(v,code)=>{try{return new Intl.NumberFormat(undefined,{style:"currency",currency:code,maximumFractionDigits:2}).format(v||0)}catch{return (v||0).toFixed(2)+" "+code}};
+
+/* ============ SMALL UI ============ */
+function Sheet({open,onClose,title,T,children}){
+ if(!open)return null;
+ return(
+  <div style={{position:"fixed",inset:0,zIndex:300}}>
+   <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.55)",animation:"hFade .2s ease"}} onClick={onClose}/>
+   <div style={{position:"absolute",bottom:0,left:0,right:0,background:T.card,borderRadius:"22px 22px 0 0",paddingBottom:"calc(env(safe-area-inset-bottom) + 14px)",maxHeight:"calc(100vh - env(safe-area-inset-top) - 32px)",display:"flex",flexDirection:"column",animation:"hSheet .3s cubic-bezier(.22,1,.36,1)"}}>
+    <div style={{width:36,height:4,background:T.border,borderRadius:99,margin:"12px auto 2px"}}/>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",borderBottom:`1px solid ${T.border}`}}>
+     <span style={{fontWeight:700,fontSize:18,color:T.txt}}>{title}</span>
+     <button onClick={onClose} style={{background:T.cardH,border:"none",borderRadius:99,width:32,height:32,color:T.txt2,fontSize:18,cursor:"pointer"}}>✕</button>
+    </div>
+    <div style={{overflowY:"auto",padding:"16px 20px 4px"}}>{children}</div>
+   </div>
+  </div>
+ );
+}
+function Field({label,T,children}){return <div style={{marginBottom:14}}><div style={{fontSize:12,fontWeight:600,color:T.txt2,marginBottom:6}}>{label}</div>{children}</div>;}
+const inpStyle=T=>({width:"100%",background:T.inp,color:T.txt,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px",fontSize:16});
+function Ring({pct,size=74,stroke=8,color,track,children}){
+ const r=(size-stroke)/2,c=2*Math.PI*r,off=c*(1-Math.min(Math.max(pct||0,0),1));
+ return(<div style={{position:"relative",width:size,height:size,flexShrink:0}}>
+  <svg width={size} height={size} style={{transform:"rotate(-90deg)"}}>
+   <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={track} strokeWidth={stroke}/>
+   <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} style={{transition:"stroke-dashoffset .7s cubic-bezier(.22,1,.36,1)"}}/>
+  </svg>
+  {children!=null&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>{children}</div>}
+ </div>);
+}
+
+/* ============ ONBOARDING ============ */
+function Onboarding({T,onDone}){
+ const [step,setStep]=useState(0);
+ const [name,setName]=useState("");
+ const [home,setHome]=useState(COUNTRIES[0].n);
+ const [host,setHost]=useState(HOSTS[0].n);
+ const [rate,setRate]=useState("");
+ const [fetching,setFetching]=useState(false);
+ const homeObj=COUNTRIES.find(c=>c.n===home)||COUNTRIES[0];
+ const hostObj=HOSTS.find(c=>c.n===host)||HOSTS[0];
+
+ const fetchRate=async()=>{
+  setFetching(true);
+  try{
+   const r=await fetch(`https://open.er-api.com/v6/latest/${hostObj.c}`);
+   const d=await r.json();
+   const v=d&&d.rates&&d.rates[homeObj.c];
+   if(v)setRate(String(Math.round(v*100)/100));
+  }catch{}
+  setFetching(false);
+ };
+ useEffect(()=>{if(step===2&&!rate&&homeObj.c!==hostObj.c)fetchRate();},[step]);
+
+ const slides=[
+  {icon:"👋",title:"Welcome to Heimat",body:"Your money-and-life companion as an international student abroad. Split costs with flatmates, track how long your money lasts, and stay on top of your work-hour limit — in your currency and your language of numbers."},
+  {icon:"🏠",title:"How it works",body:"① Add your flat and flatmates, log a shared bill once, and Heimat tracks who owes whom.\n\n② Set up your funds runway and watch how many months your money lasts at your real spending.\n\n③ Log work shifts so you never cross the legal hour-limit that can risk your visa.\n\nEverything stays on YOUR phone. No account, no sign-up, no bank login."},
+ ];
+
+ if(step<2){
+  const s=slides[step];
+  return(
+   <div style={{position:"fixed",inset:0,background:T.bg,zIndex:1000,display:"flex",flexDirection:"column",padding:"calc(env(safe-area-inset-top) + 30px) 28px calc(env(safe-area-inset-bottom) + 30px)",animation:"hFade .3s ease"}}>
+    <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center"}}>
+     <div style={{fontSize:64,marginBottom:24}}>{s.icon}</div>
+     <div style={{fontSize:30,fontWeight:800,letterSpacing:-.8,color:T.txt,marginBottom:16,lineHeight:1.15}}>{s.title}</div>
+     <div style={{fontSize:16,color:T.txt2,lineHeight:1.6,whiteSpace:"pre-line"}}>{s.body}</div>
+    </div>
+    <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:22}}>
+     {[0,1,2,3].map(i=><div key={i} style={{width:i===step?22:7,height:7,borderRadius:99,background:i===step?T.acc:T.border,transition:"width .25s"}}/>)}
+    </div>
+    <div style={{display:"flex",gap:12}}>
+     {step>0&&<button onClick={()=>setStep(step-1)} className="h-press" style={{flex:1,background:T.card,color:T.txt,border:"none",borderRadius:16,padding:"16px",fontSize:16,fontWeight:600,cursor:"pointer"}}>Back</button>}
+     <button onClick={()=>{haptic();setStep(step+1);}} className="h-press" style={{flex:2,background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontSize:16,fontWeight:700,cursor:"pointer"}}>Continue</button>
+    </div>
+   </div>
+  );
+ }
+
+ /* step 2: profile setup */
+ return(
+  <div style={{position:"fixed",inset:0,background:T.bg,zIndex:1000,display:"flex",flexDirection:"column",animation:"hFade .3s ease"}}>
+   <div style={{padding:"calc(env(safe-area-inset-top) + 24px) 24px 8px"}}>
+    <div style={{fontSize:26,fontWeight:800,letterSpacing:-.6,color:T.txt}}>Set up your profile</div>
+    <div style={{fontSize:14,color:T.txt2,marginTop:4}}>So Heimat can show every amount in both currencies.</div>
+   </div>
+   <div style={{flex:1,overflowY:"auto",padding:"12px 24px"}}>
+    <Field label="Your name" T={T}><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Aarav" style={inpStyle(T)}/></Field>
+    <Field label="Home country (your currency)" T={T}>
+     <select value={home} onChange={e=>setHome(e.target.value)} style={inpStyle(T)}>
+      {COUNTRIES.map(c=><option key={c.n} value={c.n}>{c.f} {c.n} — {c.c}</option>)}
+     </select>
+    </Field>
+    <Field label="Where you study (local currency)" T={T}>
+     <select value={host} onChange={e=>setHost(e.target.value)} style={inpStyle(T)}>
+      {HOSTS.map(c=><option key={c.n} value={c.n}>{c.f} {c.n} — {c.c}</option>)}
+     </select>
+    </Field>
+    {homeObj.c!==hostObj.c&&(
+     <Field label={`Exchange rate · 1 ${hostObj.c} = ? ${homeObj.c}`} T={T}>
+      <div style={{display:"flex",gap:8}}>
+       <input value={rate} onChange={e=>setRate(e.target.value)} type="number" inputMode="decimal" placeholder="rate" style={inpStyle(T)}/>
+       <button onClick={fetchRate} className="h-press" style={{flexShrink:0,background:T.card,color:T.acc,border:`1px solid ${T.border}`,borderRadius:12,padding:"0 16px",fontSize:14,fontWeight:700,cursor:"pointer"}}>{fetching?"…":"Live rate"}</button>
+      </div>
+      <div style={{fontSize:11,color:T.txt3,marginTop:6}}>Reference rate only — it's not the rate your bank gives you. Edit anytime.</div>
+     </Field>
+    )}
+   </div>
+   <div style={{padding:"8px 24px calc(env(safe-area-inset-bottom) + 24px)"}}>
+    <button disabled={!name.trim()} onClick={()=>{
+      haptic(14);
+      onDone({name:name.trim(),homeCountry:homeObj.n,homeCur:homeObj.c,homeFlag:homeObj.f,hostCountry:hostObj.n,hostCur:hostObj.c,rate:parseFloat(rate)||(homeObj.c===hostObj.c?1:0),onboarded:true});
+    }} className="h-press" style={{width:"100%",background:name.trim()?T.acc:T.border,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontSize:16,fontWeight:700,cursor:name.trim()?"pointer":"default"}}>Start using Heimat</button>
+   </div>
+  </div>
+ );
+}
+
+/* ============ APP ============ */
+function App(){
+ const [dark,setDark]=useState(()=>{const v=LS.g("mt-h-dark");return v==null?true:v;});
+ const T=dark?DK:LT;
+ const [profile,setProfile]=useState(()=>LS.g("mt-h-profile")||{onboarded:false});
+ const [members,setMembers]=useState(()=>LS.g("mt-h-members")||[]);
+ const [expenses,setExpenses]=useState(()=>LS.g("mt-h-expenses")||[]);
+ const [settles,setSettles]=useState(()=>LS.g("mt-h-settles")||[]);
+ const [runway,setRunway]=useState(()=>LS.g("mt-h-runway")||null);
+ const [shifts,setShifts]=useState(()=>LS.g("mt-h-shifts")||[]);
+ const [tab,setTab]=useState("home");
+ const [modal,setModal]=useState(null);
+ const [toast,setToast]=useState(null);
+
+ const save=(setter,key)=>v=>{setter(v);LS.s(key,v);};
+ const sProfile=save(setProfile,"mt-h-profile");
+ const sMembers=save(setMembers,"mt-h-members");
+ const sExp=save(setExpenses,"mt-h-expenses");
+ const sSettle=save(setSettles,"mt-h-settles");
+ const sRunway=save(setRunway,"mt-h-runway");
+ const sShifts=save(setShifts,"mt-h-shifts");
+ const tgDark=()=>{const n=!dark;setDark(n);LS.s("mt-h-dark",n);};
+ const showToast=(m)=>{setToast(m);setTimeout(()=>setToast(null),2200);};
+
+ const hostCur=profile.hostCur||"EUR";
+ const homeCur=profile.homeCur||hostCur;
+ const rate=profile.rate||1;
+ const fH=v=>money(v,hostCur);
+ const fHome=v=>homeCur===hostCur?null:money(v*rate,homeCur);
+ const meId=useMemo(()=>{const m=members.find(x=>x.isMe);return m?m.id:null;},[members]);
+
+ const finishOnboard=(p)=>{
+  sProfile(p);
+  const me={id:uid(),name:p.name,isMe:true};
+  sMembers([me]);
+ };
+
+ /* balances */
+ const balances=useMemo(()=>{
+  const net={};members.forEach(m=>net[m.id]=0);
+  expenses.forEach(e=>{
+   if(net[e.paidBy]==null)return;
+   net[e.paidBy]+=e.amount;
+   const parts=(e.splitAmong&&e.splitAmong.length)?e.splitAmong:[e.paidBy];
+   const share=e.amount/parts.length;
+   parts.forEach(pid=>{if(net[pid]!=null)net[pid]-=share;});
+  });
+  settles.forEach(s=>{if(net[s.from]!=null)net[s.from]+=s.amount;if(net[s.to]!=null)net[s.to]-=s.amount;});
+  return net;
+ },[members,expenses,settles]);
+ const myNet=meId?(balances[meId]||0):0;
+
+ /* runway */
+ const runwayCalc=useMemo(()=>{
+  if(!runway||!runway.total)return null;
+  const spentSince=expenses.filter(e=>e.date>=runway.start).reduce((s,e)=>{
+   const parts=(e.splitAmong&&e.splitAmong.length)?e.splitAmong:[e.paidBy];
+   return s+(parts.includes(meId)?e.amount/parts.length:0);
+  },0);
+  const left=Math.max(runway.total-spentSince,0);
+  const start=new Date(runway.start),now=new Date();
+  const monthsElapsed=Math.max((now.getFullYear()-start.getFullYear())*12+(now.getMonth()-start.getMonth())+now.getDate()/30,0.1);
+  const burn=Math.max(spentSince/monthsElapsed,runway.monthly||0,1);
+  const monthsLeft=left/burn;
+  return {left,monthsLeft,burn,spentSince};
+ },[runway,expenses,meId]);
+
+ /* work hours this year */
+ const workStats=useMemo(()=>{
+  const yr=tod().slice(0,4);
+  const cur=shifts.filter(s=>s.date.startsWith(yr));
+  let full=0,half=0;cur.forEach(s=>{(s.hours>=4)?full++:half++;});
+  const daysUsed=full+half*0.5;
+  const budget=120;
+  // this week hours
+  const now=new Date();const day=(now.getDay()+6)%7;const monday=new Date(now);monday.setDate(now.getDate()-day);
+  const mk=`${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}-${String(monday.getDate()).padStart(2,"0")}`;
+  const weekH=shifts.filter(s=>s.date>=mk).reduce((a,s)=>a+(parseFloat(s.hours)||0),0);
+  return {daysUsed,budget,weekH,count:cur.length};
+ },[shifts]);
+
+ if(!profile.onboarded)return <div style={{height:"100%",background:T.bg}}><Onboarding T={T} onDone={finishOnboard}/></div>;
+
+ const TABS=[["home","Home","◎"],["flat","Flat","🏠"],["money","Money","€"],["work","Work","⏱"],["me","Me","☺"]];
+
+ return(
+  <div style={{height:"100%",display:"flex",flexDirection:"column",background:T.bg,color:T.txt}}>
+   {toast&&<div style={{position:"fixed",top:"calc(env(safe-area-inset-top) + 12px)",left:"50%",transform:"translateX(-50%)",zIndex:999,background:T.card,color:T.txt,border:`1px solid ${T.border}`,borderRadius:14,padding:"10px 18px",fontSize:14,fontWeight:600,boxShadow:"0 8px 28px rgba(0,0,0,.4)"}}>{toast}</div>}
+
+   {/* header */}
+   <div style={{flexShrink:0,paddingTop:"env(safe-area-inset-top)"}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px 6px"}}>
+     <span style={{fontWeight:800,fontSize:20,letterSpacing:-.5}}>Heimat</span>
+     <button onClick={tgDark} className="h-press" style={{background:"none",border:"none",color:T.txt2,fontSize:18,cursor:"pointer"}}>{dark?"☀":"☾"}</button>
+    </div>
+   </div>
+
+   <div style={{flex:1,overflowY:"auto"}}>
+    <div className="h-stagger" style={{padding:"6px 16px calc(env(safe-area-inset-bottom) + 120px)"}}>
+
+     {tab==="home"&&<>
+      <div style={{textAlign:"center",padding:"10px 0 14px"}}>
+       <div style={{fontSize:11,fontWeight:700,letterSpacing:1,color:T.txt3,textTransform:"uppercase"}}>Your flat balance</div>
+       <div style={{fontSize:36,fontWeight:800,letterSpacing:-1.2,marginTop:2,color:myNet>0.5?T.green:myNet<-0.5?T.red:T.txt}}>{myNet>=0?"+":"−"}{fH(Math.abs(myNet))}</div>
+       <div style={{fontSize:13,color:T.txt2,marginTop:3}}>{myNet>0.5?"you are owed":myNet<-0.5?"you owe":"all settled up"}{fHome(Math.abs(myNet))?` · ${fHome(Math.abs(myNet))}`:""}</div>
+      </div>
+
+      {runwayCalc&&(
+       <div onClick={()=>setTab("money")} className="h-press" style={{display:"flex",alignItems:"center",gap:14,background:T.card,borderRadius:20,padding:"15px 16px",marginBottom:12,cursor:"pointer"}}>
+        <Ring pct={runwayCalc.monthsLeft/(runway.targetMonths||12)} size={64} stroke={7} color={runwayCalc.monthsLeft<2?T.red:T.acc} track={T.border}>
+         <span style={{fontSize:15,fontWeight:800}}>{Math.floor(runwayCalc.monthsLeft)}</span>
+         <span style={{fontSize:8,color:T.txt2}}>mo</span>
+        </Ring>
+        <div style={{flex:1}}>
+         <div style={{fontSize:12,fontWeight:600,color:T.txt2}}>Funds runway</div>
+         <div style={{fontSize:19,fontWeight:800,letterSpacing:-.4}}>{fH(runwayCalc.left)} <span style={{fontSize:12,fontWeight:500,color:T.txt3}}>left</span></div>
+         <div style={{fontSize:11,color:T.txt3,marginTop:1}}>≈ {runwayCalc.monthsLeft.toFixed(1)} months at {fH(runwayCalc.burn)}/mo</div>
+        </div>
+        <span style={{color:T.txt3,fontSize:16}}>›</span>
+       </div>
+      )}
+
+      <div style={{display:"flex",gap:10,marginBottom:14}}>
+       <button onClick={()=>setModal("exp")} className="h-press" style={{flex:1,background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer"}}>+ Shared expense</button>
+       <button onClick={()=>setTab("flat")} className="h-press" style={{flex:1,background:T.card,color:T.txt,border:`1px solid ${T.border}`,borderRadius:16,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer"}}>Who owes whom</button>
+      </div>
+
+      <span className="h-lbl" style={{color:T.txt3}}>Recent in your flat</span>
+      <div style={{background:T.card,borderRadius:20,overflow:"hidden"}}>
+       {expenses.length===0?<div style={{padding:"16px",color:T.txt3,fontSize:14}}>No shared expenses yet. Add your first bill above.</div>
+       :[...expenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6).map((e,i)=>{
+        const payer=members.find(m=>m.id===e.paidBy);const c=cat(e.category);
+        return <div key={e.id} style={{display:"flex",alignItems:"center",gap:11,padding:"11px 15px",borderTop:i>0?`1px solid ${T.border}`:"none"}}>
+         <div style={{width:38,height:38,borderRadius:12,background:T.cardH,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{c.icon}</div>
+         <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:600,fontSize:14}}>{e.desc||c.label}</div>
+          <div style={{fontSize:11,color:T.txt2}}>{payer?(payer.isMe?"you":payer.name):"?"} paid · {e.date}</div>
+         </div>
+         <div style={{textAlign:"right"}}>
+          <div style={{fontWeight:700,fontSize:14}}>{fH(e.amount)}</div>
+          {fHome(e.amount)&&<div style={{fontSize:10,color:T.txt3}}>{fHome(e.amount)}</div>}
+         </div>
+        </div>;
+       })}
+      </div>
+     </>}
+
+     {tab==="flat"&&<FlatTab {...{T,members,sMembers,balances,meId,fH,fHome,setModal,settles,sSettle,showToast,expenses}}/>}
+     {tab==="money"&&<MoneyTab {...{T,runway,sRunway,runwayCalc,fH,fHome,hostCur,homeCur,rate,profile,sProfile,setModal}}/>}
+     {tab==="work"&&<WorkTab {...{T,shifts,sShifts,workStats,setModal}}/>}
+     {tab==="me"&&<MeTab {...{T,profile,sProfile,dark,tgDark,showToast,members,expenses,settles,runway,shifts,sMembers,sExp,sSettle,sRunway,sShifts}}/>}
+
+    </div>
+   </div>
+
+   {/* bottom nav */}
+   <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:90,paddingBottom:"calc(env(safe-area-inset-bottom) + 8px)",paddingTop:6,background:dark?"rgba(11,14,26,.86)":"rgba(244,245,251,.9)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${T.border}`}}>
+    <div style={{display:"flex",maxWidth:480,margin:"0 auto"}}>
+     {TABS.map(([id,label,ic])=>{
+      const on=tab===id;
+      return <button key={id} onClick={()=>{haptic(8);setTab(id);}} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer",color:on?T.acc:T.txt3}}>
+       <span style={{fontSize:18,lineHeight:1}}>{ic}</span>
+       <span style={{fontSize:10,fontWeight:on?700:500}}>{label}</span>
+      </button>;
+     })}
+    </div>
+   </div>
+
+   {/* modals */}
+   <ExpenseModal {...{open:modal==="exp",onClose:()=>setModal(null),T,members,sMembers,expenses,sExp,meId,hostCur,homeCur,rate,showToast}}/>
+   <MemberModal {...{open:modal==="member",onClose:()=>setModal(null),T,members,sMembers,showToast}}/>
+   <SettleModal {...{open:modal==="settle",onClose:()=>setModal(null),T,members,balances,settles,sSettle,meId,fH,showToast}}/>
+   <RunwayModal {...{open:modal==="runway",onClose:()=>setModal(null),T,runway,sRunway,hostCur,showToast}}/>
+   <ShiftModal {...{open:modal==="shift",onClose:()=>setModal(null),T,shifts,sShifts,showToast}}/>
+  </div>
+ );
+}
+
+/* ============ FLAT TAB ============ */
+function FlatTab({T,members,sMembers,balances,meId,fH,fHome,setModal,showToast}){
+ return(<>
+  <span className="h-lbl" style={{color:T.txt3}}>Your flatmates</span>
+  <div style={{background:T.card,borderRadius:20,overflow:"hidden",marginBottom:14}}>
+   {members.map((m,i)=>{
+    const net=balances[m.id]||0;
+    return <div key={m.id} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 15px",borderTop:i>0?`1px solid ${T.border}`:"none"}}>
+     <div style={{width:38,height:38,borderRadius:99,background:T.acc,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:700}}>{(m.name||"?")[0].toUpperCase()}</div>
+     <div style={{flex:1}}>
+      <div style={{fontWeight:600,fontSize:15}}>{m.name}{m.isMe?" (you)":""}</div>
+      <div style={{fontSize:12,color:net>0.5?T.green:net<-0.5?T.red:T.txt2}}>{Math.abs(net)<0.5?"settled":net>0?`gets back ${fH(net)}`:`owes ${fH(-net)}`}</div>
+     </div>
+     {!m.isMe&&<button onClick={()=>{if(confirm(`Remove ${m.name}?`)){sMembers(members.filter(x=>x.id!==m.id));}}} style={{background:"none",border:"none",color:T.txt3,fontSize:16,cursor:"pointer"}}>✕</button>}
+    </div>;
+   })}
+  </div>
+  <div style={{display:"flex",gap:10,marginBottom:14}}>
+   <button onClick={()=>setModal("member")} className="h-press" style={{flex:1,background:T.card,color:T.txt,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px",fontWeight:700,fontSize:14,cursor:"pointer"}}>+ Flatmate</button>
+   <button onClick={()=>setModal("settle")} className="h-press" style={{flex:1,background:T.card,color:T.acc,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px",fontWeight:700,fontSize:14,cursor:"pointer"}}>Settle up</button>
+  </div>
+  <button onClick={()=>setModal("exp")} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"15px",fontWeight:700,fontSize:15,cursor:"pointer"}}>+ Add shared expense</button>
+  <div style={{fontSize:12,color:T.txt3,textAlign:"center",marginTop:12,lineHeight:1.5}}>Tip: log rent, Strom (electricity), internet & the TV licence once — everyone's share updates automatically.</div>
+ </>);
+}
+
+/* ============ MONEY TAB ============ */
+function MoneyTab({T,runway,runwayCalc,fH,fHome,hostCur,homeCur,rate,profile,sProfile,setModal}){
+ return(<>
+  <span className="h-lbl" style={{color:T.txt3}}>Funds runway</span>
+  {runwayCalc?(
+   <div style={{background:T.card,borderRadius:20,padding:"18px 16px",marginBottom:14,textAlign:"center"}}>
+    <Ring pct={runwayCalc.monthsLeft/(runway.targetMonths||12)} size={120} stroke={11} color={runwayCalc.monthsLeft<2?T.red:T.acc} track={T.border}>
+     <span style={{fontSize:30,fontWeight:800}}>{runwayCalc.monthsLeft.toFixed(1)}</span>
+     <span style={{fontSize:11,color:T.txt2}}>months left</span>
+    </Ring>
+    <div style={{fontSize:22,fontWeight:800,marginTop:14}}>{fH(runwayCalc.left)}</div>
+    {fHome(runwayCalc.left)&&<div style={{fontSize:13,color:T.txt2}}>≈ {fHome(runwayCalc.left)}</div>}
+    <div style={{fontSize:12,color:T.txt3,marginTop:8}}>Spending ≈ {fH(runwayCalc.burn)} / month · {fH(runwayCalc.spentSince)} used so far</div>
+    <button onClick={()=>setModal("runway")} className="h-press" style={{marginTop:14,background:T.cardH,color:T.txt,border:"none",borderRadius:12,padding:"10px 18px",fontWeight:600,fontSize:14,cursor:"pointer"}}>Edit runway</button>
+   </div>
+  ):(
+   <div style={{background:T.card,borderRadius:20,padding:"20px 16px",marginBottom:14,textAlign:"center"}}>
+    <div style={{fontSize:34,marginBottom:8}}>💶</div>
+    <div style={{fontWeight:700,fontSize:16,marginBottom:4}}>How long will your money last?</div>
+    <div style={{fontSize:13,color:T.txt2,marginBottom:14,lineHeight:1.5}}>If you have a blocked account (Sperrkonto) or a fixed budget for the year, enter it and Heimat shows your live runway as you spend.</div>
+    <button onClick={()=>setModal("runway")} className="h-press" style={{background:T.acc,color:"#fff",border:"none",borderRadius:14,padding:"12px 22px",fontWeight:700,fontSize:15,cursor:"pointer"}}>Set up runway</button>
+   </div>
+  )}
+  <span className="h-lbl" style={{color:T.txt3}}>Your currencies</span>
+  <div style={{background:T.card,borderRadius:20,padding:"4px 16px",marginBottom:14}}>
+   <Row T={T} k="Home currency" v={`${profile.homeFlag||""} ${homeCur}`}/>
+   <Row T={T} k="Local currency" v={hostCur}/>
+   <Row T={T} k={`1 ${hostCur} =`} v={homeCur===hostCur?"—":`${rate} ${homeCur}`} last/>
+  </div>
+  <button onClick={()=>setModal("runway")} style={{display:"none"}}/>
+  <div style={{fontSize:12,color:T.txt3,textAlign:"center",lineHeight:1.5}}>Heimat never holds or moves your money. It only helps you see it clearly. Change currency & rate in the Me tab.</div>
+ </>);
+}
+function Row({T,k,v,last}){return <div style={{display:"flex",justifyContent:"space-between",padding:"12px 0",borderBottom:last?"none":`1px solid ${T.border}`}}><span style={{color:T.txt2,fontSize:14}}>{k}</span><span style={{fontWeight:600,fontSize:14}}>{v}</span></div>;}
+
+/* ============ WORK TAB ============ */
+function WorkTab({T,shifts,sShifts,workStats,setModal}){
+ const pct=workStats.daysUsed/workStats.budget;
+ const tone=pct>=1?T.red:pct>=0.8?T.amber:T.green;
+ const verdict=pct>=1?"Over the limit":pct>=0.8?"Getting close":"You're fine";
+ return(<>
+  <div style={{background:T.card,borderRadius:20,padding:"18px 16px",marginBottom:14,textAlign:"center"}}>
+   <Ring pct={pct} size={120} stroke={11} color={tone} track={T.border}>
+    <span style={{fontSize:28,fontWeight:800}}>{workStats.daysUsed}</span>
+    <span style={{fontSize:11,color:T.txt2}}>of {workStats.budget} days</span>
+   </Ring>
+   <div style={{fontSize:18,fontWeight:800,marginTop:12,color:tone}}>{verdict}</div>
+   <div style={{fontSize:12,color:T.txt3,marginTop:3}}>{(workStats.budget-workStats.daysUsed).toFixed(1)} work-days left this year</div>
+  </div>
+  <div style={{display:"flex",gap:10,marginBottom:14}}>
+   <div style={{flex:1,background:T.card,borderRadius:16,padding:"14px"}}>
+    <div style={{fontSize:11,color:T.txt2,fontWeight:600}}>This week</div>
+    <div style={{fontSize:20,fontWeight:800,marginTop:3,color:workStats.weekH>20?T.amber:T.txt}}>{workStats.weekH}h</div>
+    <div style={{fontSize:10,color:T.txt3}}>Werkstudent cap ≈ 20h</div>
+   </div>
+   <div style={{flex:1,background:T.card,borderRadius:16,padding:"14px"}}>
+    <div style={{fontSize:11,color:T.txt2,fontWeight:600}}>Shifts logged</div>
+    <div style={{fontSize:20,fontWeight:800,marginTop:3}}>{workStats.count}</div>
+    <div style={{fontSize:10,color:T.txt3}}>this year</div>
+   </div>
+  </div>
+  <button onClick={()=>setModal("shift")} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"15px",fontWeight:700,fontSize:15,cursor:"pointer"}}>+ Log a work shift</button>
+  <div style={{fontSize:11,color:T.txt3,textAlign:"center",marginTop:12,lineHeight:1.55}}>Guidance only, not legal advice. The German student rule is roughly 120 full days (or 240 half-days under 4h) per year; Werkstudent jobs ~20h/week in term. Always confirm your exact limit with your university's international office.</div>
+ </>);
+}
+
+/* ============ ME TAB ============ */
+function MeTab({T,profile,sProfile,dark,tgDark,showToast,members,expenses,settles,runway,shifts,sMembers,sExp,sSettle,sRunway,sShifts}){
+ const [rate,setRate]=useState(String(profile.rate||""));
+ const exportData=()=>{
+  const data={profile,members,expenses,settles,runway,shifts,exportedAt:new Date().toISOString(),app:"heimat",version:window.HEIMAT_VERSION};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`heimat-backup-${tod()}.json`;a.click();URL.revokeObjectURL(url);
+  showToast("Backup saved");
+ };
+ const importData=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);
+   if(d.profile)sProfile(d.profile);if(d.members)sMembers(d.members);if(d.expenses)sExp(d.expenses);
+   if(d.settles)sSettle(d.settles);if(d.runway)sRunway(d.runway);if(d.shifts)sShifts(d.shifts);
+   showToast("Data restored");}catch{showToast("Invalid file");}};
+  r.readAsText(f);e.target.value="";
+ };
+ return(<>
+  <span className="h-lbl" style={{color:T.txt3}}>You</span>
+  <div style={{background:T.card,borderRadius:20,padding:"16px",marginBottom:14,display:"flex",alignItems:"center",gap:14}}>
+   <div style={{width:50,height:50,borderRadius:99,background:T.acc,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:22}}>{(profile.name||"?")[0].toUpperCase()}</div>
+   <div><div style={{fontWeight:700,fontSize:17}}>{profile.name}</div><div style={{fontSize:13,color:T.txt2}}>{profile.homeFlag} {profile.homeCountry} → {profile.hostCountry}</div></div>
+  </div>
+
+  <span className="h-lbl" style={{color:T.txt3}}>Currency & rate</span>
+  <div style={{background:T.card,borderRadius:20,padding:"16px",marginBottom:14}}>
+   <Row T={T} k="Home" v={`${profile.homeFlag||""} ${profile.homeCur}`}/>
+   <Row T={T} k="Local" v={profile.hostCur}/>
+   {profile.homeCur!==profile.hostCur&&<div style={{display:"flex",gap:8,alignItems:"center",paddingTop:12}}>
+    <span style={{fontSize:14,color:T.txt2,flexShrink:0}}>1 {profile.hostCur} =</span>
+    <input value={rate} onChange={e=>setRate(e.target.value)} type="number" inputMode="decimal" style={{...inpStyle(T),padding:"8px 12px"}}/>
+    <button onClick={()=>{sProfile({...profile,rate:parseFloat(rate)||profile.rate});showToast("Rate updated");}} className="h-press" style={{flexShrink:0,background:T.acc,color:"#fff",border:"none",borderRadius:10,padding:"9px 14px",fontWeight:700,fontSize:13,cursor:"pointer"}}>Save</button>
+   </div>}
+  </div>
+
+  <span className="h-lbl" style={{color:T.txt3}}>Data & settings</span>
+  <div style={{background:T.card,borderRadius:20,overflow:"hidden",marginBottom:14}}>
+   <TapRow T={T} label="Dark mode" right={<div onClick={tgDark} style={{width:46,height:28,borderRadius:99,background:dark?T.acc:T.border,position:"relative",cursor:"pointer"}}><div style={{position:"absolute",top:2,left:dark?20:2,width:24,height:24,borderRadius:99,background:"#fff",transition:"left .2s"}}/></div>}/>
+   <TapRow T={T} label="Export backup" onClick={exportData} right={<span style={{color:T.txt3}}>›</span>}/>
+   <label style={{display:"block",cursor:"pointer"}}><TapRow T={T} label="Restore backup" right={<span style={{color:T.txt3}}>›</span>}/><input type="file" accept="application/json" onChange={importData} style={{display:"none"}}/></label>
+   <TapRow T={T} label="Replay intro" onClick={()=>{sProfile({...profile,onboarded:false});}} right={<span style={{color:T.txt3}}>›</span>}/>
+   <TapRow T={T} label="Reset everything" danger onClick={()=>{if(confirm("Delete ALL Heimat data on this device?")){["mt-h-profile","mt-h-members","mt-h-expenses","mt-h-settles","mt-h-runway","mt-h-shifts"].forEach(k=>LS.s(k,null));location.reload();}}} last/>
+  </div>
+  <div style={{textAlign:"center",fontSize:12,color:T.txt3,marginBottom:10}}>Heimat {window.HEIMAT_VERSION} · all data stays on this device</div>
+ </>);
+}
+function TapRow({T,label,right,onClick,danger,last}){
+ return <div onClick={onClick} className={onClick?"h-press":""} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 16px",borderBottom:last?"none":`1px solid ${T.border}`,cursor:onClick?"pointer":"default"}}>
+  <span style={{fontSize:15,fontWeight:500,color:danger?T.red:T.txt}}>{label}</span>{right}
+ </div>;
+}
+
+/* ============ MODALS ============ */
+function ExpenseModal({open,onClose,T,members,expenses,sExp,meId,hostCur,homeCur,rate,showToast}){
+ const [desc,setDesc]=useState("");const [amt,setAmt]=useState("");const [payer,setPayer]=useState(meId||"");
+ const [among,setAmong]=useState(members.map(m=>m.id));const [c,setC]=useState("groceries");
+ useEffect(()=>{if(open){setDesc("");setAmt("");setPayer(meId||(members[0]&&members[0].id)||"");setAmong(members.map(m=>m.id));setC("groceries");}},[open]);
+ const v=parseFloat(amt)||0;
+ const toggle=id=>setAmong(a=>a.includes(id)?a.filter(x=>x!==id):[...a,id]);
+ const save=()=>{
+  if(!v||!payer||among.length===0)return;
+  sExp([{id:uid(),desc:desc.trim(),amount:v,paidBy:payer,splitAmong:among,category:c,date:tod()},...expenses]);
+  haptic(12);showToast("Expense added");onClose();
+ };
+ return <Sheet open={open} onClose={onClose} title="Shared expense" T={T}>
+  <Field label="What for?" T={T}><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="e.g. Rewe groceries" style={inpStyle(T)}/></Field>
+  <Field label={`Amount (${hostCur})`} T={T}>
+   <input value={amt} onChange={e=>setAmt(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" style={{...inpStyle(T),fontSize:22,fontWeight:700}}/>
+   {homeCur!==hostCur&&v>0&&<div style={{fontSize:12,color:T.txt3,marginTop:6}}>≈ {money(v*rate,homeCur)} in your currency</div>}
+  </Field>
+  <Field label="Paid by" T={T}><select value={payer} onChange={e=>setPayer(e.target.value)} style={inpStyle(T)}>{members.map(m=><option key={m.id} value={m.id}>{m.isMe?"You":m.name}</option>)}</select></Field>
+  <Field label="Category" T={T}>
+   <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+    {CATS.map(x=><button key={x.id} onClick={()=>setC(x.id)} style={{background:c===x.id?T.acc:T.inp,color:c===x.id?"#fff":T.txt2,border:`1px solid ${c===x.id?T.acc:T.border}`,borderRadius:99,padding:"7px 12px",fontSize:13,fontWeight:600,cursor:"pointer"}}>{x.icon} {x.label}</button>)}
+   </div>
+  </Field>
+  <Field label={`Split between (${among.length})`} T={T}>
+   {members.map(m=><div key={m.id} onClick={()=>toggle(m.id)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 14px",background:T.inp,borderRadius:12,marginBottom:7,cursor:"pointer",border:`1px solid ${among.includes(m.id)?T.acc:T.border}`}}>
+    <span style={{fontWeight:500}}>{m.isMe?"You":m.name}</span>
+    <span style={{color:among.includes(m.id)?T.acc:T.txt3,fontWeight:700}}>{among.includes(m.id)?`${money(v/Math.max(among.length,1),hostCur)} ✓`:"—"}</span>
+   </div>)}
+  </Field>
+  <button onClick={save} disabled={!v||among.length===0} className="h-press" style={{width:"100%",background:v&&among.length?T.acc:T.border,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer",marginBottom:8}}>Add expense</button>
+ </Sheet>;
+}
+function MemberModal({open,onClose,T,members,sMembers,showToast}){
+ const [name,setName]=useState("");
+ useEffect(()=>{if(open)setName("");},[open]);
+ return <Sheet open={open} onClose={onClose} title="Add flatmate" T={T}>
+  <Field label="Name" T={T}><input value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Jonas" style={inpStyle(T)}/></Field>
+  <button onClick={()=>{if(!name.trim())return;sMembers([...members,{id:uid(),name:name.trim()}]);haptic(12);showToast("Flatmate added");onClose();}} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer"}}>Add flatmate</button>
+  <div style={{fontSize:12,color:T.txt3,textAlign:"center",marginTop:12,lineHeight:1.5}}>In a later version, flatmates will join from their own phone with an invite link. For now you can log for everyone.</div>
+ </Sheet>;
+}
+function SettleModal({open,onClose,T,members,balances,settles,sSettle,meId,fH,showToast}){
+ const debtors=members.filter(m=>(balances[m.id]||0)<-0.5);
+ const creditors=members.filter(m=>(balances[m.id]||0)>0.5);
+ const [from,setFrom]=useState("");const [to,setTo]=useState("");const [amt,setAmt]=useState("");
+ useEffect(()=>{if(open){setFrom(debtors[0]?debtors[0].id:"");setTo(creditors[0]?creditors[0].id:"");setAmt("");}},[open]);
+ return <Sheet open={open} onClose={onClose} title="Settle up" T={T}>
+  {debtors.length===0?<div style={{padding:"20px 0",textAlign:"center",color:T.txt2}}>Everyone's settled up 🎉</div>:<>
+   <Field label="Who pays" T={T}><select value={from} onChange={e=>setFrom(e.target.value)} style={inpStyle(T)}>{members.map(m=><option key={m.id} value={m.id}>{m.isMe?"You":m.name}</option>)}</select></Field>
+   <Field label="Pays to" T={T}><select value={to} onChange={e=>setTo(e.target.value)} style={inpStyle(T)}>{members.map(m=><option key={m.id} value={m.id}>{m.isMe?"You":m.name}</option>)}</select></Field>
+   <Field label="Amount" T={T}><input value={amt} onChange={e=>setAmt(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" style={inpStyle(T)}/></Field>
+   <button onClick={()=>{const v=parseFloat(amt)||0;if(!v||from===to)return;sSettle([...settles,{id:uid(),from,to,amount:v,date:tod()}]);haptic(12);showToast("Payment recorded");onClose();}} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer"}}>Record payment</button>
+  </>}
+ </Sheet>;
+}
+function RunwayModal({open,onClose,T,runway,sRunway,hostCur,showToast}){
+ const [total,setTotal]=useState("");const [start,setStart]=useState(tod());const [monthly,setMonthly]=useState("");const [target,setTarget]=useState("12");
+ useEffect(()=>{if(open&&runway){setTotal(String(runway.total||""));setStart(runway.start||tod());setMonthly(String(runway.monthly||""));setTarget(String(runway.targetMonths||12));}else if(open){setTotal("");setStart(tod());setMonthly("");setTarget("12");}},[open]);
+ return <Sheet open={open} onClose={onClose} title="Funds runway" T={T}>
+  <Field label={`Total funds available (${hostCur})`} T={T}><input value={total} onChange={e=>setTotal(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 11904" style={{...inpStyle(T),fontSize:20,fontWeight:700}}/></Field>
+  <Field label="Counting from" T={T}><input value={start} onChange={e=>setStart(e.target.value)} type="date" style={inpStyle(T)}/></Field>
+  <Field label="Must last (months)" T={T}><input value={target} onChange={e=>setTarget(e.target.value)} type="number" inputMode="numeric" style={inpStyle(T)}/></Field>
+  <Field label={`Planned monthly minimum (${hostCur}, optional)`} T={T}><input value={monthly} onChange={e=>setMonthly(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 992" style={inpStyle(T)}/></Field>
+  <button onClick={()=>{const t=parseFloat(total)||0;if(!t)return;sRunway({total:t,start,monthly:parseFloat(monthly)||0,targetMonths:parseInt(target)||12});haptic(12);showToast("Runway saved");onClose();}} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer",marginBottom:8}}>Save runway</button>
+  <div style={{fontSize:12,color:T.txt3,textAlign:"center",lineHeight:1.5}}>For a German blocked account this is usually ~€11,904 that must last 12 months (~€992/mo).</div>
+ </Sheet>;
+}
+function ShiftModal({open,onClose,T,shifts,sShifts,showToast}){
+ const [date,setDate]=useState(tod());const [hours,setHours]=useState("");const [emp,setEmp]=useState("");
+ useEffect(()=>{if(open){setDate(tod());setHours("");setEmp("");}},[open]);
+ return <Sheet open={open} onClose={onClose} title="Log work shift" T={T}>
+  <Field label="Date" T={T}><input value={date} onChange={e=>setDate(e.target.value)} type="date" style={inpStyle(T)}/></Field>
+  <Field label="Hours worked" T={T}><input value={hours} onChange={e=>setHours(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 6" style={{...inpStyle(T),fontSize:20,fontWeight:700}}/></Field>
+  <Field label="Employer (optional)" T={T}><input value={emp} onChange={e=>setEmp(e.target.value)} placeholder="e.g. Café job" style={inpStyle(T)}/></Field>
+  <button onClick={()=>{const h=parseFloat(hours)||0;if(!h)return;sShifts([{id:uid(),date,hours:h,employer:emp.trim()},...shifts]);haptic(12);showToast("Shift logged");onClose();}} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer"}}>Log shift</button>
+ </Sheet>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
