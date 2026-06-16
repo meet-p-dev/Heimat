@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Heimat"/>
 <meta name="theme-color" content="#0b0e1a"/>
 <title>Heimat</title>
-<script>window.HEIMAT_VERSION="V0.2";</script>
+<script>window.HEIMAT_VERSION="V0.3";</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -48,8 +48,34 @@ const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
 
 /* ============ THEME ============ */
-const DK={bg:"#0b0e1a",card:"#161a2e",cardH:"#1e2236",border:"#262b45",txt:"#ffffff",txt2:"#8b90a8",txt3:"#565c78",acc:"#7c8cf8",green:"#4ade80",red:"#fb7185",amber:"#fbbf24",inp:"#1e2236"};
-const LT={bg:"#f4f5fb",card:"#ffffff",cardH:"#eef0f8",border:"#e3e6f0",txt:"#0b0e1a",txt2:"#6b7194",txt3:"#9aa0bd",acc:"#4f5bd5",green:"#16a34a",red:"#e11d48",amber:"#d97706",inp:"#ffffff"};
+const DK={bg:"#0c1110",card:"#141b19",cardH:"#1d2623",border:"#2a3531",txt:"#eef3f1",txt2:"#a3b1ab",txt3:"#7e8e87",acc:"#14a978",accSoft:"#16352a",green:"#3ddc97",red:"#fb7185",amber:"#f5b84e",inp:"#19211e"};
+const LT={bg:"#f3f6f2",card:"#ffffff",cardH:"#f6f9f5",border:"#e4e8e1",txt:"#10201a",txt2:"#54635d",txt3:"#6b7973",acc:"#057d54",accSoft:"#dff2e8",green:"#08864f",red:"#c8362e",amber:"#9a6a12",inp:"#edf0eb"};
+const WORK="#16c784",GOLD="#c8a24a";
+
+/* line icons (inherit currentColor) */
+const ICONS={
+ home:"M3 11.5 12 4l9 7.5M5 10v10h5v-6h4v6h5V10",
+ people:"M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7 0a3 3 0 1 0 0-6M3 20c0-3 2.7-5 6-5s6 2 6 5m2.5-5c2.2.4 3.5 2 3.5 5",
+ wallet:"M3 7.5A2.5 2.5 0 0 1 5.5 5H18a2 2 0 0 1 2 2H5.5M3 7.5V18a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-3M3 7.5V10h17a1 1 0 0 1 1 1v2H16a2 2 0 1 1 0-4",
+ clock:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 7.5V12l3 2",
+ user:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20c0-3.3 3.1-6 7-6s7 2.7 7 6",
+};
+function Icon({name,color,size=22}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><path d={ICONS[name]||ICONS.home}/></svg>;}
+
+/* shift earnings/hours derivation (handles overnight, paid break, legacy rows) */
+const toMin=t=>parseInt(t.slice(0,2))*60+parseInt(t.slice(3,5));
+function deriveShift(s){
+ if(s.start&&s.end){
+  const grossMin=(toMin(s.end)-toMin(s.start)+1440)%1440;
+  const breakMin=parseFloat(s.breakMin)||0;
+  const workedMin=Math.max(0,grossMin-breakMin);
+  const paidMin=s.paidBreak?grossMin:workedMin;
+  const wage=parseFloat(s.wage)||0,paidHours=paidMin/60;
+  return {paidHours,legalHours:workedMin/60,pay:(s.pay!=null?s.pay:paidHours*wage),wage,overnight:toMin(s.end)<=toMin(s.start)};
+ }
+ const lh=parseFloat(s.hours)||0,wage=parseFloat(s.wage)||0;
+ return {paidHours:lh,legalHours:lh,pay:(s.pay!=null?s.pay:lh*wage),wage,overnight:false};
+}
 
 /* ============ DATA ============ */
 const COUNTRIES=[
@@ -298,17 +324,27 @@ function App(){
  },[runway,expenses,uid]);
 
  const workStats=useMemo(()=>{
-  const yr=tod().slice(0,4);const cur=shifts.filter(s=>s.date.startsWith(yr));
-  let full=0,half=0;cur.forEach(s=>{(s.hours>=4)?full++:half++;});
+  const yr=tod().slice(0,4),mo=tod().slice(0,7);
   const now=new Date();const day=(now.getDay()+6)%7;const monday=new Date(now);monday.setDate(now.getDate()-day);
   const mk=`${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}-${String(monday.getDate()).padStart(2,"0")}`;
-  const weekH=shifts.filter(s=>s.date>=mk).reduce((a,s)=>a+(parseFloat(s.hours)||0),0);
-  return {daysUsed:full+half*0.5,budget:120,weekH,count:cur.length};
+  let full=0,half=0,earnMonth=0,earnYear=0,earnAll=0,yearPaidH=0,weekH=0,count=0;
+  const byEmp={};
+  shifts.forEach(s=>{
+   const d=deriveShift(s);earnAll+=d.pay;
+   if(s.date.slice(0,4)===yr){earnYear+=d.pay;if(d.wage>0)yearPaidH+=d.paidHours;count++;if(d.legalHours>0)(d.legalHours>=4?full++:half++);}
+   if(s.date.slice(0,7)===mo){earnMonth+=d.pay;const k=s.employer||"Unassigned";if(!byEmp[k])byEmp[k]={pay:0,hours:0,count:0};byEmp[k].pay+=d.pay;byEmp[k].hours+=d.paidHours;byEmp[k].count++;}
+   if(s.date>=mk)weekH+=d.legalHours;
+  });
+  const daysUsed=full+half*0.5;
+  const byEmployer=Object.keys(byEmp).map(name=>({name,...byEmp[name],wage:byEmp[name].hours>0?byEmp[name].pay/byEmp[name].hours:0})).sort((a,b)=>b.pay-a.pay);
+  const dayPct=daysUsed/120,weekPct=weekH/20;
+  const tone=(dayPct>=1||weekPct>=1)?"red":(dayPct>=0.8||weekPct>=0.8)?"amber":"green";
+  return {daysUsed,budget:120,weekH,count,earnMonth,earnYear,earnAll,avgRate:yearPaidH>0?earnYear/yearPaidH:0,byEmployer,tone};
  },[shifts]);
 
  if(!profile.onboarded)return <div style={{height:"100%",background:T.bg}}><Onboarding T={T} onDone={finishOnboard}/></div>;
 
- const TABS=[["home","Home","◎"],["flat","Flat","🏠"],["money","Money","€"],["work","Work","⏱"],["me","Me","☺"]];
+ const TABS=[["home","Home","home"],["flat","Flat","people"],["money","Money","wallet"],["work","Work","clock"],["me","Me","user"]];
  const inFlat=!!flat;
 
  return(
@@ -358,14 +394,14 @@ function App(){
 
      {tab==="flat"&&(inFlat?<FlatTab {...{T,flat,members,balances,uid,fH,nameOf,setModal,leaveFlat,expenses,deleteExpense}}/>:<NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid}/>)}
      {tab==="money"&&<MoneyTab {...{T,runway,runwayCalc,fH,fHome,hostCur,homeCur,rate,profile,setModal,inFlat}}/>}
-     {tab==="work"&&<WorkTab {...{T,workStats,setModal}}/>}
+     {tab==="work"&&<WorkTab {...{T,workStats,setModal,shifts,sShifts,fH,fHome,hostCur,showToast}}/>}
      {tab==="me"&&<MeTab {...{T,profile,sProfile,dark,tgDark,showToast,uid,flat,leaveFlat}}/>}
     </div>
    </div>
 
    <div style={{position:"fixed",left:0,right:0,bottom:0,zIndex:90,paddingBottom:"calc(env(safe-area-inset-bottom) + 8px)",paddingTop:6,background:dark?"rgba(11,14,26,.86)":"rgba(244,245,251,.9)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderTop:`1px solid ${T.border}`}}>
     <div style={{display:"flex",maxWidth:480,margin:"0 auto"}}>
-     {TABS.map(([id,label,ic])=>{const on=tab===id;return <button key={id} onClick={()=>{haptic(8);setTab(id);}} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:3,cursor:"pointer",color:on?T.acc:T.txt3}}><span style={{fontSize:18,lineHeight:1}}>{ic}</span><span style={{fontSize:10,fontWeight:on?700:500}}>{label}</span></button>;})}
+     {TABS.map(([id,label,ic])=>{const on=tab===id;return <button key={id} onClick={()=>{haptic(8);setTab(id);}} style={{flex:1,background:"none",border:"none",display:"flex",flexDirection:"column",alignItems:"center",gap:4,cursor:"pointer",color:on?T.acc:T.txt3}}><Icon name={ic} color={on?T.acc:T.txt3} size={22}/><span style={{fontSize:10,fontWeight:on?700:500}}>{label}</span></button>;})}
     </div>
    </div>
 
@@ -374,7 +410,7 @@ function App(){
    <InviteModal {...{open:modal==="invite",onClose:()=>setModal(null),T,flat,showToast}}/>
    <CreateJoinModal {...{open:modal==="create"||modal==="join",mode:modal,onClose:()=>setModal(null),T,createFlat,joinFlat,busy,profile}}/>
    <RunwayModal {...{open:modal==="runway",onClose:()=>setModal(null),T,runway,sRunway,hostCur,showToast}}/>
-   <ShiftModal {...{open:modal==="shift",onClose:()=>setModal(null),T,shifts,sShifts,showToast}}/>
+   <ShiftModal {...{open:modal==="shift",onClose:()=>setModal(null),T,shifts,sShifts,showToast,hostCur,fH}}/>
   </div>
  );
 }
@@ -449,21 +485,75 @@ function MoneyTab({T,runway,runwayCalc,fH,fHome,hostCur,homeCur,rate,profile,set
   <div style={{fontSize:12,color:T.txt3,textAlign:"center",lineHeight:1.5}}>Your runway stays on this device only. Change currency & rate in the Me tab.</div>
  </>);
 }
-function WorkTab({T,workStats,setModal}){
- const pct=workStats.daysUsed/workStats.budget;const tone=pct>=1?T.red:pct>=0.8?T.amber:T.green;
- const verdict=pct>=1?"Over the limit":pct>=0.8?"Getting close":"You're fine";
+function WorkTab({T,workStats,setModal,shifts,sShifts,fH,fHome,hostCur,showToast}){
+ const [span,setSpan]=useState("month");
+ const ws=workStats;
+ const heroVal=span==="month"?ws.earnMonth:span==="year"?ws.earnYear:ws.earnAll;
+ const heroLbl=span==="month"?"Earned this month":span==="year"?"Earned this year":"Earned all-time";
+ const toneC=ws.tone==="red"?T.red:ws.tone==="amber"?T.amber:WORK;
+ const recent=[...shifts].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,12);
+ const delShift=id=>{sShifts(shifts.filter(s=>s.id!==id));haptic(10);showToast("Shift removed");};
  return(<>
-  <div style={{background:T.card,borderRadius:20,padding:"18px 16px",marginBottom:14,textAlign:"center"}}>
-   <Ring pct={pct} size={120} stroke={11} color={tone} track={T.border}><span style={{fontSize:28,fontWeight:800}}>{workStats.daysUsed}</span><span style={{fontSize:11,color:T.txt2}}>of {workStats.budget} days</span></Ring>
-   <div style={{fontSize:18,fontWeight:800,marginTop:12,color:tone}}>{verdict}</div>
-   <div style={{fontSize:12,color:T.txt3,marginTop:3}}>{(workStats.budget-workStats.daysUsed).toFixed(1)} work-days left this year</div>
+  {/* earnings hero */}
+  <div style={{borderRadius:22,padding:"18px 18px 16px",marginBottom:12,background:`linear-gradient(135deg,${WORK},${GOLD})`,color:"#06120c",position:"relative",overflow:"hidden"}}>
+   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+    <div style={{fontSize:11,fontWeight:700,letterSpacing:1,textTransform:"uppercase",opacity:.7}}>{heroLbl}</div>
+    <div style={{display:"flex",gap:2,background:"rgba(0,0,0,.14)",borderRadius:99,padding:2}}>
+     {[["month","M"],["year","Y"],["all","∞"]].map(([k,l])=><button key={k} onClick={()=>{haptic(6);setSpan(k);}} style={{border:"none",background:span===k?"rgba(255,255,255,.85)":"transparent",color:"#06120c",borderRadius:99,width:26,height:22,fontSize:12,fontWeight:700,cursor:"pointer"}}>{l}</button>)}
+    </div>
+   </div>
+   <div style={{fontSize:38,fontWeight:800,letterSpacing:-1,marginTop:4,fontVariantNumeric:"tabular-nums"}}>{fH(heroVal)}</div>
+   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:2}}>
+    <div style={{fontSize:13,fontWeight:600,opacity:.8}}>{fHome(heroVal)?`≈ ${fHome(heroVal)}`:""}</div>
+    <div style={{fontSize:11,fontWeight:600,opacity:.65}}>gross · before tax</div>
+   </div>
   </div>
-  <div style={{display:"flex",gap:10,marginBottom:14}}>
-   <div style={{flex:1,background:T.card,borderRadius:16,padding:"14px"}}><div style={{fontSize:11,color:T.txt2,fontWeight:600}}>This week</div><div style={{fontSize:20,fontWeight:800,marginTop:3,color:workStats.weekH>20?T.amber:T.txt}}>{workStats.weekH}h</div><div style={{fontSize:10,color:T.txt3}}>Werkstudent ≈ 20h</div></div>
-   <div style={{flex:1,background:T.card,borderRadius:16,padding:"14px"}}><div style={{fontSize:11,color:T.txt2,fontWeight:600}}>Shifts logged</div><div style={{fontSize:20,fontWeight:800,marginTop:3}}>{workStats.count}</div><div style={{fontSize:10,color:T.txt3}}>this year</div></div>
+
+  {/* two stats */}
+  <div style={{display:"flex",gap:10,marginBottom:12}}>
+   <div style={{flex:1,background:T.card,borderRadius:16,padding:"13px 14px"}}><div style={{fontSize:11,color:T.txt2,fontWeight:600}}>This year</div><div style={{fontSize:19,fontWeight:800,marginTop:3,fontVariantNumeric:"tabular-nums"}}>{fH(ws.earnYear)}</div></div>
+   <div style={{flex:1,background:T.card,borderRadius:16,padding:"13px 14px"}}><div style={{fontSize:11,color:T.txt2,fontWeight:600}}>Average rate</div><div style={{fontSize:19,fontWeight:800,marginTop:3,fontVariantNumeric:"tabular-nums"}}>{ws.avgRate>0?`${fH(ws.avgRate)}/h`:"—"}</div></div>
   </div>
-  <button onClick={()=>setModal("shift")} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"15px",fontWeight:700,fontSize:15,cursor:"pointer"}}>+ Log a work shift</button>
-  <div style={{fontSize:11,color:T.txt3,textAlign:"center",marginTop:12,lineHeight:1.55}}>Guidance only, not legal advice. The German rule is roughly 120 full days (or 240 half-days under 4h) per year; Werkstudent jobs ~20h/week in term. Confirm your exact limit with your international office.</div>
+
+  {/* compliance pill (demoted) */}
+  <div style={{display:"flex",alignItems:"center",gap:13,background:T.card,borderRadius:16,padding:"12px 15px",marginBottom:14}}>
+   <Ring pct={ws.daysUsed/ws.budget} size={44} stroke={5} color={toneC} track={T.border}><span style={{fontSize:12,fontWeight:800}}>{ws.daysUsed}</span></Ring>
+   <div style={{flex:1}}>
+    <div style={{fontSize:13,fontWeight:700}}>{ws.daysUsed}/120 work-days · <span style={{color:T.txt2,fontWeight:500}}>{(120-ws.daysUsed).toFixed(1)} left</span></div>
+    <div style={{fontSize:11,marginTop:2,color:ws.weekH>20?T.red:ws.weekH>=16?T.amber:T.txt2}}>This week {ws.weekH.toFixed(1)}h / 20h term cap</div>
+   </div>
+   <span style={{fontSize:10,fontWeight:700,color:toneC,background:T.accSoft,padding:"3px 8px",borderRadius:99,textTransform:"uppercase",letterSpacing:.5}}>{ws.tone==="red"?"over":ws.tone==="amber"?"close":"safe"}</span>
+  </div>
+
+  {/* by employer */}
+  {ws.byEmployer.length>0&&<>
+   <span className="h-lbl" style={{color:T.txt3}}>This month by employer</span>
+   <div style={{background:T.card,borderRadius:20,padding:"6px 15px 10px",marginBottom:14}}>
+    {ws.byEmployer.map((e,i)=><div key={e.name} style={{padding:"9px 0",borderTop:i>0?`1px solid ${T.border}`:"none"}}>
+     <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}><span style={{fontWeight:600}}>{e.name}</span><span style={{fontWeight:700,fontVariantNumeric:"tabular-nums"}}>{fH(e.pay)}</span></div>
+     <div style={{height:6,background:T.inp,borderRadius:99,overflow:"hidden"}}><div style={{height:"100%",borderRadius:99,width:`${ws.earnMonth>0?Math.max(e.pay/ws.earnMonth*100,3):0}%`,background:`linear-gradient(90deg,${WORK},${GOLD})`}}/></div>
+     <div style={{fontSize:10,color:T.txt3,marginTop:3}}>{e.hours.toFixed(1)}h · Ø {fH(e.wage)}/h</div>
+    </div>)}
+   </div>
+  </>}
+
+  {/* recent shifts */}
+  <span className="h-lbl" style={{color:T.txt3}}>Recent shifts</span>
+  <div style={{background:T.card,borderRadius:20,overflow:"hidden",marginBottom:14}}>
+   {recent.length===0?<div style={{padding:"16px",color:T.txt3,fontSize:14}}>No shifts logged yet.</div>
+   :recent.map((s,i)=>{const d=deriveShift(s);return <div key={s.id} style={{display:"flex",alignItems:"center",gap:11,padding:"11px 15px",borderTop:i>0?`1px solid ${T.border}`:"none"}}>
+    <div style={{width:36,height:36,borderRadius:11,background:T.accSoft,color:WORK,display:"flex",alignItems:"center",justifyContent:"center"}}><Icon name="clock" color={WORK} size={18}/></div>
+    <div style={{flex:1,minWidth:0}}>
+     <div style={{fontWeight:600,fontSize:14,display:"flex",alignItems:"center",gap:6}}>{s.employer||"Shift"}{d.overnight&&<span style={{fontSize:9,fontWeight:700,background:T.inp,color:T.txt2,padding:"1px 6px",borderRadius:6}}>overnight</span>}</div>
+     <div style={{fontSize:11,color:T.txt2}}>{s.date}{s.start?` · ${s.start}–${s.end}`:""} · {d.paidHours.toFixed(1)}h</div>
+    </div>
+    <div style={{textAlign:"right"}}>{d.pay>0?<div style={{fontWeight:700,fontSize:14,color:WORK,fontVariantNumeric:"tabular-nums"}}>{fH(d.pay)}</div>:<div style={{fontSize:11,color:T.txt3}}>no wage</div>}</div>
+    <button onClick={()=>delShift(s.id)} style={{background:"none",border:"none",color:T.txt3,fontSize:14,cursor:"pointer"}}>✕</button>
+   </div>;})}
+  </div>
+
+  <button onClick={()=>setModal("shift")} className="h-press" style={{width:"100%",background:WORK,color:"#06120c",border:"none",borderRadius:16,padding:"15px",fontWeight:800,fontSize:15,cursor:"pointer"}}>+ Log a work shift</button>
+  <div style={{fontSize:11,color:T.txt3,textAlign:"center",marginTop:12,lineHeight:1.55}}>Guidance only, not legal advice. Roughly 120 full days (or 240 half-days under 4h) per year; Werkstudent ~20h/week in term. Earnings are gross — take-home is lower after tax & social. Confirm your exact limit with your international office.</div>
  </>);
 }
 function MeTab({T,profile,sProfile,dark,tgDark,showToast,uid,flat,leaveFlat}){
@@ -561,14 +651,50 @@ function RunwayModal({open,onClose,T,runway,sRunway,hostCur,showToast}){
   <div style={{fontSize:12,color:T.txt3,textAlign:"center",lineHeight:1.5}}>For a German blocked account this is usually ~€11,904 that must last 12 months (~€992/mo).</div>
  </Sheet>;
 }
-function ShiftModal({open,onClose,T,shifts,sShifts,showToast}){
- const [date,setDate]=useState(tod());const [hours,setHours]=useState("");const [emp,setEmp]=useState("");
- useEffect(()=>{if(open){setDate(tod());setHours("");setEmp("");}},[open]);
+function ShiftModal({open,onClose,T,shifts,sShifts,showToast,hostCur,fH}){
+ const employers=useMemo(()=>[...new Set(shifts.map(s=>s.employer).filter(Boolean))],[shifts,open]);
+ const wageFor=name=>{const last=shifts.find(s=>s.employer===name&&s.wage);return last?String(last.wage):"";};
+ const [date,setDate]=useState(tod());const [emp,setEmp]=useState("");const [newEmp,setNewEmp]=useState(false);
+ const [start,setStart]=useState("");const [end,setEnd]=useState("");const [brk,setBrk]=useState("0");
+ const [paidBreak,setPaidBreak]=useState(false);const [wage,setWage]=useState("");
+ useEffect(()=>{if(open){setDate(tod());setEmp(employers[0]||"");setNewEmp(employers.length===0);setStart("");setEnd("");setBrk("0");setPaidBreak(false);setWage(employers[0]?wageFor(employers[0]):"");}},[open]);
+ const d=useMemo(()=>{
+  if(!start||!end)return {paidHours:0,pay:0,overnight:false,valid:false};
+  const gross=(toMin(end)-toMin(start)+1440)%1440;const bm=parseFloat(brk)||0;const worked=Math.max(0,gross-bm);
+  const paidMin=paidBreak?gross:worked;const ph=paidMin/60;const w=parseFloat(wage)||0;
+  return {paidHours:ph,pay:ph*w,overnight:toMin(end)<=toMin(start)&&start!==end,valid:ph>0};
+ },[start,end,brk,paidBreak,wage]);
+ const fy=v=>{try{return new Intl.NumberFormat(undefined,{style:"currency",currency:hostCur}).format(v||0)}catch{return v}};
+ const save=()=>{
+  if(!d.valid)return;
+  const employer=(newEmp?emp:emp).trim();
+  sShifts([{id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),date,employer,start,end,breakMin:parseFloat(brk)||0,paidBreak,wage:parseFloat(wage)||0,hours:d.paidHours,pay:d.pay},...shifts]);
+  haptic(12);showToast("Shift logged");onClose();
+ };
  return <Sheet open={open} onClose={onClose} title="Log work shift" T={T}>
   <Field label="Date" T={T}><input value={date} onChange={e=>setDate(e.target.value)} type="date" style={inpStyle(T)}/></Field>
-  <Field label="Hours worked" T={T}><input value={hours} onChange={e=>setHours(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 6" style={{...inpStyle(T),fontSize:20,fontWeight:700}}/></Field>
-  <Field label="Employer (optional)" T={T}><input value={emp} onChange={e=>setEmp(e.target.value)} placeholder="e.g. Café job" style={inpStyle(T)}/></Field>
-  <button onClick={()=>{const h=parseFloat(hours)||0;if(!h)return;sShifts([{id:Date.now().toString(36),date,hours:h,employer:emp.trim()},...shifts]);showToast("Shift logged");onClose();}} className="h-press" style={{width:"100%",background:T.acc,color:"#fff",border:"none",borderRadius:16,padding:"16px",fontWeight:700,fontSize:16,cursor:"pointer"}}>Log shift</button>
+  <Field label="Employer" T={T}>
+   {!newEmp&&employers.length>0?<div style={{display:"flex",gap:8}}>
+    <select value={emp} onChange={e=>{setEmp(e.target.value);setWage(wageFor(e.target.value));}} style={inpStyle(T)}>{employers.map(n=><option key={n} value={n}>{n}</option>)}</select>
+    <button onClick={()=>{setNewEmp(true);setEmp("");}} className="h-press" style={{flexShrink:0,background:T.card,color:T.acc,border:`1px solid ${T.border}`,borderRadius:12,padding:"0 14px",fontWeight:700,fontSize:13,cursor:"pointer"}}>+ New</button>
+   </div>:<input value={emp} onChange={e=>setEmp(e.target.value)} placeholder="e.g. Café job" style={inpStyle(T)}/>}
+  </Field>
+  <div style={{display:"flex",gap:10}}>
+   <Field label="Start" T={T}><input value={start} onChange={e=>setStart(e.target.value)} type="time" style={inpStyle(T)}/></Field>
+   <Field label="End" T={T}><input value={end} onChange={e=>setEnd(e.target.value)} type="time" style={inpStyle(T)}/></Field>
+  </div>
+  {d.overnight&&<div style={{fontSize:11,color:T.amber,marginTop:-8,marginBottom:12,fontWeight:600}}>+1 day · overnight shift</div>}
+  <Field label="Break (minutes)" T={T}>
+   <input value={brk} onChange={e=>setBrk(e.target.value)} type="number" inputMode="numeric" style={inpStyle(T)}/>
+   <div style={{display:"flex",gap:7,marginTop:8}}>{["0","30","45","60"].map(b=><button key={b} onClick={()=>setBrk(b)} style={{flex:1,background:brk===b?T.acc:T.inp,color:brk===b?"#fff":T.txt2,border:`1px solid ${brk===b?T.acc:T.border}`,borderRadius:10,padding:"7px 0",fontSize:13,fontWeight:600,cursor:"pointer"}}>{b}m</button>)}</div>
+   <div onClick={()=>setPaidBreak(!paidBreak)} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:10,cursor:"pointer"}}><span style={{fontSize:13,color:T.txt2}}>Break is paid</span><div style={{width:42,height:25,borderRadius:99,background:paidBreak?T.acc:T.border,position:"relative"}}><div style={{position:"absolute",top:2,left:paidBreak?19:2,width:21,height:21,borderRadius:99,background:"#fff",transition:"left .2s"}}/></div></div>
+  </Field>
+  <Field label={`Wage per hour (${hostCur})`} T={T}><input value={wage} onChange={e=>setWage(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 13.50" style={{...inpStyle(T),fontSize:18,fontWeight:700}}/></Field>
+  <div style={{background:T.accSoft,borderRadius:14,padding:"12px 15px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+   <span style={{fontSize:13,color:T.txt2,fontWeight:600}}>Paid: <span style={{color:T.txt,fontWeight:800}}>{d.paidHours.toFixed(2)} h</span></span>
+   <span style={{fontSize:17,fontWeight:800,color:WORK}}>{fy(d.pay)} <span style={{fontSize:10,fontWeight:600,color:T.txt3}}>gross</span></span>
+  </div>
+  <button onClick={save} disabled={!d.valid} className="h-press" style={{width:"100%",background:d.valid?WORK:T.border,color:"#06120c",border:"none",borderRadius:16,padding:"16px",fontWeight:800,fontSize:16,cursor:d.valid?"pointer":"default"}}>{d.valid?"Log shift":"Enter start & end time"}</button>
  </Sheet>;
 }
 
