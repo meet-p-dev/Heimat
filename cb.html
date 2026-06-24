@@ -1,0 +1,14 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bank connected</title>
+<style>body{font-family:-apple-system,sans-serif;max-width:560px;margin:60px auto;padding:0 20px;text-align:center;color:#222}
+.code{font-size:15px;font-family:monospace;background:#f0f3f0;border:1px solid #cdd;border-radius:10px;padding:14px;word-break:break-all;margin:14px 0}
+button{font-size:15px;padding:10px 20px;border:none;border-radius:10px;background:#14a978;color:#fff;cursor:pointer}</style></head><body>
+<h2 id="t">Bank connected ✓</h2>
+<p>Copy this code and paste it back to Claude (or run <code>node sync.mjs &lt;code&gt;</code>):</p>
+<div class="code" id="c">…</div>
+<button onclick="navigator.clipboard.writeText(document.getElementById('c').textContent)">Copy code</button>
+<script>
+var p=new URLSearchParams(location.search);
+var code=p.get('code');
+if(code){document.getElementById('c').textContent=code;}
+else{document.getElementById('t').textContent='Not completed';document.getElementById('c').textContent='Error: '+(p.get('error_description')||p.get('error')||'no code returned');}
+</script></body></html>
