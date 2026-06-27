@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Heimat"/>
 <meta name="theme-color" content="#0b0e1a"/>
 <title>Heimat</title>
-<script>window.HEIMAT_VERSION="V0.3";</script>
+<script>window.HEIMAT_VERSION="V0.4";</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
@@ -209,6 +209,7 @@ function App(){
  const [expenses,setExpenses]=useState([]);
  const [settles,setSettles]=useState([]);
  const [busy,setBusy]=useState(false);
+ const [myFlats,setMyFlats]=useState([]);
 
  const save=(setter,key)=>v=>{setter(v);LS.s(key,v);};
  const sProfile=save(setProfile,"mt-h-profile");
@@ -217,6 +218,17 @@ function App(){
  const tgDark=()=>{const n=!dark;setDark(n);LS.s("mt-h-dark",n);};
  const showToast=(m)=>{setToast(m);setTimeout(()=>setToast(null),2600);};
  const setFlatIdP=id=>{setFlatId(id);LS.s("mt-h-flatid",id);};
+ const loadMyFlats=async()=>{
+  if(!sb||!uid)return;
+  const {data:mem}=await sb.from("flat_members").select("flat_id").eq("user_id",uid);
+  const ids=[...new Set((mem||[]).map(m=>m.flat_id))];
+  if(!ids.length){setMyFlats([]);setFlatIdP(null);return;}
+  const {data:fl}=await sb.from("flats").select("*").in("id",ids);
+  const list=fl||[];setMyFlats(list);
+  const cur=LS.g("mt-h-flatid");
+  if(!cur||!list.some(f=>f.id===cur))setFlatIdP(list[0]?list[0].id:null);
+ };
+ useEffect(()=>{if(uid)loadMyFlats();},[uid]);
 
  const hostCur=profile.hostCur||"EUR";const homeCur=profile.homeCur||hostCur;const rate=profile.rate||1;
  const fH=v=>money(v,hostCur);
@@ -273,7 +285,7 @@ function App(){
   const {data,error}=await sb.rpc("create_flat",{p_name:nm,p_display_name:profile.name||"Me"});
   setBusy(false);
   if(error){showToast(error.message);return;}
-  haptic(14);setFlatIdP(data.id);setModal(null);showToast("Flat created");
+  haptic(14);setFlatIdP(data.id);await loadMyFlats();setModal(null);showToast("Flat created");
  };
  const joinFlat=async(code)=>{
   if(!sb||!uid)return showToast("Still connecting…");
@@ -281,7 +293,7 @@ function App(){
   const {data,error}=await sb.rpc("join_flat",{p_code:(code||"").trim().toUpperCase(),p_display_name:profile.name||"Me"});
   setBusy(false);
   if(error){showToast("Invalid code");return;}
-  haptic(14);setFlatIdP(data.id);setModal(null);showToast("Joined flat");
+  haptic(14);setFlatIdP(data.id);await loadMyFlats();setModal(null);showToast("Joined flat");
  };
  const addExpense=async(x)=>{
   if(!sb||!flatId)return;
@@ -298,7 +310,7 @@ function App(){
  const leaveFlat=async()=>{
   if(!confirm("Leave this flat? You'll stop seeing its shared bills."))return;
   await sb.from("flat_members").delete().eq("flat_id",flatId).eq("user_id",uid);
-  setFlatIdP(null);showToast("Left flat");
+  setFlatIdP(null);await loadMyFlats();showToast("Left flat");
  };
 
  const finishOnboard=(p)=>sProfile(p);
@@ -392,7 +404,7 @@ function App(){
       </>:<NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid}/>}
      </>}
 
-     {tab==="flat"&&(inFlat?<FlatTab {...{T,flat,members,balances,uid,fH,nameOf,setModal,leaveFlat,expenses,deleteExpense}}/>:<NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid}/>)}
+     {tab==="flat"&&(inFlat?<FlatTab {...{T,flat,members,balances,uid,fH,nameOf,setModal,leaveFlat,expenses,deleteExpense,myFlats,flatId,switchFlat:setFlatIdP}}/>:<NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid}/>)}
      {tab==="money"&&<MoneyTab {...{T,runway,runwayCalc,fH,fHome,hostCur,homeCur,rate,profile,setModal,inFlat}}/>}
      {tab==="work"&&<WorkTab {...{T,workStats,setModal,shifts,sShifts,fH,fHome,hostCur,showToast}}/>}
      {tab==="me"&&<MeTab {...{T,profile,sProfile,dark,tgDark,showToast,uid,flat,leaveFlat}}/>}
@@ -430,8 +442,13 @@ function NoFlat({T,setModal,authErr,uid}){
 }
 
 /* ============ FLAT TAB ============ */
-function FlatTab({T,flat,members,balances,uid,fH,nameOf,setModal,leaveFlat,expenses,deleteExpense}){
+function FlatTab({T,flat,members,balances,uid,fH,nameOf,setModal,leaveFlat,expenses,deleteExpense,myFlats,flatId,switchFlat}){
  return(<>
+  <div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:12,paddingBottom:2}}>
+   {(myFlats||[]).map(f=><button key={f.id} onClick={()=>{haptic(8);switchFlat(f.id);}} className="h-press" style={{flexShrink:0,padding:"8px 14px",borderRadius:99,border:"none",background:f.id===flatId?T.acc:T.card,color:f.id===flatId?"#fff":T.txt2,fontWeight:700,fontSize:13,cursor:"pointer"}}>{f.name}</button>)}
+   <button onClick={()=>setModal("create")} className="h-press" style={{flexShrink:0,padding:"8px 13px",borderRadius:99,border:`1px solid ${T.border}`,background:"none",color:T.acc,fontWeight:700,fontSize:13,cursor:"pointer"}}>+ New</button>
+   <button onClick={()=>setModal("join")} className="h-press" style={{flexShrink:0,padding:"8px 13px",borderRadius:99,border:`1px solid ${T.border}`,background:"none",color:T.acc,fontWeight:700,fontSize:13,cursor:"pointer"}}>Join</button>
+  </div>
   <div style={{background:T.card,borderRadius:20,padding:"16px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
    <div><div style={{fontWeight:800,fontSize:18}}>{flat.name}</div><div style={{fontSize:12,color:T.txt2,marginTop:2}}>Code <span style={{fontWeight:700,color:T.acc,letterSpacing:1}}>{flat.join_code}</span></div></div>
    <button onClick={()=>setModal("invite")} className="h-press" style={{background:T.acc,color:"#fff",border:"none",borderRadius:12,padding:"10px 16px",fontWeight:700,fontSize:14,cursor:"pointer"}}>Invite</button>
