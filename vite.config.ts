@@ -2,14 +2,17 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// base defaults to '/' (local dev, root hosting). For GitHub Pages project sites
+// the deploy workflow sets VITE_BASE=/Heimat/ so assets resolve under the subpath.
 export default defineConfig({
+  base: process.env.VITE_BASE || '/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html'],
       workbox: {
-        navigateFallbackDenylist: [/^\/(privacy|terms|cb)\.html$/],
+        navigateFallbackDenylist: [/(privacy|terms|cb)\.html$/],
       },
       manifest: {
         name: 'Heimat',
@@ -18,11 +21,12 @@ export default defineConfig({
         theme_color: '#0c1110',
         background_color: '#0c1110',
         display: 'standalone',
-        start_url: '/',
+        start_url: '.',
+        scope: '.',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),
