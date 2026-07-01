@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { Trash2 } from 'lucide-react'
 import type { Theme, Shift } from '../../lib/types'
 import { tod } from '../../lib/format'
 import { toMin } from '../../lib/shift'
@@ -6,9 +7,9 @@ import { haptic } from '../../lib/haptic'
 import { WORK } from '../../lib/theme'
 import { Sheet, Field, inpStyle } from '../ui'
 
-export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToast, hostCur, initialDate }: {
+export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToast, hostCur, initialDate, editing }: {
   open: boolean; onClose: () => void; T: Theme; shifts: Shift[]; sShifts: (s: Shift[]) => void
-  showToast: (m: string) => void; hostCur: string; initialDate?: string | null
+  showToast: (m: string) => void; hostCur: string; initialDate?: string | null; editing?: Shift | null
 }) {
   const employers = useMemo(() => [...new Set(shifts.map((s) => s.employer).filter(Boolean))], [shifts, open])
   const wageFor = (name: string) => { const last = shifts.find((s) => s.employer === name && s.wage); return last ? String(last.wage) : '' }
@@ -21,7 +22,12 @@ export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToas
   const [paidBreak, setPaidBreak] = useState(false)
   const [wage, setWage] = useState('')
   useEffect(() => {
-    if (open) {
+    if (!open) return
+    if (editing) {
+      setDate(editing.date); setEmp(editing.employer || ''); setNewEmp(!editing.employer)
+      setStart(editing.start || ''); setEnd(editing.end || ''); setBrk(String(editing.breakMin ?? 0))
+      setPaidBreak(!!editing.paidBreak); setWage(editing.wage ? String(editing.wage) : '')
+    } else {
       setDate(initialDate || tod()); setEmp(employers[0] || ''); setNewEmp(employers.length === 0)
       setStart(''); setEnd(''); setBrk('0'); setPaidBreak(false); setWage(employers[0] ? wageFor(employers[0]) : '')
     }
@@ -40,11 +46,14 @@ export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToas
   const save = () => {
     if (!d.valid) return
     const employer = emp.trim()
-    sShifts([{ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, employer, start, end, breakMin: parseFloat(brk) || 0, paidBreak, wage: parseFloat(wage) || 0, hours: d.paidHours, pay: d.pay }, ...shifts])
-    haptic(12); showToast('Shift logged'); onClose()
+    const row: Shift = { id: editing ? editing.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, employer, start, end, breakMin: parseFloat(brk) || 0, paidBreak, wage: parseFloat(wage) || 0, hours: d.paidHours, pay: d.pay }
+    if (editing) sShifts(shifts.map((s) => (s.id === editing.id ? row : s)))
+    else sShifts([row, ...shifts])
+    haptic(12); showToast(editing ? 'Shift updated' : 'Shift logged'); onClose()
   }
+  const del = () => { if (!editing) return; sShifts(shifts.filter((s) => s.id !== editing.id)); haptic(10); showToast('Shift removed'); onClose() }
   return (
-    <Sheet open={open} onClose={onClose} title="Log work shift" T={T}>
+    <Sheet open={open} onClose={onClose} title={editing ? 'Edit shift' : 'Log work shift'} T={T}>
       <Field label="Date" T={T}><input value={date} onChange={(e) => setDate(e.target.value)} type="date" style={inpStyle(T)} /></Field>
       <Field label="Employer" T={T}>
         {!newEmp && employers.length > 0 ? (
@@ -71,7 +80,8 @@ export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToas
         <span style={{ fontSize: 13, color: T.txt2, fontWeight: 600 }}>Paid: <span style={{ color: T.txt, fontWeight: 800 }}>{d.paidHours.toFixed(2)} h</span></span>
         <span style={{ fontSize: 17, fontWeight: 800, color: WORK }}>{fy(d.pay)} <span style={{ fontSize: 10, fontWeight: 600, color: T.txt3 }}>gross</span></span>
       </div>
-      <button onClick={save} disabled={!d.valid} className="h-press" style={{ width: '100%', background: d.valid ? WORK : T.border, color: '#06120c', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 800, fontSize: 16, cursor: d.valid ? 'pointer' : 'default' }}>{d.valid ? 'Log shift' : 'Enter start & end time'}</button>
+      <button onClick={save} disabled={!d.valid} className="h-press" style={{ width: '100%', background: d.valid ? WORK : T.border, color: '#06120c', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 800, fontSize: 16, cursor: d.valid ? 'pointer' : 'default' }}>{d.valid ? (editing ? 'Save changes' : 'Log shift') : 'Enter start & end time'}</button>
+      {editing && <button onClick={del} className="h-press" style={{ width: '100%', marginTop: 10, background: 'none', color: T.red, border: `1px solid ${T.border}`, borderRadius: 16, padding: '13px', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Trash2 size={16} /> Delete shift</button>}
     </Sheet>
   )
 }

@@ -23,6 +23,12 @@ import CreateJoinModal from './components/modals/CreateJoinModal'
 import RunwayModal from './components/modals/RunwayModal'
 import ShiftModal from './components/modals/ShiftModal'
 import PickFlatModal from './components/modals/PickFlatModal'
+import ProfileModal from './components/modals/ProfileModal'
+import AnalyticsModal from './components/modals/AnalyticsModal'
+import Intro from './components/Intro'
+import { fetchRate } from './lib/rates'
+import { deriveShift } from './lib/shift'
+import { myShareTotal } from './lib/analytics'
 
 const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Flat'], ['money', 'Money'], ['work', 'Work'], ['me', 'Me']]
 
@@ -36,6 +42,8 @@ export default function App() {
   const [modal, setModal] = useState<ModalId>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [shiftDate, setShiftDate] = useState<string | null>(null)
+  const [editShift, setEditShift] = useState<Shift | null>(null)
+  const [showIntro, setShowIntro] = useState(false)
 
   /* sync state */
   const [uid, setUid] = useState<string | null>(null)
@@ -177,15 +185,28 @@ export default function App() {
   const runwayCalc = useMemo(() => computeRunway(runway, expenses, uid), [runway, expenses, uid])
   const workStats = useMemo(() => computeWorkStats(shifts), [shifts])
 
-  const openShift = (d: string | null) => { setShiftDate(d || null); setModal('shift') }
+  const openShift = (d: string | null) => { setEditShift(null); setShiftDate(d || null); setModal('shift') }
+  const openEditShift = (s: Shift) => { setEditShift(s); setShiftDate(null); setModal('shift') }
   const startAddExpense = () => { if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
+
+  const earnedTotal = useMemo(() => shifts.reduce((s, x) => s + deriveShift(x).pay, 0), [shifts])
+  const spentTotal = useMemo(() => myShareTotal(expenses, uid), [expenses, uid])
+
+  // live exchange rate — refresh at most once/day when currencies differ
+  useEffect(() => {
+    if (!profile.onboarded || homeCur === hostCur || profile.rateAt === tod()) return
+    let cancelled = false
+    fetchRate(hostCur, homeCur).then((r) => { if (!cancelled && r) sProfile({ ...profile, rate: r, rateAt: tod() }) })
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile.onboarded, hostCur, homeCur])
 
   if (!profile.onboarded) return <div style={{ height: '100%', background: T.bg }}><Onboarding T={T} onDone={(p) => sProfile(p)} /></div>
 
   const inFlat = !!flat
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.bg, color: T.txt }}>
+    <div className="h-app" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.bg, color: T.txt }}>
       {toast && <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 12px)', left: '50%', transform: 'translateX(-50%)', zIndex: 999, maxWidth: '90%', background: T.card, color: T.txt, border: `1px solid ${T.border}`, borderRadius: 14, padding: '10px 18px', fontSize: 14, fontWeight: 600, boxShadow: '0 8px 28px rgba(0,0,0,.4)', textAlign: 'center' }}>{toast}</div>}
 
       <div style={{ flexShrink: 0, paddingTop: 'env(safe-area-inset-top)' }}>
@@ -204,15 +225,15 @@ export default function App() {
             ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense }} />
+            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
-          {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift }} />}
-          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat }} />}
+          {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
+          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile: () => setModal('profile'), onReplayIntro: () => setShowIntro(true) }} />}
         </div>
       </div>
 
-      <div style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 90, paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)', paddingTop: 6, background: dark ? 'rgba(12,17,16,.86)' : 'rgba(243,246,242,.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: `1px solid ${T.border}` }}>
+      <div className="h-nav" style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 90, paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)', paddingTop: 6, background: dark ? 'rgba(12,17,16,.86)' : 'rgba(243,246,242,.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: `1px solid ${T.border}` }}>
         <div style={{ display: 'flex', maxWidth: 480, margin: '0 auto' }}>
           {TABS.map(([id, label]) => {
             const on = tab === id
@@ -233,7 +254,10 @@ export default function App() {
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: () => setModal(null), T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: () => setModal(null), T, runway, sRunway, hostCur, showToast }} />
-      <ShiftModal {...{ open: modal === 'shift', onClose: () => { setModal(null); setShiftDate(null) }, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate }} />
+      <ShiftModal {...{ open: modal === 'shift', onClose: () => { setModal(null); setShiftDate(null); setEditShift(null) }, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />
+      <ProfileModal {...{ open: modal === 'profile', onClose: () => setModal(null), T, profile, sProfile, showToast, earnedTotal, spentTotal, shiftCount: shifts.length, fH }} />
+      <AnalyticsModal {...{ open: modal === 'analytics', onClose: () => setModal(null), T, expenses, members, uid, fH, nameOf }} />
+      {showIntro && <Intro T={T} onClose={() => setShowIntro(false)} />}
     </div>
   )
 }
