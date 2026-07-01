@@ -1,0 +1,22 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+input,select,button,textarea{font-family:inherit;font-size:16px;-webkit-tap-highlight-color:transparent}
+button{touch-action:manipulation}
+input:focus,select:focus,textarea:focus{outline:none}
+::-webkit-scrollbar{display:none}
+select{-webkit-appearance:none}
+@keyframes hFade{from{opacity:0}to{opacity:1}}
+@keyframes hRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hSheet{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes hSpin{to{transform:rotate(360deg)}}
+.h-press{transition:transform .12s ease}
+.h-press:active{transform:scale(.96)}
+.h-stagger>*{animation:hRise .24s cubic-bezier(.22,1,.36,1) both}
+.h-stagger>*:nth-child(2){animation-delay:30ms}
+.h-stagger>*:nth-child(3){animation-delay:60ms}
+.h-stagger>*:nth-child(4){animation-delay:90ms}
+.h-stagger>*:nth-child(n+5){animation-delay:120ms}
+.h-lbl{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:18px 2px 8px}
+.h-spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:99px;animation:hSpin .7s linear infinite}
+.fi{border-radius:3px;line-height:1em}
