@@ -20,3 +20,17 @@ select{-webkit-appearance:none}
 .h-lbl{display:block;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:18px 2px 8px}
 .h-spin{width:18px;height:18px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:99px;animation:hSpin .7s linear infinite}
 .fi{border-radius:3px;line-height:1em}
+@keyframes hDraw{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+@keyframes hGrowX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes hPop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.h-draw{stroke-dasharray:1000;animation:hDraw 1s cubic-bezier(.22,1,.36,1) forwards}
+.h-grow{animation:hGrowX .9s cubic-bezier(.22,1,.36,1) both}
+.h-pop{animation:hPop .3s cubic-bezier(.22,1,.36,1) both}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+/* desktop / website: present the app as a centered device column */
+@media (min-width:640px){
+  #root{display:flex;align-items:stretch;justify-content:center;background:#080c0b}
+  .h-app{width:460px;flex:none;height:100%;position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.05),0 30px 90px rgba(0,0,0,.55)}
+  .h-nav{position:absolute!important;left:0!important;right:0!important}
+  .h-sheet{left:50%!important;right:auto!important;width:460px;margin-left:-230px}
+}

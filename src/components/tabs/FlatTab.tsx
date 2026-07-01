@@ -1,14 +1,14 @@
-import { X } from 'lucide-react'
+import { X, LineChart, ChevronRight } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ModalId } from '../../lib/types'
 import { cat } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
 import { haptic } from '../../lib/haptic'
 
-export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat, startAddExpense }: {
+export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
   T: Theme; flat: Flat; members: Member[]; balances: Record<string, number>; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; deleteExpense: (id: string) => void
-  myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void
+  myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void; openAnalytics: () => void
 }) {
   return (
     <>
@@ -37,6 +37,11 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         <button onClick={() => setModal('settle')} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
         <button onClick={startAddExpense} className="h-press" style={{ flex: 1, background: T.acc, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Add expense</button>
+      </div>
+      <div onClick={openAnalytics} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 13, background: `linear-gradient(135deg, ${T.accSoft}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 18, padding: '14px 16px', marginBottom: 14, cursor: 'pointer' }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: T.card, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.acc }}><LineChart size={20} /></div>
+        <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Analytics</div><div style={{ fontSize: 12, color: T.txt2 }}>Spend trend, categories & who paid</div></div>
+        <ChevronRight size={18} color={T.txt3} />
       </div>
       <span className="h-lbl" style={{ color: T.txt3 }}>All shared expenses</span>
       <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>

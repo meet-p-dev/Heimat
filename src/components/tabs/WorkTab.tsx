@@ -12,10 +12,10 @@ import { Ring } from '../ui'
 type Hist = Gran | 'cal'
 const PERIODS: [Gran, string][] = [['day', 'Day'], ['week', 'Week'], ['month', 'Month'], ['year', 'Year']]
 
-export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, showToast, onLogShift }: {
+export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, showToast, onLogShift, onEditShift }: {
   T: Theme; workStats: WorkStats; shifts: Shift[]; sShifts: (s: Shift[]) => void
   fH: (v: number) => string; fHome: (v: number) => string | null; hostCur: string
-  showToast: (m: string) => void; onLogShift: (date: string | null) => void
+  showToast: (m: string) => void; onLogShift: (date: string | null) => void; onEditShift: (s: Shift) => void
 }) {
   const ws = workStats
   const [span, setSpan] = useState<'month' | 'year' | 'all'>('month')
@@ -145,7 +145,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
                       return (
                         <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '9px 0' }}>
                           <div style={{ width: 32, height: 32, borderRadius: 10, background: T.accSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Clock size={16} color={WORK} /></div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
+                          <div onClick={() => onEditShift(s)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                             <div style={{ fontWeight: 600, fontSize: 14 }}>{s.employer || 'Shift'}</div>
                             <div style={{ fontSize: 11, color: T.txt2 }}>{s.start ? `${s.start}–${s.end} · ` : ''}{d.paidHours.toFixed(2)}h</div>
                           </div>
@@ -190,7 +190,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
             return (
               <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 11, background: T.accSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Clock size={18} color={WORK} /></div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div onClick={() => onEditShift(s)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                   <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>{s.employer || 'Shift'}{d.overnight && <span style={{ fontSize: 9, fontWeight: 700, background: T.inp, color: T.txt2, padding: '1px 6px', borderRadius: 6 }}>overnight</span>}</div>
                   <div style={{ fontSize: 11, color: T.txt2 }}>{s.date}{s.start ? ` · ${s.start}–${s.end}` : ''} · {d.paidHours.toFixed(1)}h</div>
                 </div>

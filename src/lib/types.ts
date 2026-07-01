@@ -12,6 +12,7 @@ export interface Profile {
   homeCountry?: string; homeCur?: string; homeIso?: string
   hostCountry?: string; hostCur?: string; hostIso?: string
   rate?: number
+  rateAt?: string
   onboarded: boolean
 }
 
@@ -38,4 +39,4 @@ export interface Runway { total: number; start: string; monthly: number; targetM
 export interface Derived { paidHours: number; legalHours: number; pay: number; wage: number; overnight: boolean }
 
 export type TabId = 'home' | 'flat' | 'money' | 'work' | 'me'
-export type ModalId = null | 'exp' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat'
+export type ModalId = null | 'exp' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile'
