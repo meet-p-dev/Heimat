@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import type { Theme, Member } from '../../lib/types'
 import { CATS } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
-import { money } from '../../lib/format'
+import { money, numVal } from '../../lib/format'
 import { Sheet, Field, inpStyle } from '../ui'
 
 export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, hostCur, homeCur, rate, flatName }: {
@@ -18,14 +18,14 @@ export default function ExpenseModal({ open, onClose, T, members, uid, addExpens
   useEffect(() => { if (open) { setDesc(''); setAmt(''); setPayer(uid || ''); setAmong(members.map((m) => m.user_id)); setC('groceries') } }, [open])
   // when the flat's members change while the sheet is open (after choosing a different flat), re-seed split & payer
   useEffect(() => { if (open) { setAmong(members.map((m) => m.user_id)); setPayer((p) => (members.some((m) => m.user_id === p) ? p : uid || '')) } }, [members])
-  const v = parseFloat(amt) || 0
+  const v = numVal(amt)
   const toggle = (id: string) => setAmong((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]))
   const nm = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || '?')
   return (
     <Sheet open={open} onClose={onClose} title="Shared expense" T={T}>
       {flatName && <div style={{ fontSize: 12, color: T.txt2, marginBottom: 12, marginTop: -4 }}>Adding to <span style={{ fontWeight: 700, color: T.acc }}>{flatName}</span></div>}
       <Field label="What for?" T={T}><input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" style={inpStyle(T)} /></Field>
-      <Field label={`Amount (${hostCur})`} T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" style={{ ...inpStyle(T), fontSize: 22, fontWeight: 700 }} />{homeCur !== hostCur && v > 0 && <div style={{ fontSize: 12, color: T.txt3, marginTop: 6 }}>≈ {money(v * rate, homeCur)} in your currency</div>}</Field>
+      <Field label={`Amount (${hostCur})`} T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="text" inputMode="decimal" placeholder="0,00" style={{ ...inpStyle(T), fontSize: 22, fontWeight: 700 }} />{homeCur !== hostCur && v > 0 && <div style={{ fontSize: 12, color: T.txt3, marginTop: 6 }}>≈ {money(v * rate, homeCur)} in your currency</div>}</Field>
       <Field label="Paid by" T={T}><select value={payer} onChange={(e) => setPayer(e.target.value)} style={inpStyle(T)}>{members.map((m) => <option key={m.user_id} value={m.user_id}>{nm(m.user_id)}</option>)}</select></Field>
       <Field label="Category" T={T}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{CATS.map((x) => {

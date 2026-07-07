@@ -4,6 +4,7 @@ import type { RunwayCalc } from '../../lib/derive'
 import { cat } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
 import { Ring } from '../ui'
+import { fixDe } from '../../lib/format'
 
 export default function HomeTab({ T, flat, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }: {
   T: Theme; flat: Flat; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null
@@ -21,7 +22,7 @@ export default function HomeTab({ T, flat, myNet, runwayCalc, runway, fH, fHome,
       {runwayCalc && (
         <div onClick={() => setTab('money')} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.card, borderRadius: 20, padding: '15px 16px', marginBottom: 12, cursor: 'pointer' }}>
           <Ring pct={runwayCalc.monthsLeft / ((runway && runway.targetMonths) || 12)} size={64} stroke={7} color={runwayCalc.monthsLeft < 2 ? T.red : T.acc} track={T.border}><span style={{ fontSize: 15, fontWeight: 800 }}>{Math.floor(runwayCalc.monthsLeft)}</span><span style={{ fontSize: 8, color: T.txt2 }}>mo</span></Ring>
-          <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: T.txt2 }}>Funds runway</div><div style={{ fontSize: 19, fontWeight: 800, letterSpacing: -0.4 }}>{fH(runwayCalc.left)} <span style={{ fontSize: 12, fontWeight: 500, color: T.txt3 }}>left</span></div><div style={{ fontSize: 11, color: T.txt3, marginTop: 1 }}>≈ {runwayCalc.monthsLeft.toFixed(1)} months</div></div>
+          <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: T.txt2 }}>Funds runway</div><div style={{ fontSize: 19, fontWeight: 800, letterSpacing: -0.4 }}>{fH(runwayCalc.left)} <span style={{ fontSize: 12, fontWeight: 500, color: T.txt3 }}>left</span></div><div style={{ fontSize: 11, color: T.txt3, marginTop: 1 }}>≈ {fixDe(runwayCalc.monthsLeft)} months</div></div>
           <ChevronRight size={18} color={T.txt3} />
         </div>
       )}

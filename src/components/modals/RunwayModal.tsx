@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Theme, Runway } from '../../lib/types'
-import { tod } from '../../lib/format'
+import { tod, numVal } from '../../lib/format'
 import { Sheet, Field, inpStyle } from '../ui'
 
 export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur, showToast }: {
@@ -17,11 +17,11 @@ export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur
   }, [open])
   return (
     <Sheet open={open} onClose={onClose} title="Funds runway" T={T}>
-      <Field label={`Total funds available (${hostCur})`} T={T}><input value={total} onChange={(e) => setTotal(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 11904" style={{ ...inpStyle(T), fontSize: 20, fontWeight: 700 }} /></Field>
+      <Field label={`Total funds available (${hostCur})`} T={T}><input value={total} onChange={(e) => setTotal(e.target.value)} type="text" inputMode="decimal" placeholder="e.g. 11904" style={{ ...inpStyle(T), fontSize: 20, fontWeight: 700 }} /></Field>
       <Field label="Counting from" T={T}><input value={start} onChange={(e) => setStart(e.target.value)} type="date" style={inpStyle(T)} /></Field>
       <Field label="Must last (months)" T={T}><input value={target} onChange={(e) => setTarget(e.target.value)} type="number" inputMode="numeric" style={inpStyle(T)} /></Field>
-      <Field label={`Planned monthly minimum (${hostCur}, optional)`} T={T}><input value={monthly} onChange={(e) => setMonthly(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 992" style={inpStyle(T)} /></Field>
-      <button onClick={() => { const t = parseFloat(total) || 0; if (!t) return; sRunway({ total: t, start, monthly: parseFloat(monthly) || 0, targetMonths: parseInt(target) || 12 }); showToast('Runway saved'); onClose() }} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginBottom: 8 }}>Save runway</button>
+      <Field label={`Planned monthly minimum (${hostCur}, optional)`} T={T}><input value={monthly} onChange={(e) => setMonthly(e.target.value)} type="text" inputMode="decimal" placeholder="e.g. 992" style={inpStyle(T)} /></Field>
+      <button onClick={() => { const t = numVal(total); if (!t) return; sRunway({ total: t, start, monthly: numVal(monthly), targetMonths: parseInt(target) || 12 }); showToast('Runway saved'); onClose() }} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginBottom: 8 }}>Save runway</button>
       <div style={{ fontSize: 12, color: T.txt3, textAlign: 'center', lineHeight: 1.5 }}>For a German blocked account this is usually ~€11,904 that must last 12 months (~€992/mo).</div>
     </Sheet>
   )

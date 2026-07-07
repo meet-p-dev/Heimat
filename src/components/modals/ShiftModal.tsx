@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Trash2 } from 'lucide-react'
 import type { Theme, Shift } from '../../lib/types'
-import { tod } from '../../lib/format'
+import { tod, numVal, fixDe } from '../../lib/format'
 import { toMin } from '../../lib/shift'
 import { haptic } from '../../lib/haptic'
 import { WORK } from '../../lib/theme'
@@ -39,14 +39,14 @@ export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToas
     const worked = Math.max(0, gross - bm)
     const paidMin = paidBreak ? gross : worked
     const ph = paidMin / 60
-    const w = parseFloat(wage) || 0
+    const w = numVal(wage)
     return { paidHours: ph, pay: ph * w, overnight: toMin(end) <= toMin(start) && start !== end, valid: ph > 0 }
   }, [start, end, brk, paidBreak, wage])
-  const fy = (v: number) => { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: hostCur }).format(v || 0) } catch { return String(v) } }
+  const fy = (v: number) => { try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency: hostCur }).format(v || 0) } catch { return String(v) } }
   const save = () => {
     if (!d.valid) return
     const employer = emp.trim()
-    const row: Shift = { id: editing ? editing.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, employer, start, end, breakMin: parseFloat(brk) || 0, paidBreak, wage: parseFloat(wage) || 0, hours: d.paidHours, pay: d.pay }
+    const row: Shift = { id: editing ? editing.id : Date.now().toString(36) + Math.random().toString(36).slice(2, 6), date, employer, start, end, breakMin: parseFloat(brk) || 0, paidBreak, wage: numVal(wage), hours: d.paidHours, pay: d.pay }
     if (editing) sShifts(shifts.map((s) => (s.id === editing.id ? row : s)))
     else sShifts([row, ...shifts])
     haptic(12); showToast(editing ? 'Shift updated' : 'Shift logged'); onClose()
@@ -75,9 +75,9 @@ export default function ShiftModal({ open, onClose, T, shifts, sShifts, showToas
         <div style={{ display: 'flex', gap: 7, marginTop: 8 }}>{['0', '30', '45', '60'].map((b) => <button key={b} onClick={() => setBrk(b)} style={{ flex: 1, background: brk === b ? T.acc : T.inp, color: brk === b ? '#fff' : T.txt2, border: `1px solid ${brk === b ? T.acc : T.border}`, borderRadius: 10, padding: '7px 0', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>{b}m</button>)}</div>
         <div onClick={() => setPaidBreak(!paidBreak)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, cursor: 'pointer' }}><span style={{ fontSize: 13, color: T.txt2 }}>Break is paid</span><div style={{ width: 42, height: 25, borderRadius: 99, background: paidBreak ? T.acc : T.border, position: 'relative' }}><div style={{ position: 'absolute', top: 2, left: paidBreak ? 19 : 2, width: 21, height: 21, borderRadius: 99, background: '#fff', transition: 'left .2s' }} /></div></div>
       </Field>
-      <Field label={`Wage per hour (${hostCur})`} T={T}><input value={wage} onChange={(e) => setWage(e.target.value)} type="number" inputMode="decimal" placeholder="e.g. 13.50" style={{ ...inpStyle(T), fontSize: 18, fontWeight: 700 }} /></Field>
+      <Field label={`Wage per hour (${hostCur})`} T={T}><input value={wage} onChange={(e) => setWage(e.target.value)} type="text" inputMode="decimal" placeholder="e.g. 13,50" style={{ ...inpStyle(T), fontSize: 18, fontWeight: 700 }} /></Field>
       <div style={{ background: T.accSoft, borderRadius: 14, padding: '12px 15px', marginBottom: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 13, color: T.txt2, fontWeight: 600 }}>Paid: <span style={{ color: T.txt, fontWeight: 800 }}>{d.paidHours.toFixed(2)} h</span></span>
+        <span style={{ fontSize: 13, color: T.txt2, fontWeight: 600 }}>Paid: <span style={{ color: T.txt, fontWeight: 800 }}>{fixDe(d.paidHours, 2)} h</span></span>
         <span style={{ fontSize: 17, fontWeight: 800, color: WORK }}>{fy(d.pay)} <span style={{ fontSize: 10, fontWeight: 600, color: T.txt3 }}>gross</span></span>
       </div>
       <button onClick={save} disabled={!d.valid} className="h-press" style={{ width: '100%', background: d.valid ? WORK : T.border, color: '#06120c', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 800, fontSize: 16, cursor: d.valid ? 'pointer' : 'default' }}>{d.valid ? (editing ? 'Save changes' : 'Log shift') : 'Enter start & end time'}</button>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { Theme, Profile } from '../../lib/types'
 import { COUNTRIES, HOSTS } from '../../lib/data'
 import { Sheet, Field, inpStyle, Flag } from '../ui'
+import { numVal } from '../../lib/format'
 
 export default function ProfileModal({ open, onClose, T, profile, sProfile, showToast, earnedTotal, spentTotal, shiftCount, fH }: {
   open: boolean; onClose: () => void; T: Theme; profile: Profile; sProfile: (p: Profile) => void
@@ -16,7 +17,7 @@ export default function ProfileModal({ open, onClose, T, profile, sProfile, show
   const hostObj = HOSTS.find((c) => c.n === host) || HOSTS[0]
   const diff = homeObj.c !== hostObj.c
   const save = () => {
-    sProfile({ ...profile, name: name.trim() || profile.name, homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: parseFloat(rate) || profile.rate })
+    sProfile({ ...profile, name: name.trim() || profile.name, homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: numVal(rate) || profile.rate })
     showToast('Profile saved'); onClose()
   }
   const Stat = ({ k, v }: { k: string; v: string }) => (
@@ -39,7 +40,7 @@ export default function ProfileModal({ open, onClose, T, profile, sProfile, show
       <Field label="Where you study (local currency)" T={T}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Flag iso={hostObj.iso} size={24} /><select value={host} onChange={(e) => setHost(e.target.value)} style={inpStyle(T)}>{HOSTS.map((c) => <option key={c.n} value={c.n}>{c.n} — {c.c}</option>)}</select></div>
       </Field>
-      {diff && <Field label={`Exchange rate · 1 ${hostObj.c} = ? ${homeObj.c}`} T={T}><input value={rate} onChange={(e) => setRate(e.target.value)} type="number" inputMode="decimal" style={inpStyle(T)} /><div style={{ fontSize: 11, color: T.txt3, marginTop: 6 }}>Auto-updates when you open the app — edit to override.</div></Field>}
+      {diff && <Field label={`Exchange rate · 1 ${hostObj.c} = ? ${homeObj.c}`} T={T}><input value={rate} onChange={(e) => setRate(e.target.value)} type="text" inputMode="decimal" style={inpStyle(T)} /><div style={{ fontSize: 11, color: T.txt3, marginTop: 6 }}>Auto-updates when you open the app — edit to override.</div></Field>}
       <button onClick={save} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginTop: 4 }}>Save profile</button>
     </Sheet>
   )

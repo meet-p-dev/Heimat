@@ -3,7 +3,7 @@ import { Clock, Trash2, Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide
 import type { Theme, Shift } from '../../lib/types'
 import type { WorkStats } from '../../lib/derive'
 import { deriveShift } from '../../lib/shift'
-import { tod } from '../../lib/format'
+import { tod, fixDe } from '../../lib/format'
 import { haptic } from '../../lib/haptic'
 import { WORK, GOLD } from '../../lib/theme'
 import { groupShifts, monthMatrix, workedMap, WD1, MO3, type Gran } from '../../lib/workAgg'
@@ -61,8 +61,8 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
       <div style={{ display: 'flex', alignItems: 'center', gap: 13, background: T.card, borderRadius: 16, padding: '12px 15px', marginBottom: 14 }}>
         <Ring pct={ws.daysUsed / ws.budget} size={44} stroke={5} color={toneC} track={T.border}><span style={{ fontSize: 12, fontWeight: 800 }}>{ws.daysUsed}</span></Ring>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700 }}>{ws.daysUsed}/120 work-days · <span style={{ color: T.txt2, fontWeight: 500 }}>{(120 - ws.daysUsed).toFixed(1)} left</span></div>
-          <div style={{ fontSize: 11, marginTop: 2, color: ws.weekH > 20 ? T.red : ws.weekH >= 16 ? T.amber : T.txt2 }}>This week {ws.weekH.toFixed(1)}h / 20h term cap</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>{ws.daysUsed}/120 work-days · <span style={{ color: T.txt2, fontWeight: 500 }}>{fixDe(120 - ws.daysUsed)} left</span></div>
+          <div style={{ fontSize: 11, marginTop: 2, color: ws.weekH > 20 ? T.red : ws.weekH >= 16 ? T.amber : T.txt2 }}>This week {fixDe(ws.weekH)}h / 20h term cap</div>
         </div>
         <span style={{ fontSize: 10, fontWeight: 700, color: toneC, background: T.accSoft, padding: '3px 8px', borderRadius: 99, textTransform: 'uppercase', letterSpacing: 0.5 }}>{ws.tone === 'red' ? 'over' : ws.tone === 'amber' ? 'close' : 'safe'}</span>
       </div>
@@ -91,7 +91,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
                       <span style={{ fontWeight: 600, fontSize: 14, minWidth: 62 }}>{r.label}</span>
                       <span style={{ fontSize: 12, color: T.txt3, flex: 1 }}>{r.sub}</span>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.hours.toFixed(2)}h</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{fixDe(r.hours, 2)}h</div>
                         <div style={{ fontSize: 12, fontWeight: 700, color: WORK, fontVariantNumeric: 'tabular-nums' }}>{fH(r.pay)}</div>
                       </div>
                     </div>
@@ -147,7 +147,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
                           <div style={{ width: 32, height: 32, borderRadius: 10, background: T.accSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Clock size={16} color={WORK} /></div>
                           <div onClick={() => onEditShift(s)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                             <div style={{ fontWeight: 600, fontSize: 14 }}>{s.employer || 'Shift'}</div>
-                            <div style={{ fontSize: 11, color: T.txt2 }}>{s.start ? `${s.start}–${s.end} · ` : ''}{d.paidHours.toFixed(2)}h</div>
+                            <div style={{ fontSize: 11, color: T.txt2 }}>{s.start ? `${s.start}–${s.end} · ` : ''}{fixDe(d.paidHours, 2)}h</div>
                           </div>
                           {d.pay > 0 && <div style={{ fontWeight: 700, fontSize: 14, color: WORK, fontVariantNumeric: 'tabular-nums' }}>{fH(d.pay)}</div>}
                           <button onClick={() => delShift(s.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><Trash2 size={15} /></button>
@@ -172,7 +172,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
               <div key={e.name} style={{ padding: '9px 0', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 5 }}><span style={{ fontWeight: 600 }}>{e.name}</span><span style={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fH(e.pay)}</span></div>
                 <div style={{ height: 6, background: T.inp, borderRadius: 99, overflow: 'hidden' }}><div style={{ height: '100%', borderRadius: 99, width: `${ws.earnMonth > 0 ? Math.max((e.pay / ws.earnMonth) * 100, 3) : 0}%`, background: `linear-gradient(90deg,${WORK},${GOLD})` }} /></div>
-                <div style={{ fontSize: 10, color: T.txt3, marginTop: 3 }}>{e.hours.toFixed(1)}h · Ø {fH(e.wage)}/h</div>
+                <div style={{ fontSize: 10, color: T.txt3, marginTop: 3 }}>{fixDe(e.hours)}h · Ø {fH(e.wage)}/h</div>
               </div>
             ))}
           </div>
@@ -192,7 +192,7 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
                 <div style={{ width: 36, height: 36, borderRadius: 11, background: T.accSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Clock size={18} color={WORK} /></div>
                 <div onClick={() => onEditShift(s)} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                   <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>{s.employer || 'Shift'}{d.overnight && <span style={{ fontSize: 9, fontWeight: 700, background: T.inp, color: T.txt2, padding: '1px 6px', borderRadius: 6 }}>overnight</span>}</div>
-                  <div style={{ fontSize: 11, color: T.txt2 }}>{s.date}{s.start ? ` · ${s.start}–${s.end}` : ''} · {d.paidHours.toFixed(1)}h</div>
+                  <div style={{ fontSize: 11, color: T.txt2 }}>{s.date}{s.start ? ` · ${s.start}–${s.end}` : ''} · {fixDe(d.paidHours)}h</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>{d.pay > 0 ? <div style={{ fontWeight: 700, fontSize: 14, color: WORK, fontVariantNumeric: 'tabular-nums' }}>{fH(d.pay)}</div> : <div style={{ fontSize: 11, color: T.txt3 }}>no wage</div>}</div>
                 <button onClick={() => delShift(s.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><Trash2 size={14} /></button>

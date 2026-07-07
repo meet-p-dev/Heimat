@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Theme, Member } from '../../lib/types'
 import { Sheet, Field, inpStyle } from '../ui'
+import { numVal } from '../../lib/format'
 
 export default function SettleModal({ open, onClose, T, members, balances, uid, nameOf, fH, settleUp }: {
   open: boolean; onClose: () => void; T: Theme; members: Member[]; balances: Record<string, number>
@@ -23,8 +24,8 @@ export default function SettleModal({ open, onClose, T, members, balances, uid, 
     <Sheet open={open} onClose={onClose} title="Settle up" T={T}>
       <Field label="Who pays" T={T}><select value={from} onChange={(e) => setFrom(e.target.value)} style={inpStyle(T)}>{members.map((m) => <option key={m.user_id} value={m.user_id}>{nameOf(m.user_id)}</option>)}</select></Field>
       <Field label="Pays to" T={T}><select value={to} onChange={(e) => setTo(e.target.value)} style={inpStyle(T)}>{members.map((m) => <option key={m.user_id} value={m.user_id}>{nameOf(m.user_id)}</option>)}</select></Field>
-      <Field label="Amount" T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" style={inpStyle(T)} /></Field>
-      <button onClick={() => { const v = parseFloat(amt) || 0; if (!v || from === to) return; settleUp(from, to, v); onClose() }} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Record payment</button>
+      <Field label="Amount" T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="text" inputMode="decimal" placeholder="0,00" style={inpStyle(T)} /></Field>
+      <button onClick={() => { const v = numVal(amt); if (!v || from === to) return; settleUp(from, to, v); onClose() }} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer' }}>Record payment</button>
     </Sheet>
   )
 }

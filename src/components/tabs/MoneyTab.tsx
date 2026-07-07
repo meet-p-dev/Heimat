@@ -2,6 +2,7 @@ import { Wallet } from 'lucide-react'
 import type { Theme, Runway, Profile, ModalId } from '../../lib/types'
 import type { RunwayCalc } from '../../lib/derive'
 import { Ring, Row } from '../ui'
+import { fixDe } from '../../lib/format'
 
 export default function MoneyTab({ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }: {
   T: Theme; runway: Runway | null; runwayCalc: RunwayCalc | null
@@ -14,7 +15,7 @@ export default function MoneyTab({ T, runway, runwayCalc, fH, fHome, hostCur, ho
       <span className="h-lbl" style={{ color: T.txt3 }}>Funds runway</span>
       {runwayCalc ? (
         <div style={{ background: T.card, borderRadius: 20, padding: '18px 16px', marginBottom: 14, textAlign: 'center' }}>
-          <Ring pct={runwayCalc.monthsLeft / ((runway && runway.targetMonths) || 12)} size={120} stroke={11} color={runwayCalc.monthsLeft < 2 ? T.red : T.acc} track={T.border}><span style={{ fontSize: 30, fontWeight: 800 }}>{runwayCalc.monthsLeft.toFixed(1)}</span><span style={{ fontSize: 11, color: T.txt2 }}>months left</span></Ring>
+          <Ring pct={runwayCalc.monthsLeft / ((runway && runway.targetMonths) || 12)} size={120} stroke={11} color={runwayCalc.monthsLeft < 2 ? T.red : T.acc} track={T.border}><span style={{ fontSize: 30, fontWeight: 800 }}>{fixDe(runwayCalc.monthsLeft)}</span><span style={{ fontSize: 11, color: T.txt2 }}>months left</span></Ring>
           <div style={{ fontSize: 22, fontWeight: 800, marginTop: 14 }}>{fH(runwayCalc.left)}</div>
           {fHome(runwayCalc.left) && <div style={{ fontSize: 13, color: T.txt2 }}>≈ {fHome(runwayCalc.left)}</div>}
           <div style={{ fontSize: 12, color: T.txt3, marginTop: 8 }}>Spending ≈ {fH(runwayCalc.burn)}/mo · {fH(runwayCalc.spentSince)} used{inFlat ? '' : ' (add a flat to track spend)'}</div>

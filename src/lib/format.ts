@@ -5,8 +5,12 @@ export const tod = () => {
 
 export const money = (v: number, code: string) => {
   try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: code, maximumFractionDigits: 2 }).format(v || 0)
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: code, maximumFractionDigits: 2 }).format(v || 0)
   } catch {
-    return (v || 0).toFixed(2) + ' ' + code
+    return (v || 0).toFixed(2).replace('.', ',') + ' ' + code
   }
 }
+
+export const numVal = (s: string) => parseFloat(String(s || '').trim().replace(',', '.')) || 0
+
+export const fixDe = (v: number, d = 1) => (v || 0).toFixed(d).replace('.', ',')

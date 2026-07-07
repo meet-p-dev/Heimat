@@ -4,6 +4,7 @@ import type { Theme, Profile, Country } from '../lib/types'
 import { COUNTRIES, HOSTS } from '../lib/data'
 import { haptic } from '../lib/haptic'
 import { Field, inpStyle, Flag } from './ui'
+import { numVal } from '../lib/format'
 
 export default function Onboarding({ T, onDone }: { T: Theme; onDone: (p: Profile) => void }) {
   const [step, setStep] = useState(0)
@@ -74,7 +75,7 @@ export default function Onboarding({ T, onDone }: { T: Theme; onDone: (p: Profil
         {homeObj.c !== hostObj.c && (
           <Field label={`Exchange rate · 1 ${hostObj.c} = ? ${homeObj.c}`} T={T}>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input value={rate} onChange={(e) => setRate(e.target.value)} type="number" inputMode="decimal" placeholder="rate" style={inpStyle(T)} />
+              <input value={rate} onChange={(e) => setRate(e.target.value)} type="text" inputMode="decimal" placeholder="rate" style={inpStyle(T)} />
               <button onClick={fetchRate} className="h-press" style={{ flexShrink: 0, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 12, padding: '0 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>{fetching ? '…' : 'Live rate'}</button>
             </div>
             <div style={{ fontSize: 11, color: T.txt3, marginTop: 6 }}>Reference rate only — edit anytime in the Me tab.</div>
@@ -82,7 +83,7 @@ export default function Onboarding({ T, onDone }: { T: Theme; onDone: (p: Profil
         )}
       </div>
       <div style={{ padding: '8px 24px calc(env(safe-area-inset-bottom) + 24px)' }}>
-        <button disabled={!name.trim()} onClick={() => { haptic(14); onDone({ name: name.trim(), homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: parseFloat(rate) || (homeObj.c === hostObj.c ? 1 : 0), onboarded: true }) }} className="h-press" style={{ width: '100%', background: name.trim() ? T.acc : T.border, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontSize: 16, fontWeight: 700, cursor: name.trim() ? 'pointer' : 'default' }}>Start using Heimat</button>
+        <button disabled={!name.trim()} onClick={() => { haptic(14); onDone({ name: name.trim(), homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: numVal(rate) || (homeObj.c === hostObj.c ? 1 : 0), onboarded: true }) }} className="h-press" style={{ width: '100%', background: name.trim() ? T.acc : T.border, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontSize: 16, fontWeight: 700, cursor: name.trim() ? 'pointer' : 'default' }}>Start using Heimat</button>
       </div>
     </div>
   )

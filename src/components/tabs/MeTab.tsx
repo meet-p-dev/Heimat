@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import type { Theme, Profile, Flat } from '../../lib/types'
 import { COUNTRIES, HOSTS } from '../../lib/data'
 import { inpStyle, Row, Flag } from '../ui'
+import { numVal } from '../../lib/format'
 
 export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro }: {
   T: Theme; profile: Profile; sProfile: (p: Profile) => void; dark: boolean; tgDark: () => void
@@ -31,8 +32,8 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
         {profile.homeCur !== profile.hostCur && (
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingTop: 12 }}>
             <span style={{ fontSize: 14, color: T.txt2, flexShrink: 0 }}>1 {profile.hostCur} =</span>
-            <input value={rate} onChange={(e) => setRate(e.target.value)} type="number" inputMode="decimal" style={{ ...inpStyle(T), padding: '8px 12px' }} />
-            <button onClick={() => { sProfile({ ...profile, rate: parseFloat(rate) || profile.rate }); showToast('Rate updated') }} className="h-press" style={{ flexShrink: 0, background: T.acc, color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Save</button>
+            <input value={rate} onChange={(e) => setRate(e.target.value)} type="text" inputMode="decimal" style={{ ...inpStyle(T), padding: '8px 12px' }} />
+            <button onClick={() => { sProfile({ ...profile, rate: numVal(rate) || profile.rate }); showToast('Rate updated') }} className="h-press" style={{ flexShrink: 0, background: T.acc, color: '#fff', border: 'none', borderRadius: 10, padding: '9px 14px', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Save</button>
           </div>
         )}
       </div>
