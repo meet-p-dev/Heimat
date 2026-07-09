@@ -4,10 +4,10 @@ import { cat } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
 import { haptic } from '../../lib/haptic'
 
-export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
+export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
   T: Theme; flat: Flat; members: Member[]; balances: Record<string, number>; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
-  leaveFlat: () => void; expenses: Expense[]; deleteExpense: (id: string) => void
+  leaveFlat: () => void; expenses: Expense[]; deleteExpense: (id: string) => void; onEditExpense: (e: Expense) => void
   myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void; openAnalytics: () => void
 }) {
   return (
@@ -51,12 +51,16 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
           expenses.map((e, i) => {
             const c = cat(e.category)
             const CIcon = CAT_ICON[e.category] || CAT_ICON.other
+            const mine = e.created_by === uid
             return (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 11, background: T.cardH, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.txt2 }}><CIcon size={17} /></div>
-                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{e.description || c.label}</div><div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · split {(e.split_among || []).length} · {e.spent_on}</div></div>
+                <div onClick={mine ? () => { haptic(6); onEditExpense(e) } : undefined} style={{ flex: 1, minWidth: 0, cursor: mine ? 'pointer' : 'default' }}>
+                  <div style={{ fontWeight: 600, fontSize: 14 }}>{e.description || c.label}</div>
+                  <div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · split {(e.split_among || []).length} · {e.spent_on}{mine ? ' · tap to edit' : ''}</div>
+                </div>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{fH(e.amount)}</div>
-                {e.created_by === uid && <button onClick={() => deleteExpense(e.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><X size={15} /></button>}
+                {mine && <button onClick={() => deleteExpense(e.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><X size={15} /></button>}
               </div>
             )
           })

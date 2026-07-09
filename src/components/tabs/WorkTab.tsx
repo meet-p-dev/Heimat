@@ -51,6 +51,9 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
         </div>
       </div>
 
+      {/* log shift — up top so it's always one tap away */}
+      <button onClick={() => onLogShift(null)} className="h-press" style={{ width: '100%', background: WORK, color: '#06120c', border: 'none', borderRadius: 16, padding: '15px', fontWeight: 800, fontSize: 15, cursor: 'pointer', marginBottom: 12 }}>+ Log a work shift</button>
+
       {/* two stats */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
         <div style={{ flex: 1, background: T.card, borderRadius: 16, padding: '13px 14px' }}><div style={{ fontSize: 11, color: T.txt2, fontWeight: 600 }}>This year</div><div style={{ fontSize: 19, fontWeight: 800, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{fH(ws.earnYear)}</div></div>
@@ -202,7 +205,6 @@ export default function WorkTab({ T, workStats, shifts, sShifts, fH, fHome, show
         )}
       </div>
 
-      <button onClick={() => onLogShift(null)} className="h-press" style={{ width: '100%', background: WORK, color: '#06120c', border: 'none', borderRadius: 16, padding: '15px', fontWeight: 800, fontSize: 15, cursor: 'pointer' }}>+ Log a work shift</button>
       <div style={{ fontSize: 11, color: T.txt3, textAlign: 'center', marginTop: 12, lineHeight: 1.55 }}>Guidance only, not legal advice. Roughly 120 full days (or 240 half-days under 4h) per year; Werkstudent ~20h/week in term. Earnings are gross — take-home is lower after tax & social. Confirm your exact limit with your international office.</div>
     </>
   )

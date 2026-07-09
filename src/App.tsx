@@ -43,6 +43,7 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null)
   const [shiftDate, setShiftDate] = useState<string | null>(null)
   const [editShift, setEditShift] = useState<Shift | null>(null)
+  const [editExpense, setEditExpense] = useState<Expense | null>(null)
   const [showIntro, setShowIntro] = useState(false)
 
   /* sync state */
@@ -165,6 +166,12 @@ export default function App() {
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Expense added'); loadFlat()
   }
+  const updateExpense = async (id: string, x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => {
+    if (!sb) return
+    const { error } = await sb.from('expenses').update({ description: x.desc, amount: x.amount, paid_by: x.paidBy, split_among: x.among, category: x.category }).eq('id', id)
+    if (error) { showToast(error.message); return }
+    haptic(12); showToast('Expense updated'); loadFlat()
+  }
   const deleteExpense = async (id: string) => { if (!sb) return; const { error } = await sb.from('expenses').delete().eq('id', id); if (!error) { showToast('Deleted'); loadFlat() } }
   const settleUp = async (from: string, to: string, amount: number) => {
     if (!sb) return
@@ -187,7 +194,8 @@ export default function App() {
 
   const openShift = (d: string | null) => { setEditShift(null); setShiftDate(d || null); setModal('shift') }
   const openEditShift = (s: Shift) => { setEditShift(s); setShiftDate(null); setModal('shift') }
-  const startAddExpense = () => { if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
+  const startAddExpense = () => { setEditExpense(null); if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
+  const openEditExpense = (e: Expense) => { setEditExpense(e); setModal('exp') }
 
   const earnedTotal = useMemo(() => shifts.reduce((s, x) => s + deriveShift(x).pay, 0), [shifts])
   const spentTotal = useMemo(() => myShareTotal(expenses, uid), [expenses, uid])
@@ -225,7 +233,7 @@ export default function App() {
             ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
+            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
@@ -248,7 +256,7 @@ export default function App() {
         </div>
       </div>
 
-      <ExpenseModal {...{ open: modal === 'exp', onClose: () => setModal(null), T, members, uid, addExpense, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
+      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
       <PickFlatModal {...{ open: modal === 'pickflat', onClose: () => setModal(null), T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
       <SettleModal {...{ open: modal === 'settle', onClose: () => setModal(null), T, members, balances, uid, nameOf, fH, settleUp }} />
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
