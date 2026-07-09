@@ -19,6 +19,25 @@ export function computeBalances(members: Member[], expenses: Expense[], settles:
   return net
 }
 
+export interface SettleSuggestion { from: string; to: string; amount: number }
+
+/* greedy debt simplification: largest debtor pays largest creditor until everyone is within ±0.50 */
+export function settleSuggestions(balances: Record<string, number>): SettleSuggestion[] {
+  const debtors = Object.keys(balances).filter((u) => balances[u] < -0.5).map((u) => ({ u, v: -balances[u] })).sort((a, b) => b.v - a.v)
+  const creditors = Object.keys(balances).filter((u) => balances[u] > 0.5).map((u) => ({ u, v: balances[u] })).sort((a, b) => b.v - a.v)
+  const out: SettleSuggestion[] = []
+  let i = 0, j = 0
+  while (i < debtors.length && j < creditors.length) {
+    const pay = Math.min(debtors[i].v, creditors[j].v)
+    if (pay > 0.5) out.push({ from: debtors[i].u, to: creditors[j].u, amount: pay })
+    debtors[i].v -= pay
+    creditors[j].v -= pay
+    if (debtors[i].v <= 0.5) i++
+    if (creditors[j].v <= 0.5) j++
+  }
+  return out
+}
+
 export interface RunwayCalc { left: number; monthsLeft: number; burn: number; spentSince: number }
 
 export function computeRunway(runway: Runway | null, expenses: Expense[], uid: string | null): RunwayCalc | null {

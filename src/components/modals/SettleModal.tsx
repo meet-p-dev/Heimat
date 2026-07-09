@@ -3,16 +3,22 @@ import type { Theme, Member } from '../../lib/types'
 import { Sheet, Field, inpStyle } from '../ui'
 import { numVal } from '../../lib/format'
 
-export default function SettleModal({ open, onClose, T, members, balances, uid, nameOf, fH, settleUp }: {
+export default function SettleModal({ open, onClose, T, members, balances, uid, nameOf, fH, settleUp, initial }: {
   open: boolean; onClose: () => void; T: Theme; members: Member[]; balances: Record<string, number>
   uid: string | null; nameOf: (u: string) => string; fH: (v: number) => string
   settleUp: (from: string, to: string, amount: number) => void
+  initial: { from: string; to: string; amount: number } | null
 }) {
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [amt, setAmt] = useState('')
   useEffect(() => {
-    if (open) {
+    if (!open) return
+    if (initial) {
+      setFrom(initial.from)
+      setTo(initial.to)
+      setAmt(initial.amount.toFixed(2).replace('.', ','))
+    } else {
       const debtor = members.find((m) => (balances[m.user_id] || 0) < -0.5)
       const creditor = members.find((m) => (balances[m.user_id] || 0) > 0.5)
       setFrom(debtor ? debtor.user_id : uid || '')

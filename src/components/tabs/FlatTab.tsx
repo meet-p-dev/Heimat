@@ -1,15 +1,19 @@
-import { X, LineChart, ChevronRight } from 'lucide-react'
+import { X, LineChart, ChevronRight, ArrowRight } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ModalId } from '../../lib/types'
 import { cat } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
 import { haptic } from '../../lib/haptic'
+import { settleSuggestions } from '../../lib/derive'
+import type { SettleSuggestion } from '../../lib/derive'
 
-export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
+export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense, onViewExpense, openSettle, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
   T: Theme; flat: Flat; members: Member[]; balances: Record<string, number>; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; deleteExpense: (id: string) => void; onEditExpense: (e: Expense) => void
+  onViewExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
   myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void; openAnalytics: () => void
 }) {
+  const suggestions = settleSuggestions(balances)
   return (
     <>
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 12, paddingBottom: 2 }}>
@@ -34,8 +38,28 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
           )
         })}
       </div>
+      {suggestions.length > 0 && (
+        <>
+          <span className="h-lbl" style={{ color: T.txt3 }}>Who pays whom</span>
+          <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
+            {suggestions.map((s, i) => {
+              const involvesMe = s.from === uid || s.to === uid
+              return (
+                <div key={`${s.from}-${s.to}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none', cursor: 'pointer' }}>
+                  <span style={{ fontWeight: s.from === uid ? 800 : 600, fontSize: 14, color: s.from === uid ? T.acc : T.txt }}>{nameOf(s.from)}</span>
+                  <ArrowRight size={14} color={T.txt3} />
+                  <span style={{ fontWeight: s.to === uid ? 800 : 600, fontSize: 14, color: s.to === uid ? T.acc : T.txt, flex: 1 }}>{nameOf(s.to)}</span>
+                  <span style={{ fontWeight: 700, fontSize: 14, color: involvesMe ? T.acc : T.txt, fontVariantNumeric: 'tabular-nums' }}>{fH(s.amount)}</span>
+                  <ChevronRight size={15} color={T.txt3} />
+                </div>
+              )
+            })}
+            <div style={{ fontSize: 11, color: T.txt3, padding: '0 15px 11px' }}>Tap a line to record the payment.</div>
+          </div>
+        </>
+      )}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => setModal('settle')} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
+        <button onClick={() => openSettle(null)} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
         <button onClick={startAddExpense} className="h-press" style={{ flex: 1, background: T.acc, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Add expense</button>
       </div>
       <div onClick={openAnalytics} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 13, background: `linear-gradient(135deg, ${T.accSoft}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 18, padding: '14px 16px', marginBottom: 14, cursor: 'pointer' }}>
@@ -55,9 +79,9 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
             return (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 11, background: T.cardH, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.txt2 }}><CIcon size={17} /></div>
-                <div onClick={mine ? () => { haptic(6); onEditExpense(e) } : undefined} style={{ flex: 1, minWidth: 0, cursor: mine ? 'pointer' : 'default' }}>
+                <div onClick={() => { haptic(6); mine ? onEditExpense(e) : onViewExpense(e) }} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{e.description || c.label}</div>
-                  <div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · split {(e.split_among || []).length} · {e.spent_on}{mine ? ' · tap to edit' : ''}</div>
+                  <div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · split {(e.split_among || []).length} · {e.spent_on}{mine ? ' · tap to edit' : ' · tap for details'}</div>
                 </div>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{fH(e.amount)}</div>
                 {mine && <button onClick={() => deleteExpense(e.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><X size={15} /></button>}

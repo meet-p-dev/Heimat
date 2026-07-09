@@ -8,6 +8,7 @@ import { haptic } from './lib/haptic'
 import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeBalances, computeRunway, computeWorkStats } from './lib/derive'
+import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, TabId, ModalId } from './lib/types'
 import Onboarding from './components/Onboarding'
 import NoFlat from './components/tabs/NoFlat'
@@ -17,6 +18,7 @@ import MoneyTab from './components/tabs/MoneyTab'
 import WorkTab from './components/tabs/WorkTab'
 import MeTab from './components/tabs/MeTab'
 import ExpenseModal from './components/modals/ExpenseModal'
+import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
 import SettleModal from './components/modals/SettleModal'
 import InviteModal from './components/modals/InviteModal'
 import CreateJoinModal from './components/modals/CreateJoinModal'
@@ -44,6 +46,8 @@ export default function App() {
   const [shiftDate, setShiftDate] = useState<string | null>(null)
   const [editShift, setEditShift] = useState<Shift | null>(null)
   const [editExpense, setEditExpense] = useState<Expense | null>(null)
+  const [viewExpense, setViewExpense] = useState<Expense | null>(null)
+  const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
 
   /* sync state */
@@ -196,6 +200,8 @@ export default function App() {
   const openEditShift = (s: Shift) => { setEditShift(s); setShiftDate(null); setModal('shift') }
   const startAddExpense = () => { setEditExpense(null); if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
   const openEditExpense = (e: Expense) => { setEditExpense(e); setModal('exp') }
+  const openViewExpense = (e: Expense) => { setViewExpense(e); setModal('expdetail') }
+  const openSettle = (init: SettleSuggestion | null) => { setSettleInit(init); setModal('settle') }
 
   const earnedTotal = useMemo(() => shifts.reduce((s, x) => s + deriveShift(x).pay, 0), [shifts])
   const spentTotal = useMemo(() => myShareTotal(expenses, uid), [expenses, uid])
@@ -233,7 +239,7 @@ export default function App() {
             ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
+            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, onViewExpense: openViewExpense, openSettle, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
@@ -258,7 +264,8 @@ export default function App() {
 
       <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
       <PickFlatModal {...{ open: modal === 'pickflat', onClose: () => setModal(null), T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
-      <SettleModal {...{ open: modal === 'settle', onClose: () => setModal(null), T, members, balances, uid, nameOf, fH, settleUp }} />
+      <SettleModal {...{ open: modal === 'settle', onClose: () => { setModal(null); setSettleInit(null) }, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
+      <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf }} />
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: () => setModal(null), T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: () => setModal(null), T, runway, sRunway, hostCur, showToast }} />
