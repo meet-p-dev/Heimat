@@ -1,4 +1,4 @@
-import { X, LineChart, ChevronRight, ArrowRight } from 'lucide-react'
+import { X, LineChart, ChevronRight } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ModalId } from '../../lib/types'
 import { cat } from '../../lib/data'
 import { CAT_ICON } from '../../icons'
@@ -29,35 +29,36 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
       <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
         {members.map((m, i) => {
           const net = balances[m.user_id] || 0
+          const owes = suggestions.filter((s) => s.from === m.user_id)
+          const gets = suggestions.filter((s) => s.to === m.user_id)
+          const settled = owes.length === 0 && gets.length === 0
           return (
             <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 99, background: T.acc, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>{(m.display_name || '?')[0].toUpperCase()}</div>
-              <div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 15 }}>{m.display_name}{m.user_id === uid ? ' (you)' : ''}</div>
-                <div style={{ fontSize: 12, color: net > 0.5 ? T.green : net < -0.5 ? T.red : T.txt2 }}>{Math.abs(net) < 0.5 ? 'settled' : net > 0 ? `gets back ${fH(net)}` : `owes ${fH(-net)}`}</div></div>
+              <div style={{ width: 38, height: 38, borderRadius: 99, background: T.acc, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>{(m.display_name || '?')[0].toUpperCase()}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 15 }}>{m.display_name}{m.user_id === uid ? ' (you)' : ''}</div>
+                {settled ? (
+                  <div style={{ fontSize: 12, color: T.txt2, marginTop: 1 }}>settled up</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 3 }}>
+                    {owes.map((s) => (
+                      <div key={`o${s.to}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ fontSize: 12, color: T.red, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span>owes <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> to {nameOf(s.to)}</span><ChevronRight size={13} color={T.txt3} />
+                      </div>
+                    ))}
+                    {gets.map((s) => (
+                      <div key={`g${s.from}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ fontSize: 12, color: T.green, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span>gets <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> back from {nameOf(s.from)}</span><ChevronRight size={13} color={T.txt3} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}
       </div>
-      {suggestions.length > 0 && (
-        <>
-          <span className="h-lbl" style={{ color: T.txt3 }}>Who pays whom</span>
-          <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
-            {suggestions.map((s, i) => {
-              const involvesMe = s.from === uid || s.to === uid
-              return (
-                <div key={`${s.from}-${s.to}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none', cursor: 'pointer' }}>
-                  <span style={{ fontWeight: s.from === uid ? 800 : 600, fontSize: 14, color: s.from === uid ? T.acc : T.txt }}>{nameOf(s.from)}</span>
-                  <ArrowRight size={14} color={T.txt3} />
-                  <span style={{ fontWeight: s.to === uid ? 800 : 600, fontSize: 14, color: s.to === uid ? T.acc : T.txt, flex: 1 }}>{nameOf(s.to)}</span>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: involvesMe ? T.acc : T.txt, fontVariantNumeric: 'tabular-nums' }}>{fH(s.amount)}</span>
-                  <ChevronRight size={15} color={T.txt3} />
-                </div>
-              )
-            })}
-            <div style={{ fontSize: 11, color: T.txt3, padding: '0 15px 11px' }}>Tap a line to record the payment.</div>
-          </div>
-        </>
-      )}
+      {suggestions.length > 0 && <div style={{ fontSize: 11, color: T.txt3, margin: '-6px 4px 12px' }}>Tap a “owes / gets back” line to record that payment.</div>}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         <button onClick={() => openSettle(null)} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
         <button onClick={startAddExpense} className="h-press" style={{ flex: 1, background: T.acc, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Add expense</button>
