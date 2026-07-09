@@ -42,13 +42,13 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 3 }}>
                     {owes.map((s) => (
-                      <div key={`o${s.to}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ fontSize: 12, color: T.red, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span>owes <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> to {nameOf(s.to)}</span><ChevronRight size={13} color={T.txt3} />
+                      <div key={`o${s.to}`} style={{ fontSize: 12, color: T.red }}>
+                        owes <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> to {nameOf(s.to)}
                       </div>
                     ))}
                     {gets.map((s) => (
-                      <div key={`g${s.from}`} onClick={() => { haptic(8); openSettle(s) }} className="h-press" style={{ fontSize: 12, color: T.green, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span>gets <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> back from {nameOf(s.from)}</span><ChevronRight size={13} color={T.txt3} />
+                      <div key={`g${s.from}`} style={{ fontSize: 12, color: T.green }}>
+                        gets <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> back from {nameOf(s.from)}
                       </div>
                     ))}
                   </div>
@@ -58,7 +58,6 @@ export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, s
           )
         })}
       </div>
-      {suggestions.length > 0 && <div style={{ fontSize: 11, color: T.txt3, margin: '-6px 4px 12px' }}>Tap a “owes / gets back” line to record that payment.</div>}
       <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         <button onClick={() => openSettle(null)} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
         <button onClick={startAddExpense} className="h-press" style={{ flex: 1, background: T.acc, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Add expense</button>
