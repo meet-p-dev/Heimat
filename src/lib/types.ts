@@ -29,6 +29,11 @@ export interface Settlement {
   amount: number; created_by: string; settled_on: string
 }
 
+export interface ListItem {
+  id: string; flat_id: string; title: string; category: string; added_by: string
+  bought: boolean; bought_by: string | null; bought_at: string | null; created_at: string
+}
+
 export interface Shift {
   id: string; date: string; employer: string; start: string; end: string
   breakMin: number; paidBreak: boolean; wage: number; hours?: number; pay?: number

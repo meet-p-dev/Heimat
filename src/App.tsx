@@ -9,7 +9,7 @@ import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeBalances, computeRunway, computeWorkStats } from './lib/derive'
 import type { SettleSuggestion } from './lib/derive'
-import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, TabId, ModalId } from './lib/types'
+import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, TabId, ModalId } from './lib/types'
 import Onboarding from './components/Onboarding'
 import NoFlat from './components/tabs/NoFlat'
 import HomeTab from './components/tabs/HomeTab'
@@ -46,6 +46,7 @@ export default function App() {
   const [shiftDate, setShiftDate] = useState<string | null>(null)
   const [editShift, setEditShift] = useState<Shift | null>(null)
   const [editExpense, setEditExpense] = useState<Expense | null>(null)
+  const [expensePrefill, setExpensePrefill] = useState<{ desc: string; category: string } | null>(null)
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
@@ -58,6 +59,7 @@ export default function App() {
   const [members, setMembers] = useState<Member[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [settles, setSettles] = useState<Settlement[]>([])
+  const [items, setItems] = useState<ListItem[]>([])
   const [busy, setBusy] = useState(false)
   const [myFlats, setMyFlats] = useState<Flat[]>([])
 
@@ -113,17 +115,18 @@ export default function App() {
   const loadFlat = async () => {
     if (!sb || !flatId) return
     try {
-      const [f, m, e, s] = await Promise.all([
+      const [f, m, e, s, it] = await Promise.all([
         sb.from('flats').select('*').eq('id', flatId).maybeSingle(),
         sb.from('flat_members').select('*').eq('flat_id', flatId),
         sb.from('expenses').select('*').eq('flat_id', flatId).order('spent_on', { ascending: false }),
         sb.from('settlements').select('*').eq('flat_id', flatId),
+        sb.from('flat_items').select('*').eq('flat_id', flatId).order('created_at', { ascending: true }),
       ])
-      if (f.data) { setFlat(f.data as Flat); setMembers((m.data as Member[]) || []); setExpenses((e.data as Expense[]) || []); setSettles((s.data as Settlement[]) || []) }
+      if (f.data) { setFlat(f.data as Flat); setMembers((m.data as Member[]) || []); setExpenses((e.data as Expense[]) || []); setSettles((s.data as Settlement[]) || []); setItems((it.data as ListItem[]) || []) }
       else { setFlatIdP(null); setFlat(null) }
     } catch { showToast('Sync error — will retry') }
   }
-  useEffect(() => { if (uid && flatId) loadFlat(); else { setFlat(null); setMembers([]); setExpenses([]); setSettles([]) } }, [uid, flatId])
+  useEffect(() => { if (uid && flatId) loadFlat(); else { setFlat(null); setMembers([]); setExpenses([]); setSettles([]); setItems([]) } }, [uid, flatId])
 
   /* realtime */
   useEffect(() => {
@@ -143,6 +146,15 @@ export default function App() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settlements', filter: 'flat_id=eq.' + flatId }, () => loadFlat())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_members', filter: 'flat_id=eq.' + flatId }, () => loadFlat())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_items', filter: 'flat_id=eq.' + flatId }, (payload: any) => {
+        const n = payload.new
+        if (payload.eventType === 'INSERT' && n && n.added_by !== uid) {
+          showToast(`${nameOf(n.added_by)} added “${n.title}” to the list`); haptic(12)
+        } else if (payload.eventType === 'UPDATE' && n && n.bought && n.bought_by && n.bought_by !== uid && !payload.old?.bought) {
+          showToast(`${nameOf(n.bought_by)} bought “${n.title}”`); haptic(12)
+        }
+        loadFlat()
+      })
       .subscribe()
     return () => { try { client.removeChannel(ch) } catch {} }
   }, [uid, flatId, members])
@@ -177,6 +189,38 @@ export default function App() {
     haptic(12); showToast('Expense updated'); loadFlat()
   }
   const deleteExpense = async (id: string) => { if (!sb) return; const { error } = await sb.from('expenses').delete().eq('id', id); if (!error) { showToast('Deleted'); loadFlat() } }
+
+  /* shared list actions */
+  const addItem = async (title: string, category: string) => {
+    if (!sb || !flatId || !title.trim()) return
+    const { error } = await sb.from('flat_items').insert({ flat_id: flatId, title: title.trim(), category, added_by: uid })
+    if (error) { showToast(error.message); return }
+    haptic(10); loadFlat()
+  }
+  const setItemBought = async (id: string, bought: boolean) => {
+    if (!sb) return
+    const { error } = await sb.from('flat_items').update(bought ? { bought: true, bought_by: uid, bought_at: new Date().toISOString() } : { bought: false, bought_by: null, bought_at: null }).eq('id', id)
+    if (error) { showToast(error.message); return }
+    haptic(12); loadFlat()
+  }
+  const deleteItem = async (id: string) => { if (!sb) return; const { error } = await sb.from('flat_items').delete().eq('id', id); if (!error) { haptic(8); loadFlat() } }
+  const clearBoughtItems = async () => {
+    if (!sb || !flatId) return
+    const { error } = await sb.from('flat_items').delete().eq('flat_id', flatId).eq('bought', true)
+    if (error) { showToast(error.message); return }
+    haptic(10); showToast('Bought list cleared'); loadFlat()
+  }
+  /* turn the bought items into a shared expense: prefill the sheet, then clear them once it's saved */
+  const expenseFromBought = () => {
+    const bought = items.filter((i) => i.bought)
+    if (!bought.length) return
+    const counts: Record<string, number> = {}
+    bought.forEach((i) => { counts[i.category] = (counts[i.category] || 0) + 1 })
+    const category = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0] || 'groceries'
+    setEditExpense(null)
+    setExpensePrefill({ desc: bought.map((i) => i.title).join(', '), category })
+    setModal('exp')
+  }
   const settleUp = async (from: string, to: string, amount: number) => {
     if (!sb) return
     const { error } = await sb.from('settlements').insert({ flat_id: flatId, from_user: from, to_user: to, amount, created_by: uid, settled_on: tod() })
@@ -198,8 +242,8 @@ export default function App() {
 
   const openShift = (d: string | null) => { setEditShift(null); setShiftDate(d || null); setModal('shift') }
   const openEditShift = (s: Shift) => { setEditShift(s); setShiftDate(null); setModal('shift') }
-  const startAddExpense = () => { setEditExpense(null); if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
-  const openEditExpense = (e: Expense) => { setEditExpense(e); setModal('exp') }
+  const startAddExpense = () => { setEditExpense(null); setExpensePrefill(null); if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
+  const openEditExpense = (e: Expense) => { setEditExpense(e); setExpensePrefill(null); setModal('exp') }
   const openViewExpense = (e: Expense) => { setViewExpense(e); setModal('expdetail') }
   const openSettle = (init: SettleSuggestion | null) => { setSettleInit(init); setModal('settle') }
 
@@ -239,7 +283,7 @@ export default function App() {
             ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, onViewExpense: openViewExpense, openSettle, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
+            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, onViewExpense: openViewExpense, openSettle, items, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
@@ -262,7 +306,7 @@ export default function App() {
         </div>
       </div>
 
-      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
+      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null); setExpensePrefill(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
       <PickFlatModal {...{ open: modal === 'pickflat', onClose: () => setModal(null), T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
       <SettleModal {...{ open: modal === 'settle', onClose: () => { setModal(null); setSettleInit(null) }, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf }} />

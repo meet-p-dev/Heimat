@@ -5,11 +5,12 @@ import { CAT_ICON } from '../../icons'
 import { money, numVal } from '../../lib/format'
 import { Sheet, Field, inpStyle } from '../ui'
 
-export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, hostCur, homeCur, rate, flatName }: {
+export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName }: {
   open: boolean; onClose: () => void; T: Theme; members: Member[]; uid: string | null
   addExpense: (x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => void
   updateExpense: (id: string, x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => void
-  editing: Expense | null; hostCur: string; homeCur: string; rate: number; flatName?: string
+  editing: Expense | null; prefill: { desc: string; category: string } | null
+  hostCur: string; homeCur: string; rate: number; flatName?: string
 }) {
   const [desc, setDesc] = useState('')
   const [amt, setAmt] = useState('')
@@ -19,7 +20,7 @@ export default function ExpenseModal({ open, onClose, T, members, uid, addExpens
   useEffect(() => {
     if (!open) return
     if (editing) { setDesc(editing.description || ''); setAmt(String(editing.amount).replace('.', ',')); setPayer(editing.paid_by); setAmong(editing.split_among || []); setC(editing.category || 'other') }
-    else { setDesc(''); setAmt(''); setPayer(uid || ''); setAmong(members.map((m) => m.user_id)); setC('groceries') }
+    else { setDesc(prefill ? prefill.desc : ''); setAmt(''); setPayer(uid || ''); setAmong(members.map((m) => m.user_id)); setC(prefill ? prefill.category : 'groceries') }
   }, [open])
   // when the flat's members change while the sheet is open (after choosing a different flat), re-seed split & payer
   useEffect(() => { if (open && !editing) { setAmong(members.map((m) => m.user_id)); setPayer((p) => (members.some((m) => m.user_id === p) ? p : uid || '')) } }, [members])
