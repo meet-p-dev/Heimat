@@ -51,4 +51,4 @@ export interface Runway { total: number; start: string; monthly: number; targetM
 export interface Derived { paidHours: number; legalHours: number; pay: number; wage: number; overnight: boolean }
 
 export type TabId = 'home' | 'flat' | 'money' | 'work' | 'me'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats' | 'saveacct' | 'signin'

@@ -21,6 +21,7 @@ import MeTab from './components/tabs/MeTab'
 import ExpenseModal from './components/modals/ExpenseModal'
 import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
 import CategoriesModal from './components/modals/CategoriesModal'
+import AuthModal from './components/modals/AuthModal'
 import SettleModal from './components/modals/SettleModal'
 import InviteModal from './components/modals/InviteModal'
 import CreateJoinModal from './components/modals/CreateJoinModal'
@@ -57,6 +58,8 @@ export default function App() {
 
   /* sync state */
   const [uid, setUid] = useState<string | null>(null)
+  const [isAnon, setIsAnon] = useState(true)
+  const [email, setEmail] = useState<string | null>(null)
   const [authErr, setAuthErr] = useState<string | null>(null)
   const [flatId, setFlatId] = useState<string | null>(() => LS.g<string>('mt-h-flatid'))
   const [flat, setFlat] = useState<Flat | null>(null)
@@ -99,6 +102,13 @@ export default function App() {
   const nameOf = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || 'Someone')
 
   /* auth */
+  const applySession = (session: any) => {
+    if (!session) return
+    setUid(session.user.id)
+    setIsAnon(session.user.is_anonymous !== false)
+    setEmail(session.user.email || null)
+  }
+
   useEffect(() => {
     ;(async () => {
       if (!sb) { setAuthErr('offline'); return }
@@ -111,7 +121,7 @@ export default function App() {
           const again = await sb.auth.getSession()
           session = again.data.session
         }
-        if (session) setUid(session.user.id)
+        applySession(session)
       } catch (e: any) { setAuthErr(e?.message || "Couldn't connect") }
     })()
   }, [])
@@ -196,6 +206,44 @@ export default function App() {
     haptic(12); showToast('Expense updated'); loadFlat()
   }
   const deleteExpense = async (id: string) => { if (!sb) return; const { error } = await sb.from('expenses').delete().eq('id', id); if (!error) { showToast('Deleted'); loadFlat() } }
+
+  /* account actions — an account is just the anonymous user with an email+password attached,
+     so the user id (and therefore flat membership and every expense) stays the same */
+  const saveAccount = async (mail: string, password: string): Promise<string | null> => {
+    if (!sb) return 'Offline'
+    setBusy(true)
+    const { error } = await sb.auth.updateUser({ email: mail.trim(), password })
+    setBusy(false)
+    if (error) return error.message
+    const { data } = await sb.auth.getSession()
+    applySession(data.session)
+    haptic(14); showToast('Account saved — you can sign in anywhere now')
+    return null
+  }
+  const signIn = async (mail: string, password: string): Promise<string | null> => {
+    if (!sb) return 'Offline'
+    setBusy(true)
+    const { data, error } = await sb.auth.signInWithPassword({ email: mail.trim(), password })
+    setBusy(false)
+    if (error) return error.message
+    // the stale flat id from the throwaway anonymous session no longer applies
+    LS.s('mt-h-flatid', null)
+    setFlatId(null)
+    applySession(data.session)
+    haptic(14); showToast('Signed in')
+    return null
+  }
+  const signOut = async () => {
+    if (!sb) return
+    if (!confirm('Sign out? Your flat stays safe — sign back in any time with your email.')) return
+    await sb.auth.signOut()
+    setFlatIdP(null)
+    const { error } = await sb.auth.signInAnonymously()
+    if (error) { setAuthErr(error.message); return }
+    const { data } = await sb.auth.getSession()
+    applySession(data.session)
+    showToast('Signed out')
+  }
 
   /* category actions */
   const addCategory = async (label: string, icon: string, color: string) => {
@@ -311,7 +359,7 @@ export default function App() {
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
-          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile: () => setModal('profile'), onReplayIntro: () => setShowIntro(true) }} />}
+          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile: () => setModal('profile'), onReplayIntro: () => setShowIntro(true), isAnon, email, onSaveAccount: () => setModal('saveacct'), onSignIn: () => setModal('signin'), onSignOut: signOut }} />}
         </div>
       </div>
 
@@ -335,6 +383,7 @@ export default function App() {
       <SettleModal {...{ open: modal === 'settle', onClose: () => { setModal(null); setSettleInit(null) }, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: () => setModal(null), T, custom: flatCats, addCategory, deleteCategory }} />
+      <AuthModal {...{ open: modal === 'saveacct' || modal === 'signin', mode: modal === 'signin' ? 'signin' : 'save', onClose: () => setModal(null), T, busy, saveAccount, signIn }} />
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: () => setModal(null), T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: () => setModal(null), T, runway, sRunway, hostCur, showToast }} />

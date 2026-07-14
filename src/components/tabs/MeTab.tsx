@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, ShieldAlert, ShieldCheck } from 'lucide-react'
 import type { Theme, Profile, Flat } from '../../lib/types'
 import { COUNTRIES, HOSTS } from '../../lib/data'
 import { inpStyle, Row, Flag } from '../ui'
 import { numVal } from '../../lib/format'
 import { pushSupported, needsInstall, getSubscription, subscribe, unsubscribe } from '../../lib/push'
 
-export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro }: {
+export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro, isAnon, email, onSaveAccount, onSignIn, onSignOut }: {
   T: Theme; profile: Profile; sProfile: (p: Profile) => void; dark: boolean; tgDark: () => void
   showToast: (m: string) => void; uid: string | null; flat: Flat | null; leaveFlat: () => void
   onEditProfile: () => void; onReplayIntro: () => void
+  isAnon: boolean; email: string | null
+  onSaveAccount: () => void; onSignIn: () => void; onSignOut: () => void
 }) {
   const [rate, setRate] = useState(String(profile.rate || ''))
   const [notif, setNotif] = useState(false)
@@ -46,6 +48,43 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
         </div>
         <ChevronRight size={20} color={T.txt3} />
       </div>
+      <span className="h-lbl" style={{ color: T.txt3 }}>Account</span>
+      {isAnon ? (
+        <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ padding: '14px 16px', borderBottom: `1px solid ${T.border}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <ShieldAlert size={16} color={T.amber} />
+              <span style={{ fontSize: 15, fontWeight: 700 }}>This account lives on this device only</span>
+            </div>
+            <div style={{ fontSize: 12, color: T.txt2, lineHeight: 1.5 }}>
+              Clear your browser data, switch phone, or open Heimat from a different icon and you'd start over as a new person — losing your place in the flat. Add an email and password to keep it.
+            </div>
+          </div>
+          <div onClick={onSaveAccount} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: T.acc }}>Save your account</span>
+            <ChevronRight size={18} color={T.txt3} />
+          </div>
+          <div onClick={onSignIn} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>I already have an account</span>
+            <ChevronRight size={18} color={T.txt3} />
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', borderBottom: `1px solid ${T.border}` }}>
+            <ShieldCheck size={17} color={T.green} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{email}</div>
+              <div style={{ fontSize: 11, color: T.txt2, marginTop: 1 }}>Sign in with this on any device to get your flat back</div>
+            </div>
+          </div>
+          <div onClick={onSignOut} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 500, color: T.red }}>Sign out</span>
+            <ChevronRight size={18} color={T.txt3} />
+          </div>
+        </div>
+      )}
+
       <span className="h-lbl" style={{ color: T.txt3 }}>Currency & rate</span>
       <div style={{ background: T.card, borderRadius: 20, padding: '16px', marginBottom: 14 }}>
         <Row T={T} k="Home" v={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Flag iso={homeIso} size={15} /> {profile.homeCur}</span>} />

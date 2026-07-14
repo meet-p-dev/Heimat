@@ -11,6 +11,11 @@ export default function NoFlat({ T, setModal, authErr, uid }: { T: Theme; setMod
       </div>
       <button onClick={() => setModal('create')} disabled={!uid} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontSize: 16, fontWeight: 700, cursor: uid ? 'pointer' : 'default', marginBottom: 12, opacity: uid ? 1 : 0.5 }}>+ Create a flat</button>
       <button onClick={() => setModal('join')} disabled={!uid} className="h-press" style={{ width: '100%', background: T.card, color: T.txt, border: `1px solid ${T.border}`, borderRadius: 16, padding: '16px', fontSize: 16, fontWeight: 700, cursor: uid ? 'pointer' : 'default', opacity: uid ? 1 : 0.5 }}>Join with a code</button>
+      {/* someone reinstalling or on a new phone lands here — let them get their old flat back */}
+      <div style={{ textAlign: 'center', marginTop: 18 }}>
+        <span style={{ fontSize: 13, color: T.txt2 }}>Been here before? </span>
+        <button onClick={() => setModal('signin')} disabled={!uid} style={{ background: 'none', border: 'none', color: T.acc, fontSize: 13, fontWeight: 700, cursor: uid ? 'pointer' : 'default', padding: 0 }}>Sign in</button>
+      </div>
       <div style={{ textAlign: 'center', fontSize: 12, color: authErr ? T.amber : T.txt3, marginTop: 16 }}>{authErr ? "Can't reach the server — check your connection." : uid ? 'Connected ✓' : 'Connecting…'}</div>
     </div>
   )
