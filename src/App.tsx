@@ -31,6 +31,8 @@ import PickFlatModal from './components/modals/PickFlatModal'
 import ProfileModal from './components/modals/ProfileModal'
 import AnalyticsModal from './components/modals/AnalyticsModal'
 import Intro from './components/Intro'
+import NotifPrompt from './components/NotifPrompt'
+import { pushSupported, needsInstall, permission as notifPermission, subscribe } from './lib/push'
 import ListPage from './components/ListPage'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -54,6 +56,8 @@ export default function App() {
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
+  const [notifPrompt, setNotifPrompt] = useState<'enable' | 'install' | null>(null)
+  const [notifBusy, setNotifBusy] = useState(false)
   const [showList, setShowList] = useState(false)
 
   /* sync state */
@@ -331,6 +335,28 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.onboarded, hostCur, homeCur])
 
+  /* once you're in a flat, offer notifications on your own — most people don't find the toggle.
+     Shown at most once (until dismissed) and never after you've already answered the browser prompt. */
+  useEffect(() => {
+    if (!flatId || notifPrompt || LS.g<boolean>('mt-h-notif-asked')) return
+    if (needsInstall()) { setNotifPrompt('install'); return }
+    // 'default' means the browser prompt was never answered, so no subscription can exist yet
+    if (pushSupported() && notifPermission() === 'default') setNotifPrompt('enable')
+  }, [flatId, notifPrompt])
+
+  const dismissNotifPrompt = () => { LS.s('mt-h-notif-asked', true); setNotifPrompt(null) }
+  const enableNotif = async () => {
+    setNotifBusy(true)
+    const r = await subscribe()
+    setNotifBusy(false)
+    LS.s('mt-h-notif-asked', true)
+    setNotifPrompt(null)
+    if (r.ok) showToast('Notifications on ✓')
+    else if (r.reason === 'denied') showToast('Blocked — allow Heimat in your browser settings')
+    else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
+    else showToast("Couldn't turn on notifications")
+  }
+
   if (!profile.onboarded) return <div style={{ height: '100%', background: T.bg }}><Onboarding T={T} onDone={(p) => sProfile(p)} /></div>
 
   const inFlat = !!flat
@@ -392,6 +418,7 @@ export default function App() {
       <AnalyticsModal {...{ open: modal === 'analytics', onClose: () => setModal(null), T, expenses, members, uid, fH, nameOf, cats }} />
       {showList && inFlat && <ListPage {...{ T, onClose: () => setShowList(false), items, nameOf, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought: () => { setShowList(false); expenseFromBought() }, cats, openCategories: () => setModal('cats') }} />}
       {showIntro && <Intro T={T} onClose={() => setShowIntro(false)} />}
+      {notifPrompt && !showIntro && <NotifPrompt {...{ T, mode: notifPrompt, busy: notifBusy, onEnable: enableNotif, onDismiss: dismissNotifPrompt }} />}
     </div>
   )
 }
