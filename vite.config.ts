@@ -13,6 +13,9 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html'],
       workbox: {
         navigateFallbackDenylist: [/(privacy|terms|cb)\.html$/],
+        // generateSW writes sw.js for us, so the push/notificationclick handlers
+        // live in public/push-sw.js and get pulled into it here
+        importScripts: ['push-sw.js'],
       },
       manifest: {
         name: 'Heimat',

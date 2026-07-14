@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronRight } from 'lucide-react'
 import type { Theme, Profile, Flat } from '../../lib/types'
 import { COUNTRIES, HOSTS } from '../../lib/data'
 import { inpStyle, Row, Flag } from '../ui'
 import { numVal } from '../../lib/format'
+import { pushSupported, needsInstall, getSubscription, subscribe, unsubscribe } from '../../lib/push'
 
 export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro }: {
   T: Theme; profile: Profile; sProfile: (p: Profile) => void; dark: boolean; tgDark: () => void
@@ -11,6 +12,26 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
   onEditProfile: () => void; onReplayIntro: () => void
 }) {
   const [rate, setRate] = useState(String(profile.rate || ''))
+  const [notif, setNotif] = useState(false)
+  const [notifBusy, setNotifBusy] = useState(false)
+  useEffect(() => { getSubscription().then((s) => setNotif(!!s)) }, [])
+
+  const toggleNotif = async () => {
+    if (notifBusy) return
+    if (needsInstall()) { showToast('Add Heimat to your Home Screen first'); return }
+    if (!pushSupported()) { showToast('Notifications not supported on this device'); return }
+    setNotifBusy(true)
+    if (notif) {
+      await unsubscribe(); setNotif(false); showToast('Notifications off')
+    } else {
+      const r = await subscribe()
+      if (r.ok) { setNotif(true); showToast('Notifications on') }
+      else if (r.reason === 'denied') showToast('Blocked — allow notifications in browser settings')
+      else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
+      else showToast("Couldn't turn on notifications")
+    }
+    setNotifBusy(false)
+  }
   const homeIso = profile.homeIso || COUNTRIES.find((c) => c.n === profile.homeCountry)?.iso
   const hostIso = profile.hostIso || HOSTS.find((c) => c.n === profile.hostCountry)?.iso
   const version = (typeof window !== 'undefined' && (window as any).HEIMAT_VERSION) || 'V0.6'
@@ -42,6 +63,15 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}` }}>
           <span style={{ fontSize: 15, fontWeight: 500 }}>Dark mode</span>
           <div onClick={tgDark} style={{ width: 46, height: 28, borderRadius: 99, background: dark ? T.acc : T.border, position: 'relative', cursor: 'pointer' }}><div style={{ position: 'absolute', top: 2, left: dark ? 20 : 2, width: 24, height: 24, borderRadius: 99, background: '#fff', transition: 'left .2s' }} /></div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '14px 16px', borderBottom: `1px solid ${T.border}` }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 500 }}>Notifications</div>
+            <div style={{ fontSize: 11, color: T.txt3, marginTop: 2 }}>
+              {needsInstall() ? 'Add Heimat to your Home Screen to enable' : 'New list items & payments to you'}
+            </div>
+          </div>
+          <div onClick={toggleNotif} style={{ flexShrink: 0, width: 46, height: 28, borderRadius: 99, background: notif ? T.acc : T.border, position: 'relative', cursor: 'pointer', opacity: notifBusy ? 0.6 : 1 }}><div style={{ position: 'absolute', top: 2, left: notif ? 20 : 2, width: 24, height: 24, borderRadius: 99, background: '#fff', transition: 'left .2s' }} /></div>
         </div>
         {flat && <div onClick={leaveFlat} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Leave flat “{flat.name}”</span><ChevronRight size={18} color={T.txt3} /></div>}
         <div onClick={onReplayIntro} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Replay intro</span><ChevronRight size={18} color={T.txt3} /></div>
