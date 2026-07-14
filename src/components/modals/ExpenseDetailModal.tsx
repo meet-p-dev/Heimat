@@ -1,16 +1,16 @@
-import type { Theme, Expense } from '../../lib/types'
-import { cat } from '../../lib/data'
-import { CAT_ICON } from '../../icons'
+import type { Theme, Expense, Cat } from '../../lib/types'
+import { catOf } from '../../lib/data'
+import { iconOf } from '../../icons'
 import { Sheet } from '../ui'
 
-export default function ExpenseDetailModal({ open, onClose, T, expense, fH, nameOf }: {
+export default function ExpenseDetailModal({ open, onClose, T, expense, fH, nameOf, cats }: {
   open: boolean; onClose: () => void; T: Theme; expense: Expense | null
-  fH: (v: number) => string; nameOf: (u: string) => string
+  fH: (v: number) => string; nameOf: (u: string) => string; cats: Cat[]
 }) {
   if (!expense) return null
   const e = expense
-  const c = cat(e.category)
-  const CIcon = CAT_ICON[e.category] || CAT_ICON.other
+  const c = catOf(cats, e.category)
+  const CIcon = iconOf(c)
   const parts = e.split_among && e.split_among.length ? e.split_among : [e.paid_by]
   const share = e.amount / parts.length
   return (

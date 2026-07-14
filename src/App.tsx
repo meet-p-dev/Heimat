@@ -9,7 +9,8 @@ import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeBalances, computeRunway, computeWorkStats } from './lib/derive'
 import type { SettleSuggestion } from './lib/derive'
-import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, TabId, ModalId } from './lib/types'
+import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId } from './lib/types'
+import { mergeCats, slug } from './lib/data'
 import Onboarding from './components/Onboarding'
 import NoFlat from './components/tabs/NoFlat'
 import HomeTab from './components/tabs/HomeTab'
@@ -19,6 +20,7 @@ import WorkTab from './components/tabs/WorkTab'
 import MeTab from './components/tabs/MeTab'
 import ExpenseModal from './components/modals/ExpenseModal'
 import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
+import CategoriesModal from './components/modals/CategoriesModal'
 import SettleModal from './components/modals/SettleModal'
 import InviteModal from './components/modals/InviteModal'
 import CreateJoinModal from './components/modals/CreateJoinModal'
@@ -28,6 +30,7 @@ import PickFlatModal from './components/modals/PickFlatModal'
 import ProfileModal from './components/modals/ProfileModal'
 import AnalyticsModal from './components/modals/AnalyticsModal'
 import Intro from './components/Intro'
+import ListPage from './components/ListPage'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
 import { myShareTotal } from './lib/analytics'
@@ -50,6 +53,7 @@ export default function App() {
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
+  const [showList, setShowList] = useState(false)
 
   /* sync state */
   const [uid, setUid] = useState<string | null>(null)
@@ -60,6 +64,7 @@ export default function App() {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [settles, setSettles] = useState<Settlement[]>([])
   const [items, setItems] = useState<ListItem[]>([])
+  const [flatCats, setFlatCats] = useState<FlatCategory[]>([])
   const [busy, setBusy] = useState(false)
   const [myFlats, setMyFlats] = useState<Flat[]>([])
 
@@ -115,18 +120,19 @@ export default function App() {
   const loadFlat = async () => {
     if (!sb || !flatId) return
     try {
-      const [f, m, e, s, it] = await Promise.all([
+      const [f, m, e, s, it, fc] = await Promise.all([
         sb.from('flats').select('*').eq('id', flatId).maybeSingle(),
         sb.from('flat_members').select('*').eq('flat_id', flatId),
         sb.from('expenses').select('*').eq('flat_id', flatId).order('spent_on', { ascending: false }),
         sb.from('settlements').select('*').eq('flat_id', flatId),
         sb.from('flat_items').select('*').eq('flat_id', flatId).order('created_at', { ascending: true }),
+        sb.from('flat_categories').select('*').eq('flat_id', flatId).order('created_at', { ascending: true }),
       ])
-      if (f.data) { setFlat(f.data as Flat); setMembers((m.data as Member[]) || []); setExpenses((e.data as Expense[]) || []); setSettles((s.data as Settlement[]) || []); setItems((it.data as ListItem[]) || []) }
+      if (f.data) { setFlat(f.data as Flat); setMembers((m.data as Member[]) || []); setExpenses((e.data as Expense[]) || []); setSettles((s.data as Settlement[]) || []); setItems((it.data as ListItem[]) || []); setFlatCats((fc.data as FlatCategory[]) || []) }
       else { setFlatIdP(null); setFlat(null) }
     } catch { showToast('Sync error — will retry') }
   }
-  useEffect(() => { if (uid && flatId) loadFlat(); else { setFlat(null); setMembers([]); setExpenses([]); setSettles([]); setItems([]) } }, [uid, flatId])
+  useEffect(() => { if (uid && flatId) loadFlat(); else { setFlat(null); setMembers([]); setExpenses([]); setSettles([]); setItems([]); setFlatCats([]) } }, [uid, flatId])
 
   /* realtime */
   useEffect(() => {
@@ -146,6 +152,7 @@ export default function App() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settlements', filter: 'flat_id=eq.' + flatId }, () => loadFlat())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_members', filter: 'flat_id=eq.' + flatId }, () => loadFlat())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_categories', filter: 'flat_id=eq.' + flatId }, () => loadFlat())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_items', filter: 'flat_id=eq.' + flatId }, (payload: any) => {
         const n = payload.new
         if (payload.eventType === 'INSERT' && n && n.added_by !== uid) {
@@ -189,6 +196,22 @@ export default function App() {
     haptic(12); showToast('Expense updated'); loadFlat()
   }
   const deleteExpense = async (id: string) => { if (!sb) return; const { error } = await sb.from('expenses').delete().eq('id', id); if (!error) { showToast('Deleted'); loadFlat() } }
+
+  /* category actions */
+  const addCategory = async (label: string, icon: string, color: string) => {
+    if (!sb || !flatId) return
+    const { error } = await sb.from('flat_categories').insert({ flat_id: flatId, key: slug(label), label, icon, color, created_by: uid })
+    if (error) { showToast(error.message); return }
+    haptic(12); showToast(`“${label}” added`); loadFlat()
+  }
+  const deleteCategory = async (c: FlatCategory) => {
+    if (!sb) return
+    const used = expenses.filter((e) => e.category === c.key).length + items.filter((i) => i.category === c.key).length
+    if (used > 0 && !confirm(`${used} item${used > 1 ? 's' : ''}/expense${used > 1 ? 's' : ''} use “${c.label}”. They'll show as “Other”. Delete anyway?`)) return
+    const { error } = await sb.from('flat_categories').delete().eq('id', c.id)
+    if (error) { showToast(error.message); return }
+    haptic(10); showToast('Category deleted'); loadFlat()
+  }
 
   /* shared list actions */
   const addItem = async (title: string, category: string) => {
@@ -235,6 +258,7 @@ export default function App() {
   }
 
   /* derived */
+  const cats = useMemo(() => mergeCats(flatCats), [flatCats])
   const balances = useMemo(() => computeBalances(members, expenses, settles), [members, expenses, settles])
   const myNet = uid ? balances[uid] || 0 : 0
   const runwayCalc = useMemo(() => computeRunway(runway, expenses, uid), [runway, expenses, uid])
@@ -280,10 +304,10 @@ export default function App() {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <div className="h-stagger" style={{ padding: '6px 16px calc(env(safe-area-inset-bottom) + 120px)' }}>
           {tab === 'home' && (inFlat
-            ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }} />
+            ? <HomeTab {...{ T, flat: flat!, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, onViewExpense: openViewExpense, openSettle, items, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought, myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics') }} />
+            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense: openEditExpense, onViewExpense: openViewExpense, openSettle, items, openList: () => setShowList(true), myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics'), cats }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
@@ -306,16 +330,18 @@ export default function App() {
         </div>
       </div>
 
-      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null); setExpensePrefill(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, flatName: flat ? flat.name : '' }} />
+      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setModal(null); setEditExpense(null); setExpensePrefill(null) }, T, members, uid, addExpense, updateExpense, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, flatName: flat ? flat.name : '', cats, openCategories: () => setModal('cats') }} />
       <PickFlatModal {...{ open: modal === 'pickflat', onClose: () => setModal(null), T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
       <SettleModal {...{ open: modal === 'settle', onClose: () => { setModal(null); setSettleInit(null) }, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
-      <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf }} />
+      <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf, cats }} />
+      <CategoriesModal {...{ open: modal === 'cats', onClose: () => setModal(null), T, custom: flatCats, addCategory, deleteCategory }} />
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: () => setModal(null), T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: () => setModal(null), T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: () => { setModal(null); setShiftDate(null); setEditShift(null) }, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />
       <ProfileModal {...{ open: modal === 'profile', onClose: () => setModal(null), T, profile, sProfile, showToast, earnedTotal, spentTotal, shiftCount: shifts.length, fH }} />
-      <AnalyticsModal {...{ open: modal === 'analytics', onClose: () => setModal(null), T, expenses, members, uid, fH, nameOf }} />
+      <AnalyticsModal {...{ open: modal === 'analytics', onClose: () => setModal(null), T, expenses, members, uid, fH, nameOf, cats }} />
+      {showList && inFlat && <ListPage {...{ T, onClose: () => setShowList(false), items, nameOf, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought: () => { setShowList(false); expenseFromBought() }, cats, openCategories: () => setModal('cats') }} />}
       {showIntro && <Intro T={T} onClose={() => setShowIntro(false)} />}
     </div>
   )

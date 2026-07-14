@@ -1,4 +1,4 @@
-import type { Country, Cat } from './types'
+import type { Country, Cat, FlatCategory } from './types'
 
 export const COUNTRIES: Country[] = [
   { n: 'India', c: 'INR', iso: 'in' }, { n: 'China', c: 'CNY', iso: 'cn' }, { n: 'Pakistan', c: 'PKR', iso: 'pk' },
@@ -22,6 +22,7 @@ export const HOSTS: Country[] = [
   { n: 'Poland', c: 'PLN', iso: 'pl' }, { n: 'Ireland', c: 'EUR', iso: 'ie' },
 ]
 
+/* built-in categories — always present, cannot be edited or removed */
 export const CATS: Cat[] = [
   { id: 'rent', label: 'Rent' }, { id: 'groceries', label: 'Groceries' },
   { id: 'utilities', label: 'Utilities' }, { id: 'internet', label: 'Internet' },
@@ -29,4 +30,19 @@ export const CATS: Cat[] = [
   { id: 'household', label: 'Household' }, { id: 'other', label: 'Other' },
 ]
 
-export const cat = (id: string): Cat => CATS.find((c) => c.id === id) || CATS[CATS.length - 1]
+export const OTHER: Cat = CATS.find((c) => c.id === 'other')!
+
+/* merge the flat's custom categories on top of the built-ins */
+export function mergeCats(custom: FlatCategory[]): Cat[] {
+  return [...CATS, ...custom.map((c) => ({ id: c.key, label: c.label, icon: c.icon, color: c.color, custom: true }))]
+}
+
+/* unknown ids (e.g. a category someone deleted) degrade to Other rather than to whatever is last */
+export const catOf = (cats: Cat[], id: string): Cat => cats.find((c) => c.id === id) || OTHER
+
+/* built-in-only lookup, for the few places with no access to the flat's categories */
+export const cat = (id: string): Cat => catOf(CATS, id)
+
+/* turn a label into a stable id: "Shopping trip" -> "shopping-trip" */
+export const slug = (label: string) =>
+  label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32)

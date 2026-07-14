@@ -1,16 +1,16 @@
 import { ChevronRight } from 'lucide-react'
-import type { Theme, Flat, Runway, Expense, ModalId, TabId } from '../../lib/types'
+import type { Theme, Flat, Runway, Expense, Cat, ModalId, TabId } from '../../lib/types'
 import type { RunwayCalc } from '../../lib/derive'
-import { cat } from '../../lib/data'
-import { CAT_ICON } from '../../icons'
+import { catOf } from '../../lib/data'
+import { iconOf } from '../../icons'
 import { Ring } from '../ui'
 import { fixDe } from '../../lib/format'
 
-export default function HomeTab({ T, flat, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense }: {
+export default function HomeTab({ T, flat, myNet, runwayCalc, runway, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats }: {
   T: Theme; flat: Flat; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null
   fH: (v: number) => string; fHome: (v: number) => string | null
   setModal: (m: ModalId) => void; setTab: (t: TabId) => void
-  expenses: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void
+  expenses: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void; cats: Cat[]
 }) {
   return (
     <>
@@ -36,11 +36,11 @@ export default function HomeTab({ T, flat, myNet, runwayCalc, runway, fH, fHome,
           <div style={{ padding: '16px', color: T.txt3, fontSize: 14 }}>No shared expenses yet.</div>
         ) : (
           expenses.slice(0, 6).map((e, i) => {
-            const c = cat(e.category)
-            const CIcon = CAT_ICON[e.category] || CAT_ICON.other
+            const c = catOf(cats, e.category)
+            const CIcon = iconOf(c)
             return (
               <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
-                <div style={{ width: 38, height: 38, borderRadius: 12, background: T.cardH, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.txt2 }}><CIcon size={18} /></div>
+                <div style={{ width: 38, height: 38, borderRadius: 12, background: T.cardH, display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.color || T.txt2 }}><CIcon size={18} /></div>
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{e.description || c.label}</div><div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · {e.spent_on}</div></div>
                 <div style={{ textAlign: 'right' }}><div style={{ fontWeight: 700, fontSize: 14 }}>{fH(e.amount)}</div>{fHome(e.amount) && <div style={{ fontSize: 10, color: T.txt3 }}>{fHome(e.amount)}</div>}</div>
               </div>

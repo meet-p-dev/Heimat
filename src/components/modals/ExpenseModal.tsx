@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
-import type { Theme, Member, Expense } from '../../lib/types'
-import { CATS } from '../../lib/data'
-import { CAT_ICON } from '../../icons'
+import { Settings2 } from 'lucide-react'
+import type { Theme, Member, Expense, Cat } from '../../lib/types'
+import { iconOf } from '../../icons'
 import { money, numVal } from '../../lib/format'
 import { Sheet, Field, inpStyle } from '../ui'
 
-export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName }: {
+export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName, cats, openCategories }: {
   open: boolean; onClose: () => void; T: Theme; members: Member[]; uid: string | null
   addExpense: (x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => void
   updateExpense: (id: string, x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => void
   editing: Expense | null; prefill: { desc: string; category: string } | null
   hostCur: string; homeCur: string; rate: number; flatName?: string
+  cats: Cat[]; openCategories: () => void
 }) {
   const [desc, setDesc] = useState('')
   const [amt, setAmt] = useState('')
@@ -34,11 +35,15 @@ export default function ExpenseModal({ open, onClose, T, members, uid, addExpens
       <Field label={`Amount (${hostCur})`} T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="text" inputMode="decimal" placeholder="0,00" style={{ ...inpStyle(T), fontSize: 22, fontWeight: 700 }} />{homeCur !== hostCur && v > 0 && <div style={{ fontSize: 12, color: T.txt3, marginTop: 6 }}>≈ {money(v * rate, homeCur)} in your currency</div>}</Field>
       <Field label="Paid by" T={T}><select value={payer} onChange={(e) => setPayer(e.target.value)} style={inpStyle(T)}>{members.map((m) => <option key={m.user_id} value={m.user_id}>{nm(m.user_id)}</option>)}</select></Field>
       <Field label="Category" T={T}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>{CATS.map((x) => {
-          const XI = CAT_ICON[x.id]
-          const on = c === x.id
-          return <button key={x.id} onClick={() => setC(x.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: on ? T.acc : T.inp, color: on ? '#fff' : T.txt2, border: `1px solid ${on ? T.acc : T.border}`, borderRadius: 99, padding: '7px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}><XI size={14} /> {x.label}</button>
-        })}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {cats.map((x) => {
+            const XI = iconOf(x)
+            const on = c === x.id
+            const tint = x.color || T.acc
+            return <button key={x.id} onClick={() => setC(x.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: on ? tint : T.inp, color: on ? '#fff' : T.txt2, border: `1px solid ${on ? tint : T.border}`, borderRadius: 99, padding: '7px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}><XI size={14} /> {x.label}</button>
+          })}
+          <button onClick={openCategories} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', color: T.acc, border: `1px dashed ${T.border}`, borderRadius: 99, padding: '7px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}><Settings2 size={14} /> Categories</button>
+        </div>
       </Field>
       <Field label={`Split between (${among.length})`} T={T}>{members.map((m) => {
         const on = among.includes(m.user_id)

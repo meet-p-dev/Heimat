@@ -5,7 +5,14 @@ export type Theme = {
 }
 
 export interface Country { n: string; c: string; iso: string }
-export interface Cat { id: string; label: string }
+/* icon/color are set for user-defined categories; built-ins fall back to the static maps */
+export interface Cat { id: string; label: string; icon?: string; color?: string; custom?: boolean }
+
+/* a user-defined category, shared across the flat */
+export interface FlatCategory {
+  id: string; flat_id: string; key: string; label: string; icon: string; color: string
+  created_by: string; created_at: string
+}
 
 export interface Profile {
   name?: string
@@ -44,4 +51,4 @@ export interface Runway { total: number; start: string; monthly: number; targetM
 export interface Derived { paidHours: number; legalHours: number; pay: number; wage: number; overnight: boolean }
 
 export type TabId = 'home' | 'flat' | 'money' | 'work' | 'me'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats'

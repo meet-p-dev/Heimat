@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
-import type { Theme, Expense, Member } from '../../lib/types'
+import type { Theme, Expense, Member, Cat } from '../../lib/types'
 import { tod } from '../../lib/format'
-import { cat } from '../../lib/data'
-import { catColor, WORK } from '../../lib/theme'
+import { catOf } from '../../lib/data'
+import { colorOf, WORK } from '../../lib/theme'
 import { inRange, monthlyTotals, byCategory, byMember, myShareTotal, total, type Range } from '../../lib/analytics'
 import { Sheet, SegmentedControl, StatHero, SectionLabel, Card } from '../ui'
 import LineArea from '../charts/LineArea'
@@ -12,16 +12,16 @@ import Donut from '../charts/Donut'
 const MEMCOL = [WORK, '#c8a24a', '#6ba8e0', '#b89ce0', '#fb7185', '#5ec7a8']
 const RANGES: [Range, string][] = [['month', 'Month'], ['6m', '6 Months'], ['year', 'Year']]
 
-export default function AnalyticsModal({ open, onClose, T, expenses, members, uid, fH, nameOf }: {
+export default function AnalyticsModal({ open, onClose, T, expenses, members, uid, fH, nameOf, cats }: {
   open: boolean; onClose: () => void; T: Theme; expenses: Expense[]; members: Member[]; uid: string | null
-  fH: (v: number) => string; nameOf: (u: string) => string
+  fH: (v: number) => string; nameOf: (u: string) => string; cats: Cat[]
 }) {
   const [range, setRange] = useState<Range>('6m')
   const today = tod()
   const scoped = useMemo(() => expenses.filter((e) => inRange(e, range, today)), [expenses, range, today])
   const months = range === 'year' ? 12 : 6
   const trend = useMemo(() => monthlyTotals(expenses, months, today), [expenses, months, today])
-  const cats = useMemo(() => byCategory(scoped), [scoped])
+  const slices = useMemo(() => byCategory(scoped), [scoped])
   const mem = useMemo(() => byMember(scoped, members), [scoped, members])
   const totalSpend = total(scoped)
   const myShare = myShareTotal(scoped, uid)
@@ -44,10 +44,10 @@ export default function AnalyticsModal({ open, onClose, T, expenses, members, ui
 
       <SectionLabel T={T}>By category</SectionLabel>
       <Card T={T}>
-        {cats.length ? (
+        {slices.length ? (
           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <Donut T={T} size={104} stroke={13} segments={cats.map((c) => ({ value: c.total, color: catColor(c.cat) }))} center={<span style={{ fontSize: 13, fontWeight: 800 }}>{fH(totalSpend)}</span>} />
-            <div style={{ flex: 1, minWidth: 0 }}><Bars T={T} format={fH} items={cats.map((c) => ({ label: cat(c.cat).label, value: c.total, color: catColor(c.cat), sub: `${c.pct.toFixed(0)}%` }))} /></div>
+            <Donut T={T} size={104} stroke={13} segments={slices.map((s) => ({ value: s.total, color: colorOf(catOf(cats, s.cat)) }))} center={<span style={{ fontSize: 13, fontWeight: 800 }}>{fH(totalSpend)}</span>} />
+            <div style={{ flex: 1, minWidth: 0 }}><Bars T={T} format={fH} items={slices.map((s) => { const c = catOf(cats, s.cat); return { label: c.label, value: s.total, color: colorOf(c), sub: `${s.pct.toFixed(0)}%` } })} /></div>
           </div>
         ) : <div style={{ color: T.txt3, fontSize: 14 }}>No spending in this range yet.</div>}
       </Card>
