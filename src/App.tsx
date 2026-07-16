@@ -38,7 +38,9 @@ import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
 import { myShareTotal } from './lib/analytics'
 
-const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Flat'], ['money', 'Money'], ['work', 'Work'], ['me', 'Me']]
+type ExpenseInput = { desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
+
+const TABS: [TabId, string][] =[['home', 'Home'], ['flat', 'Flat'], ['money', 'Money'], ['work', 'Work'], ['me', 'Me']]
 
 export default function App() {
   const [dark, setDark] = useState<boolean>(() => { const v = LS.g<boolean>('mt-h-dark'); return v == null ? true : v })
@@ -197,15 +199,15 @@ export default function App() {
     if (error) { showToast('Invalid code'); return }
     haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); showToast('Joined flat')
   }
-  const addExpense = async (x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => {
+  const addExpense = async (x: ExpenseInput) => {
     if (!sb || !flatId) return
-    const { error } = await sb.from('expenses').insert({ flat_id: flatId, description: x.desc, amount: x.amount, currency: hostCur, paid_by: x.paidBy, split_among: x.among, category: x.category, created_by: uid, spent_on: tod() })
+    const { error } = await sb.from('expenses').insert({ flat_id: flatId, description: x.desc, amount: x.amount, currency: hostCur, paid_by: x.paidBy, split_among: x.among, category: x.category, created_by: uid, spent_on: x.spentOn || tod() })
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Expense added'); loadFlat()
   }
-  const updateExpense = async (id: string, x: { desc: string; amount: number; paidBy: string; among: string[]; category: string }) => {
+  const updateExpense = async (id: string, x: ExpenseInput) => {
     if (!sb) return
-    const { error } = await sb.from('expenses').update({ description: x.desc, amount: x.amount, paid_by: x.paidBy, split_among: x.among, category: x.category }).eq('id', id)
+    const { error } = await sb.from('expenses').update({ description: x.desc, amount: x.amount, paid_by: x.paidBy, split_among: x.among, category: x.category, spent_on: x.spentOn || tod() }).eq('id', id)
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Expense updated'); loadFlat()
   }
@@ -362,7 +364,8 @@ export default function App() {
   const inFlat = !!flat
 
   return (
-    <div className="h-app" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.bg, color: T.txt }}>
+    // colorScheme makes native controls (date pickers, selects) follow the theme
+    <div className="h-app" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.bg, color: T.txt, colorScheme: dark ? 'dark' : 'light' }}>
       {toast && <div style={{ position: 'fixed', top: 'calc(env(safe-area-inset-top) + 12px)', left: '50%', transform: 'translateX(-50%)', zIndex: 999, maxWidth: '90%', background: T.card, color: T.txt, border: `1px solid ${T.border}`, borderRadius: 14, padding: '10px 18px', fontSize: 14, fontWeight: 600, boxShadow: '0 8px 28px rgba(0,0,0,.4)', textAlign: 'center' }}>{toast}</div>}
 
       <div style={{ flexShrink: 0, paddingTop: 'env(safe-area-inset-top)' }}>
