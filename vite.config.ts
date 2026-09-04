@@ -2,15 +2,22 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// base defaults to '/' (local dev, root hosting). For GitHub Pages project sites
-// the deploy workflow sets VITE_BASE=/Heimat/ so assets resolve under the subpath.
+// VITE_NATIVE=1 builds the bundle that goes inside the iOS/Android shells.
+// There the app is served from the app bundle itself, so the PWA service
+// worker is pure overhead (and unavailable on iOS's capacitor:// scheme).
+const native = process.env.VITE_NATIVE === '1'
+
+// base defaults to '/' (local dev, root hosting, and both native shells). For
+// GitHub Pages project sites the deploy workflow sets VITE_BASE=/Heimat/ so
+// assets resolve under the subpath.
 export default defineConfig({
-  base: process.env.VITE_BASE || '/',
+  base: native ? '/' : process.env.VITE_BASE || '/',
   plugins: [
     react(),
     VitePWA({
+      disable: native,
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html'],
+      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html', 'legal/privacy.html', 'legal/terms.html'],
       workbox: {
         navigateFallbackDenylist: [/(privacy|terms|cb)\.html$/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers

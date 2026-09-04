@@ -4,19 +4,20 @@ import type { Theme, Profile, Flat } from '../../lib/types'
 import { COUNTRIES, HOSTS } from '../../lib/data'
 import { inpStyle, Row, Flag } from '../ui'
 import { numVal } from '../../lib/format'
-import { pushSupported, needsInstall, getSubscription, subscribe, unsubscribe } from '../../lib/push'
+import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } from '../../lib/push'
+import { isNative, openExternal, webOrigin } from '../../lib/native'
 
-export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro, isAnon, email, onSaveAccount, onSignIn, onSignOut }: {
+export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile, onReplayIntro, isAnon, email, onSaveAccount, onSignIn, onSignOut, onDeleteAccount }: {
   T: Theme; profile: Profile; sProfile: (p: Profile) => void; dark: boolean; tgDark: () => void
   showToast: (m: string) => void; uid: string | null; flat: Flat | null; leaveFlat: () => void
   onEditProfile: () => void; onReplayIntro: () => void
   isAnon: boolean; email: string | null
-  onSaveAccount: () => void; onSignIn: () => void; onSignOut: () => void
+  onSaveAccount: () => void; onSignIn: () => void; onSignOut: () => void; onDeleteAccount: () => void
 }) {
   const [rate, setRate] = useState(String(profile.rate || ''))
   const [notif, setNotif] = useState(false)
   const [notifBusy, setNotifBusy] = useState(false)
-  useEffect(() => { getSubscription().then((s) => setNotif(!!s)) }, [])
+  useEffect(() => { isSubscribed().then(setNotif) }, [])
 
   const toggleNotif = async () => {
     if (notifBusy) return
@@ -28,7 +29,7 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
     } else {
       const r = await subscribe()
       if (r.ok) { setNotif(true); showToast('Notifications on') }
-      else if (r.reason === 'denied') showToast('Blocked — allow notifications in browser settings')
+      else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Heimat in Settings → Notifications' : 'Blocked — allow notifications in browser settings')
       else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
       else showToast("Couldn't turn on notifications")
     }
@@ -64,8 +65,12 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
             <span style={{ fontSize: 15, fontWeight: 600, color: T.acc }}>Save your account</span>
             <ChevronRight size={18} color={T.txt3} />
           </div>
-          <div onClick={onSignIn} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+          <div onClick={onSignIn} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}>
             <span style={{ fontSize: 15, fontWeight: 500 }}>I already have an account</span>
+            <ChevronRight size={18} color={T.txt3} />
+          </div>
+          <div onClick={onDeleteAccount} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 500, color: T.red }}>Delete account</span>
             <ChevronRight size={18} color={T.txt3} />
           </div>
         </div>
@@ -78,8 +83,12 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
               <div style={{ fontSize: 11, color: T.txt2, marginTop: 1 }}>Sign in with this on any device to get your flat back</div>
             </div>
           </div>
-          <div onClick={onSignOut} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+          <div onClick={onSignOut} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}>
             <span style={{ fontSize: 15, fontWeight: 500, color: T.red }}>Sign out</span>
+            <ChevronRight size={18} color={T.txt3} />
+          </div>
+          <div onClick={onDeleteAccount} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}>
+            <span style={{ fontSize: 15, fontWeight: 500, color: T.red }}>Delete account</span>
             <ChevronRight size={18} color={T.txt3} />
           </div>
         </div>
@@ -113,7 +122,9 @@ export default function MeTab({ T, profile, sProfile, dark, tgDark, showToast, u
           <div onClick={toggleNotif} style={{ flexShrink: 0, width: 46, height: 28, borderRadius: 99, background: notif ? T.acc : T.border, position: 'relative', cursor: 'pointer', opacity: notifBusy ? 0.6 : 1 }}><div style={{ position: 'absolute', top: 2, left: notif ? 20 : 2, width: 24, height: 24, borderRadius: 99, background: '#fff', transition: 'left .2s' }} /></div>
         </div>
         {flat && <div onClick={leaveFlat} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Leave flat “{flat.name}”</span><ChevronRight size={18} color={T.txt3} /></div>}
-        <div onClick={onReplayIntro} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Replay intro</span><ChevronRight size={18} color={T.txt3} /></div>
+        <div onClick={onReplayIntro} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Replay intro</span><ChevronRight size={18} color={T.txt3} /></div>
+        <div onClick={() => openExternal(webOrigin() + 'legal/privacy.html')} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderBottom: `1px solid ${T.border}`, cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Privacy policy</span><ChevronRight size={18} color={T.txt3} /></div>
+        <div onClick={() => openExternal(webOrigin() + 'legal/terms.html')} className="h-press" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', cursor: 'pointer' }}><span style={{ fontSize: 15, fontWeight: 500 }}>Terms of use</span><ChevronRight size={18} color={T.txt3} /></div>
       </div>
       <div style={{ textAlign: 'center', fontSize: 12, color: T.txt3 }}>Heimat {version} · personal data on-device · flat synced</div>
       <div style={{ textAlign: 'center', fontSize: 10, color: T.txt3, marginTop: 4, wordBreak: 'break-all' }}>id {uid ? uid.slice(0, 8) : '—'}</div>

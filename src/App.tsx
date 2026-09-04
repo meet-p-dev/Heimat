@@ -32,7 +32,8 @@ import ProfileModal from './components/modals/ProfileModal'
 import AnalyticsModal from './components/modals/AnalyticsModal'
 import Intro from './components/Intro'
 import NotifPrompt from './components/NotifPrompt'
-import { pushSupported, needsInstall, permission as notifPermission, subscribe } from './lib/push'
+import { pushSupported, needsInstall, permission as notifPermission, subscribe, initNativeListeners } from './lib/push'
+import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume } from './lib/native'
 import ListPage from './components/ListPage'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -239,6 +240,23 @@ export default function App() {
     haptic(14); showToast('Signed in')
     return null
   }
+  /* App Store 5.1.1(v): an app that can create an account must be able to delete
+     one. The edge function removes the user's memberships and the auth user
+     itself; the flat's shared history stays, unattributed. */
+  const deleteAccount = async () => {
+    if (!sb) return showToast('Offline')
+    if (!confirm('Delete your Heimat account?\n\nYou leave every flat you are in, and everything stored about you on the server is removed. Shared expenses stay with the flat, without your name on them. This cannot be undone.')) return
+    setBusy(true)
+    const { error } = await sb.functions.invoke('delete-account')
+    setBusy(false)
+    if (error) { showToast("Couldn't delete the account — try again"); return }
+    await sb.auth.signOut().catch(() => {})
+    ;['mt-h-profile', 'mt-h-runway', 'mt-h-shifts', 'mt-h-flatid', 'mt-h-notif-asked'].forEach((k) => {
+      try { localStorage.removeItem(k) } catch {}
+    })
+    location.reload()
+  }
+
   const signOut = async () => {
     if (!sb) return
     if (!confirm('Sign out? Your flat stays safe — sign back in any time with your email.')) return
@@ -337,13 +355,32 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.onboarded, hostCur, homeCur])
 
+  /* ---- native shell: splash, status bar, back button, resume, push taps ---- */
+  useEffect(() => { hideSplash() }, [])
+  useEffect(() => { applyStatusBarTheme(dark) }, [dark])
+  useEffect(() => { if (isNative) initNativeListeners(() => { loadFlat(); loadMyFlats() }) }, [])
+  useEffect(() => onAppResume(() => { if (uid && flatId) loadFlat() }), [uid, flatId])
+
+  /* Android back: unwind whatever is on top, one layer per press. Returning
+     false lets the shell minimise the app instead of killing it. */
+  useEffect(() => onHardwareBack(() => {
+    if (showIntro) { setShowIntro(false); return true }
+    if (notifPrompt) { dismissNotifPrompt(); return true }
+    if (modal) { setModal(null); setEditExpense(null); setExpensePrefill(null); setViewExpense(null); setSettleInit(null); setEditShift(null); setShiftDate(null); return true }
+    if (showList) { setShowList(false); return true }
+    if (tab !== 'home') { setTab('home'); return true }
+    return false
+  }), [showIntro, notifPrompt, modal, showList, tab])
+
   /* once you're in a flat, offer notifications on your own — most people don't find the toggle.
      Shown at most once (until dismissed) and never after you've already answered the browser prompt. */
   useEffect(() => {
     if (!flatId || notifPrompt || LS.g<boolean>('mt-h-notif-asked')) return
     if (needsInstall()) { setNotifPrompt('install'); return }
-    // 'default' means the browser prompt was never answered, so no subscription can exist yet
-    if (pushSupported() && notifPermission() === 'default') setNotifPrompt('enable')
+    let cancelled = false
+    // 'default' means the OS prompt was never answered, so no subscription can exist yet
+    if (pushSupported()) notifPermission().then((p) => { if (!cancelled && p === 'default') setNotifPrompt('enable') })
+    return () => { cancelled = true }
   }, [flatId, notifPrompt])
 
   const dismissNotifPrompt = () => { LS.s('mt-h-notif-asked', true); setNotifPrompt(null) }
@@ -354,7 +391,7 @@ export default function App() {
     LS.s('mt-h-notif-asked', true)
     setNotifPrompt(null)
     if (r.ok) showToast('Notifications on ✓')
-    else if (r.reason === 'denied') showToast('Blocked — allow Heimat in your browser settings')
+    else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Heimat in Settings → Notifications' : 'Blocked — allow Heimat in your browser settings')
     else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
     else showToast("Couldn't turn on notifications")
   }
@@ -388,7 +425,7 @@ export default function App() {
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, profile, setModal, inFlat }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, sShifts, fH, fHome, hostCur, showToast, onLogShift: openShift, onEditShift: openEditShift }} />}
-          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile: () => setModal('profile'), onReplayIntro: () => setShowIntro(true), isAnon, email, onSaveAccount: () => setModal('saveacct'), onSignIn: () => setModal('signin'), onSignOut: signOut }} />}
+          {tab === 'me' && <MeTab {...{ T, profile, sProfile, dark, tgDark, showToast, uid, flat, leaveFlat, onEditProfile: () => setModal('profile'), onReplayIntro: () => setShowIntro(true), isAnon, email, onSaveAccount: () => setModal('saveacct'), onSignIn: () => setModal('signin'), onSignOut: signOut, onDeleteAccount: deleteAccount }} />}
         </div>
       </div>
 
