@@ -33,7 +33,7 @@ import AnalyticsModal from './components/modals/AnalyticsModal'
 import Intro from './components/Intro'
 import NotifPrompt from './components/NotifPrompt'
 import { pushSupported, needsInstall, permission as notifPermission, subscribe, initNativeListeners } from './lib/push'
-import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume } from './lib/native'
+import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, webOrigin } from './lib/native'
 import ListPage from './components/ListPage'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -62,6 +62,7 @@ export default function App() {
   const [notifPrompt, setNotifPrompt] = useState<'enable' | 'install' | null>(null)
   const [notifBusy, setNotifBusy] = useState(false)
   const [showList, setShowList] = useState(false)
+  const [recovering, setRecovering] = useState(false)
 
   /* sync state */
   const [uid, setUid] = useState<string | null>(null)
@@ -131,6 +132,16 @@ export default function App() {
         applySession(session)
       } catch (e: any) { setAuthErr(e?.message || "Couldn't connect") }
     })()
+  }, [])
+
+  useEffect(() => {
+    if (!sb) return
+    const { data } = sb.auth.onAuthStateChange((event, session) => {
+      if (event !== 'PASSWORD_RECOVERY') return
+      applySession(session)
+      setRecovering(true)
+    })
+    return () => data.subscription.unsubscribe()
   }, [])
 
   /* load flat data */
@@ -240,6 +251,28 @@ export default function App() {
     haptic(14); showToast('Signed in')
     return null
   }
+  /* Forgotten password. Supabase emails a link back to the web app; opening it
+     gives the browser a recovery session, which lands in the reset sheet below. */
+  const sendReset = async (mail: string): Promise<string | null> => {
+    if (!sb) return 'Offline'
+    setBusy(true)
+    const { error } = await sb.auth.resetPasswordForEmail(mail.trim(), { redirectTo: webOrigin() })
+    setBusy(false)
+    return error ? error.message : null
+  }
+  const setPassword = async (password: string): Promise<string | null> => {
+    if (!sb) return 'Offline'
+    setBusy(true)
+    const { error } = await sb.auth.updateUser({ password })
+    setBusy(false)
+    if (error) return error.message
+    const { data } = await sb.auth.getSession()
+    applySession(data.session)
+    setRecovering(false)
+    haptic(14); showToast('Password updated — you are signed in')
+    return null
+  }
+
   /* App Store 5.1.1(v): an app that can create an account must be able to delete
      one. The edge function removes the user's memberships and the auth user
      itself; the flat's shared history stays, unattributed. */
@@ -449,7 +482,7 @@ export default function App() {
       <SettleModal {...{ open: modal === 'settle', onClose: () => { setModal(null); setSettleInit(null) }, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: () => { setModal(null); setViewExpense(null) }, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: () => setModal(null), T, custom: flatCats, addCategory, deleteCategory }} />
-      <AuthModal {...{ open: modal === 'saveacct' || modal === 'signin', mode: modal === 'signin' ? 'signin' : 'save', onClose: () => setModal(null), T, busy, saveAccount, signIn }} />
+      <AuthModal {...{ open: recovering || modal === 'saveacct' || modal === 'signin', mode: recovering ? 'reset' : modal === 'signin' ? 'signin' : 'save', onClose: () => { setModal(null); setRecovering(false) }, T, busy, saveAccount, signIn, sendReset, setPassword }} />
       <InviteModal {...{ open: modal === 'invite', onClose: () => setModal(null), T, flat, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: () => setModal(null), T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: () => setModal(null), T, runway, sRunway, hostCur, showToast }} />
