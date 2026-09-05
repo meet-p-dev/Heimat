@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Deliberately empty. A free "Personal Team" cannot provision the Push
+	     Notifications capability, so Debug builds drop it and can be run on your
+	     own iPhone; Release keeps aps-environment (see App.entitlements) so
+	     TestFlight and App Store builds still get push.
+	     With a paid Apple Developer account, add
+	       <key>aps-environment</key><string>development</string>
+	     here to test push on a device against the APNs sandbox. -->
+</dict>
+</plist>

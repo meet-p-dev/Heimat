@@ -55,14 +55,25 @@ either app until it runs. `npm run assets` redraws every icon and splash from
 1. Join the Apple Developer Program (99 €/year) — everything below needs it.
 2. In Xcode → App target → **Signing & Capabilities**: pick your Team.
    *Automatically manage signing* is fine.
-3. The **Push Notifications** capability is already wired up
-   (`ios/App/App/App.entitlements`); confirm it shows in the capabilities list.
+3. Push entitlements are split by configuration, so a free "Personal Team" can
+   still run the app on your own iPhone:
+
+   - **Debug** → `App/AppDebug.entitlements`, deliberately empty. Personal teams
+     cannot provision the Push Notifications capability, and Xcode refuses to
+     create a profile if the entitlement is there.
+   - **Release** → `App/App.entitlements`, with `aps-environment`. Archives and
+     TestFlight builds therefore keep push.
+
+   Once you are on a paid account, add `aps-environment` =
+   `development` to `AppDebug.entitlements` too, to test push on a device
+   against the APNs sandbox.
 4. Create an **APNs auth key** at
    developer.apple.com → Certificates, Identifiers & Profiles → Keys → “+”,
    tick *Apple Push Notifications service*. You get a `.p8` file **once** —
    keep it. Note the Key ID and your Team ID.
 5. Register the app in App Store Connect with bundle id `app.heimat.mobile`.
-6. Archive: Xcode → Product → Destination *Any iOS Device* → **Product → Archive**
+6. Archive (the scheme is called **Heimat**): Xcode → Product → Destination
+   *Any iOS Device* → **Product → Archive**
    → Distribute App → App Store Connect. `ITSAppUsesNonExemptEncryption` is
    already `false`, so the export-compliance question is skipped.
 
