@@ -38,7 +38,9 @@ export default defineConfig({
       workbox: {
         // reset.html has to load from the network exactly as the email links to
         // it — never rewritten to the app shell, which would swallow the
-        // recovery token in the fragment.
+        // recovery token in the fragment. cb.html is the same story: it is now
+        // only a forwarder to MoneyTrack's own callback, and it forwards the
+        // consent code that arrives in the query string.
         navigateFallbackDenylist: [/(privacy|terms|cb|reset)\.html$/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers
         // live in public/push-sw.js and get pulled into it here
