@@ -24,6 +24,17 @@ export const webOrigin = () => {
   return (location.origin + location.pathname).replace(/[^/]*$/, '')
 }
 
+/* Where the emailed password-reset link comes back to. A page of its own, not
+   the app: the link has to work in whatever browser the mail app opens, on a
+   device that may never have run Heimat, and it must land somewhere unmistakably
+   Heimat's rather than MoneyTrack's — the two share an origin today and a
+   Supabase project either way. VITE_RESET_URL overrides it whole, for the day
+   Heimat moves to a domain of its own. */
+export const resetUrl = () => {
+  const configured = import.meta.env.VITE_RESET_URL as string | undefined
+  return configured || webOrigin() + 'reset.html'
+}
+
 /* status bar text colour follows the app's own light/dark switch, not the OS one */
 export async function applyStatusBarTheme(dark: boolean) {
   if (!isNative) return

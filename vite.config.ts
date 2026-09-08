@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -12,14 +13,33 @@ const native = process.env.VITE_NATIVE === '1'
 // assets resolve under the subpath.
 export default defineConfig({
   base: native ? '/' : process.env.VITE_BASE || '/',
+  build: {
+    rollupOptions: {
+      // reset.html is a second entry, not a public/ asset: it needs the Supabase
+      // URL and key compiled in the same way the app does. The emailed
+      // password-reset link points at it.
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        reset: resolve(__dirname, 'reset.html'),
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
       disable: native,
       registerType: 'autoUpdate',
+      // registered by hand from main.tsx instead of auto-injected into every
+      // HTML entry: reset.html is a one-shot page opened from an email, and an
+      // autoUpdate service worker taking control there would reload it out from
+      // under whoever is mid-way through typing a new password.
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html', 'legal/privacy.html', 'legal/terms.html'],
       workbox: {
-        navigateFallbackDenylist: [/(privacy|terms|cb)\.html$/],
+        // reset.html has to load from the network exactly as the email links to
+        // it — never rewritten to the app shell, which would swallow the
+        // recovery token in the fragment.
+        navigateFallbackDenylist: [/(privacy|terms|cb|reset)\.html$/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers
         // live in public/push-sw.js and get pulled into it here
         importScripts: ['push-sw.js'],

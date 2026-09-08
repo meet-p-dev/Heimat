@@ -34,6 +34,11 @@ three ways from one codebase:
 Notifications go out over web push, APNs and FCM from a single edge function
 (`supabase/functions/push`), picked per device.
 
+The Supabase project is shared with the author's MoneyTrack app — one database,
+one set of accounts, two products. What that costs, how the password-reset flow
+keeps the two apart, and the one dashboard setting it needs are in
+[docs/password-reset.md](docs/password-reset.md).
+
 ## Run locally
 
 ```

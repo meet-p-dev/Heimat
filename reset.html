@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="robots" content="noindex"/>
+<meta name="theme-color" content="#0c1110"/>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<title>Reset your Heimat password</title>
+</head>
+<body>
+<div id="reset"></div>
+<!-- The recovery token arrives in the URL fragment, and the Supabase client
+     wipes the fragment as soon as it loads. Stash it here, before the module
+     that creates the client runs, so the page can still tell "arrived via a
+     reset link" from "someone just opened this URL". -->
+<script>window.__heimatResetUrl = location.href;</script>
+<script type="module" src="/src/reset.ts"></script>
+</body>
+</html>

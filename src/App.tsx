@@ -33,7 +33,8 @@ import AnalyticsModal from './components/modals/AnalyticsModal'
 import Intro from './components/Intro'
 import NotifPrompt from './components/NotifPrompt'
 import { pushSupported, needsInstall, permission as notifPermission, subscribe, initNativeListeners } from './lib/push'
-import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, webOrigin } from './lib/native'
+import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, webOrigin, resetUrl } from './lib/native'
+import { touchAppUser } from './lib/appUser'
 import ListPage from './components/ListPage'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -235,6 +236,7 @@ export default function App() {
     if (error) return error.message
     const { data } = await sb.auth.getSession()
     applySession(data.session)
+    touchAppUser(profile.name)
     haptic(14); showToast('Account saved — you can sign in anywhere now')
     return null
   }
@@ -248,15 +250,20 @@ export default function App() {
     LS.s('mt-h-flatid', null)
     setFlatId(null)
     applySession(data.session)
+    touchAppUser(profile.name)
     haptic(14); showToast('Signed in')
     return null
   }
-  /* Forgotten password. Supabase emails a link back to the web app; opening it
-     gives the browser a recovery session, which lands in the reset sheet below. */
+  /* Forgotten password. Supabase emails a link to Heimat's own reset page
+     (reset.html) rather than into the app: the link is opened by whichever
+     browser the mail app picks, often on a device that has never run Heimat, and
+     the page has to say plainly that it is Heimat's and not MoneyTrack's — the
+     two share this Supabase project. The in-app recovery sheet below stays as a
+     fallback for links already sent. */
   const sendReset = async (mail: string): Promise<string | null> => {
     if (!sb) return 'Offline'
     setBusy(true)
-    const { error } = await sb.auth.resetPasswordForEmail(mail.trim(), { redirectTo: webOrigin() })
+    const { error } = await sb.auth.resetPasswordForEmail(mail.trim(), { redirectTo: resetUrl() })
     setBusy(false)
     return error ? error.message : null
   }
@@ -269,6 +276,7 @@ export default function App() {
     const { data } = await sb.auth.getSession()
     applySession(data.session)
     setRecovering(false)
+    touchAppUser(profile.name)
     haptic(14); showToast('Password updated — you are signed in')
     return null
   }
