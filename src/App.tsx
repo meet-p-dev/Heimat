@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { Sun, Moon } from 'lucide-react'
-import { sb } from './lib/supabase'
+import { sb, authErrorText } from './lib/supabase'
 import { LS } from './lib/storage'
 import { tod, money } from './lib/format'
 import { haptic } from './lib/haptic'
@@ -265,7 +265,7 @@ export default function App() {
     setBusy(true)
     const { error } = await sb.auth.resetPasswordForEmail(mail.trim(), { redirectTo: resetUrl() })
     setBusy(false)
-    return error ? error.message : null
+    return error ? authErrorText(error, "Couldn't send the reset email right now. Please try again in a few minutes.") : null
   }
   const setPassword = async (password: string): Promise<string | null> => {
     if (!sb) return 'Offline'

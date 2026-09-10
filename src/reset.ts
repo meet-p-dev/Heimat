@@ -11,7 +11,7 @@
 
    Deliberately plain DOM: no React, no app state, no service worker dependency.
    The page has to work on the first load, cold, on a stranger's browser. */
-import { sb } from './lib/supabase'
+import { sb, authErrorText } from './lib/supabase'
 import { touchAppUser } from './lib/appUser'
 import { DK, LT } from './lib/theme'
 
@@ -76,7 +76,7 @@ function askForNewPassword(email: string | null) {
       go.disabled = false
       go.textContent = 'Save new password'
       go.style.cssText = btnStyle(true)
-      return fail(error.message)
+      return fail(authErrorText(error, "Couldn't save the new password. Please try again."))
     }
     // the account has now proved it is a Heimat account, so record it as one
     await touchAppUser()
@@ -122,7 +122,7 @@ function askForANewLink(reason: string) {
     const { error } = await sb!.auth.resetPasswordForEmail(mail.value.trim(), { redirectTo: location.origin + location.pathname })
     go.disabled = false
     go.textContent = 'Send a new link'
-    if (error) { err.textContent = error.message; err.style.display = 'block'; return }
+    if (error) { err.textContent = authErrorText(error, "Couldn't send the email right now. Please try again in a few minutes."); err.style.display = 'block'; return }
     // said the same way whether or not the address has an account, so the page
     // can't be used to find out who has one
     ok.textContent = `If ${mail.value.trim()} has a Heimat account, a new link is on its way. Open it on this device.`

@@ -37,3 +37,13 @@ export const sb =
         },
       })
     : null
+
+/* supabase-js reports an outright auth-server failure — a 500, such as the mail
+   server refusing to send — with "{}" as its message, which is how "{}" ended up
+   on the sign-in sheet. Anything that is not a real sentence gets one. */
+export function authErrorText(e: { message?: string; status?: number } | null | undefined, fallback: string): string {
+  const m = (e?.message || '').trim()
+  if (e?.status === 429 || /rate limit|too many/i.test(m)) return 'Too many attempts — wait a minute, then try again.'
+  if (!m || m === '{}' || (e?.status ?? 0) >= 500) return fallback
+  return m
+}
