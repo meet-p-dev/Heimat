@@ -10,6 +10,17 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
 <link rel="apple-touch-icon" href="/icon-192.png"/>
 <title>Heimat</title>
+<script>
+/* A password-reset link that lands on the app instead of reset.html — sent by an
+   app build from before reset.html existed, or one whose redirect Supabase fell
+   back on — is handed over untouched. It has to happen here, before the app
+   bundle loads: the Supabase client consumes the token as soon as it starts. */
+(function () {
+  var s = location.search, h = location.hash
+  if ((/[?&]token_hash=/.test(s) && /[?&]type=recovery/.test(s)) || /(^#|&)type=recovery/.test(h))
+    location.replace(location.pathname.replace(/[^/]*$/, '') + 'reset.html' + s + h)
+})()
+</script>
 </head>
 <body>
 <div id="root"></div>

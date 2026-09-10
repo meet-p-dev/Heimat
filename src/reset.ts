@@ -161,10 +161,21 @@ async function start() {
      "choose a new password" box to anyone who merely opened the URL while the
      app happened to have a session in this browser — including the anonymous
      session Heimat gives every visitor. */
+  /* Three shapes of link can bring someone here. token_hash is the one the email
+     template sends: the page itself redeems it, so a mail app that opens links
+     ahead of the user to preview them (iOS Mail, Gmail and Outlook all do) only
+     fetches a static page and cannot spend the one-time token first. The
+     fragment and ?code= shapes are what older emails and PKCE produce. */
   const code = query.get('code')
-  const viaLink = !!code || hash.get('type') === 'recovery' || !!hash.get('access_token')
+  const tokenHash = query.get('token_hash')
+  const viaLink = !!code || !!tokenHash || hash.get('type') === 'recovery' || !!hash.get('access_token')
   if (!viaLink) {
     return askForANewLink('This page is the last step of a password reset, and it was opened without a link.')
+  }
+
+  if (tokenHash) {
+    const { error } = await sb.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+    if (error) return askForANewLink(/expired|invalid/i.test(error.message) ? 'The link had already run out, or was used once already.' : error.message)
   }
 
   if (code) {
