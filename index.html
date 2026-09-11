@@ -16,9 +16,13 @@
    back on — is handed over untouched. It has to happen here, before the app
    bundle loads: the Supabase client consumes the token as soon as it starts. */
 (function () {
-  var s = location.search, h = location.hash
-  if ((/[?&]token_hash=/.test(s) && /[?&]type=recovery/.test(s)) || /(^#|&)type=recovery/.test(h))
-    location.replace(location.pathname.replace(/[^/]*$/, '') + 'reset.html' + s + h)
+  var p = location.pathname, s = location.search, h = location.hash
+  if (!((/[?&]token_hash=/.test(s) && /[?&]type=recovery/.test(s)) || /(^#|&)type=recovery/.test(h))) return
+  // Already at reset.html's address means this page was served in its place
+  // (a service worker answering the navigation). Forwarding again would only
+  // loop, so stop here instead.
+  if (/reset\.html$/.test(p)) return
+  location.replace(p.replace(/[^/]*$/, '') + 'reset.html' + s + h)
 })()
 </script>
 </head>

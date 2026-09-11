@@ -36,12 +36,15 @@ export default defineConfig({
       injectRegister: null,
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'privacy.html', 'terms.html', 'cb.html', 'legal/privacy.html', 'legal/terms.html'],
       workbox: {
-        // reset.html has to load from the network exactly as the email links to
-        // it — never rewritten to the app shell, which would swallow the
-        // recovery token in the fragment. cb.html is the same story: it is now
-        // only a forwarder to MoneyTrack's own callback, and it forwards the
-        // consent code that arrives in the query string.
-        navigateFallbackDenylist: [/(privacy|terms|cb|reset)\.html$/],
+        // These pages have to load from the network exactly as linked — never
+        // be answered with the app shell. Workbox tests the pattern against the
+        // path AND the query string, so it must not be anchored at the end of
+        // the file name: reset links arrive as reset.html?token_hash=… and
+        // cb.html?code=…, and with a bare `\.html$` neither matched. The shell
+        // was served in their place, index.html forwarded the reset link to
+        // reset.html, the worker answered with the shell again — a loop that
+        // flickered on screen and never reached the token.
+        navigateFallbackDenylist: [/\/(privacy|terms|cb|reset)\.html(\?|#|$)/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers
         // live in public/push-sw.js and get pulled into it here
         importScripts: ['push-sw.js'],
