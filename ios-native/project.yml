@@ -1,0 +1,88 @@
+# Heimat for iOS, native SwiftUI. Generate the Xcode project with:
+#   ../scripts/native-ios.sh
+# (writes Heimat/Generated/Secrets.swift from ../.env, then runs xcodegen)
+name: Heimat
+options:
+  bundleIdPrefix: app.heimat
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: Q3BTHLU74C
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "2"
+packages:
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.5.0
+targets:
+  Heimat:
+    type: application
+    platform: iOS
+    sources:
+      - path: Heimat
+      - path: Shared
+    dependencies:
+      - package: Supabase
+        product: Supabase
+      - target: HeimatWidgets
+        embed: true
+    info:
+      path: Heimat/Info.plist
+      properties:
+        CFBundleDisplayName: Heimat
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UIBackgroundModes: [remote-notification]
+        CFBundleURLTypes:
+          - CFBundleURLName: app.heimat.mobile
+            CFBundleURLSchemes: [heimat]
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+    entitlements:
+      path: Heimat/Heimat.entitlements
+      properties:
+        aps-environment: $(APS_ENVIRONMENT)
+        com.apple.security.application-groups: [group.app.heimat.mobile]
+        com.apple.developer.ubiquity-kvstore-identifier: $(TeamIdentifierPrefix)$(CFBundleIdentifier)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.heimat.mobile
+        # TestFlight and the App Store need the production APNs environment;
+        # a build you run from Xcode needs the sandbox one.
+        APS_ENVIRONMENT: development
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+      configs:
+        Release:
+          APS_ENVIRONMENT: production
+
+  HeimatWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: HeimatWidgets
+      - path: Shared
+    info:
+      path: HeimatWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Heimat
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: HeimatWidgets/HeimatWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.heimat.mobile]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.heimat.mobile.widgets
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
