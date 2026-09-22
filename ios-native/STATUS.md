@@ -41,9 +41,10 @@ mirror the web's `ui.tsx`: `HeimatCard` (real `.glassEffect`), `QuickAction`,
 replaces the system navigation bar so titles sit on the same 16pt gutter as
 content. `Surface.swift` draws the ambient background.
 
-**Tabs** (`HeimatApp.swift`) are a paging `ScrollView`, not a `TabView`, so a
-drag carries the page. `GlassTabBar` reads that scroll offset, so its indicator
-travels with the finger and stretches between tabs mid-crossing.
+**Tabs** (`HeimatApp.swift`) are an offset `HStack` driven by our own
+`DragGesture`, not a `TabView` and not a horizontal `ScrollView`, so a drag
+carries the page. `GlassTabBar` reads the same offset, so its indicator travels
+with the finger and stretches between tabs mid-crossing.
 
 **Push** (`Push.swift`). Stores the APNs token as `apns:<token>` in
 `push_subscriptions`. The server half already existed and is shared with the
@@ -77,8 +78,20 @@ it; a category opens to the expenses behind it.
 TestFlight, via Xcode Organizer → Distribute App → TestFlight & App Store.
 
 **The build number must increase every upload** — bump
-`CURRENT_PROJECT_VERSION` in `project.yml`. Build 1 is uploaded; build 2 is
-archived and ready.
+`CURRENT_PROJECT_VERSION` in `project.yml`. Builds 1, 2 and 3 are uploaded —
+Xcode's distribute flow auto-increments, so the number on App Store Connect can
+run ahead of the one in `project.yml`. Check TestFlight before archiving. Build
+4 is the first with a tab swipe that works on a device.
+
+Uploading a build does not give it to anyone. Each build is attached to
+groups, and a fresh upload goes to the internal group only — builds 1 to 3 all
+went out as Internal. An external group with no build reports "No Compatible
+Build", its testers read "No Builds Available", and its public link tells
+anyone who opens it that the beta isn't accepting testers.
+
+So for external testers: add the build to the external group, which submits it
+for **Beta App Review** (needs the Test Information filled in). Once approved,
+invites go out and the link works. Internal testers skip review entirely.
 
 `aps-environment` is `development` for Debug and `production` for Release.
 An archive will read `development`; Xcode substitutes `production` when it
@@ -87,7 +100,7 @@ re-signs during export. That is expected.
 ## Verified, and not
 
 Driven in the simulator and confirmed working: the swipe pager and its
-indicator, push permission and delivery of a notification, App Intents run from
+indicator (with deliberately thumb-like diagonal drags — see the bugs below), push permission and delivery of a notification, App Intents run from
 Shortcuts, the widget on the home screen with live data and a working button,
 Analytics month selection and drill-down.
 
@@ -110,6 +123,13 @@ the compiled metadata is correct.
   foreground when there is not.
 - A foreground push is dropped unless `UNUserNotificationCenterDelegate`
   asks for it. It looks exactly like a push that never arrived.
+- A vertical `ScrollView` nested inside a horizontal paging `ScrollView` wins
+  every drag that starts even slightly off the horizontal, so tab swiping
+  worked under a mouse and never under a thumb. Test gestures with a few
+  points of drift, not straight lines — a clean drag proves nothing.
+- While our drag owns the gesture the pages are `.disabled`, which is what
+  drops the press underneath. `.allowsHitTesting(false)` does not: a touch
+  already being delivered carries on to the row and opens it.
 
 ## Next
 

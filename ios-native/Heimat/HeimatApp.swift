@@ -111,49 +111,99 @@ struct RootView: View {
     }
 }
 
-/// The four sections. The stock `TabView` cuts from one tab to the next; this
-/// one is a paging scroll view, so a sideways drag carries the page with your
-/// thumb and can be caught mid-flight. The bar below reads that same scroll
+/// The three sections. The stock `TabView` cuts from one tab to the next; this
+/// one carries the page with your thumb, and the bar below reads the same
 /// offset, which is what lets its selection travel with the swipe.
+///
+/// The pages are scroll views, so the sideways drag has to be ours rather than
+/// a horizontal `ScrollView` wrapped around them: nested the other way, the
+/// page's own vertical scrolling wins every drag that starts even slightly off
+/// the horizontal — which is every drag a thumb makes. We take the gesture
+/// alongside the page's (`simultaneousGesture`) and decide, once, from the
+/// first few points, whether this drag is ours or the page's.
 struct MainTabs: View {
     @Environment(AppModel.self) private var m
     @State private var progress: Double = 0   // where the pager sits, in page widths
-    @State private var scrolling = false
+    @State private var base: Double?          // progress when the drag took hold
+    @State private var origin: CGFloat?       // and how far the finger had come by then
+    @State private var sideways: Bool?        // nil until the drag commits to an axis
+
+    private var tabs: [AppTab] { AppTab.allCases }
+    private var lastPage: Double { Double(tabs.count - 1) }
 
     var body: some View {
-        ScrollViewReader { sp in
-            GeometryReader { geo in
-                ScrollView(.horizontal) {
-                    LazyHStack(spacing: 0) {
-                        ForEach(AppTab.allCases) { tab in
-                            page(tab)
-                                .frame(width: geo.size.width, height: geo.size.height)
-                                .id(tab)
-                        }
-                    }
-                    .scrollTargetLayout()
+        GeometryReader { geo in
+            let w = max(geo.size.width, 1)
+            HStack(spacing: 0) {
+                ForEach(tabs) { tab in
+                    page(tab).frame(width: w, height: geo.size.height)
                 }
-                .scrollTargetBehavior(.paging)
-                .scrollIndicators(.hidden)
-                .onScrollGeometryChange(for: Double.self) { g in
-                    g.contentOffset.x / max(g.containerSize.width, 1)
-                } action: { _, p in
-                    progress = p
-                    let landed = AppTab.allCases[min(max(Int(p.rounded()), 0), AppTab.allCases.count - 1)]
-                    if landed != m.tab { Haptic.tap(); m.tab = landed }
-                }
-                .onScrollPhaseChange { _, phase in scrolling = phase != .idle }
             }
-            // a tap on the bar, or `m.tab` set from a card, glides the pager over;
-            // while a finger is on it the scroll view is in charge instead.
-            .onChange(of: m.tab) { _, tab in
-                guard !scrolling, abs(progress - Double(tab.index)) > 0.01 else { return }
-                withAnimation(.snappy(duration: 0.44, extraBounce: 0.18)) { sp.scrollTo(tab, anchor: .center) }
-            }
+            .frame(width: w * Double(tabs.count), height: geo.size.height, alignment: .leading)
+            // once the drag is ours the page goes inert: it stops scrolling under
+            // the swipe (otherwise the sideways flick's vertical share carries on
+            // into the page we land on) and it drops the press it was holding, so
+            // a half-swipe that snaps back doesn't open whatever it started on
+            .scrollDisabled(sideways == true)
+            .disabled(sideways == true)
+            .offset(x: -progress * w)
+            .frame(width: w, height: geo.size.height, alignment: .leading)
+            .contentShape(Rectangle())
+            .simultaneousGesture(pan(width: w))
+        }
+        // a tap on the bar, or `m.tab` set from a card, glides the pager over;
+        // while a finger is on it the drag is in charge instead.
+        .onChange(of: m.tab) { _, tab in
+            guard sideways != true, abs(progress - Double(tab.index)) > 0.01 else { return }
+            withAnimation(.snappy(duration: 0.44, extraBounce: 0.18)) { progress = Double(tab.index) }
         }
         .background { HeimatBackground() }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             GlassTabBar(selection: Binding { m.tab } set: { m.tab = $0 }, progress: progress, badge: m.openItems)
+        }
+    }
+
+    /// A thumb's first few points are mostly vertical even when it is heading
+    /// sideways, so the axis is decided later — once one of them has passed
+    /// `slop` — and the page picks up from there rather than jumping.
+    private static let slop: CGFloat = 22
+
+    private func pan(width w: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onChanged { v in
+                let dx = v.translation.width, dy = v.translation.height
+                if sideways == nil {
+                    if abs(dx) > Self.slop && abs(dx) > abs(dy) {
+                        sideways = true; base = progress; origin = dx
+                    } else if abs(dy) > Self.slop {
+                        sideways = false                    // the page's drag, not ours
+                    } else { return }                       // still too early to tell
+                }
+                guard sideways == true, let base, let origin else { return }
+                progress = bounded(base - (dx - origin) / w)
+            }
+            .onEnded { v in
+                let ours = sideways, from = base, start = origin
+                sideways = nil; base = nil; origin = nil
+                guard ours == true, let from, let start else { return }
+                // where the flick would have carried us, never more than one page
+                let predicted = from - (v.predictedEndTranslation.width - start) / w
+                let near = from.rounded()
+                settle(to: min(max(min(max(predicted.rounded(), near - 1), near + 1), 0), lastPage))
+            }
+    }
+
+    /// past the first and last page the drag pulls back, so the edge has give
+    private func bounded(_ p: Double) -> Double {
+        p < 0 ? p / 3 : p > lastPage ? lastPage + (p - lastPage) / 3 : p
+    }
+
+    private func settle(to target: Double) {
+        let tab = tabs[Int(target)]
+        if tab != m.tab { Haptic.tap() }
+        withAnimation(.snappy(duration: 0.38, extraBounce: 0.16)) {
+            progress = target
+            m.tab = tab
         }
     }
 
