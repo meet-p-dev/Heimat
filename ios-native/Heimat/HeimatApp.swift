@@ -88,7 +88,7 @@ extension View {
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
 /// system's own, so iOS draws them in Liquid Glass.
 enum SheetRoute: Identifiable, Hashable {
-    case settings, profile, editProfile, invite, categories, list, analytics
+    case settings, profile, editProfile, invite, categories, list, analytics, history
     case auth(AuthMode)
     case flat(FlatMode)
     case expense(Expense?, ExpensePrefill?)
@@ -109,6 +109,7 @@ struct SheetHost: View {
         case .categories: CategoriesView()
         case .list: NavigationStack { ShoppingListView() }
         case .analytics: NavigationStack { AnalyticsView() }
+        case .history: NavigationStack { HistoryView() }
         case .auth(let mode): AuthView(start: mode)
         case .flat(let mode): CreateJoinForm(mode: mode)
         case .expense(let e, let prefill): ExpenseForm(editing: e, prefill: prefill)

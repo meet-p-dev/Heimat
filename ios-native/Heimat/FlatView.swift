@@ -237,6 +237,9 @@ struct FlatView: View {
                 RowDivider()
                 HeimatRow(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "Analytics",
                           sub: "Spend trend, categories and who paid") { m.sheet = .analytics }
+                RowDivider()
+                HeimatRow(symbol: "clock.arrow.circlepath", tint: Tint.indigo, label: "History",
+                          sub: "Who added, changed or deleted what") { m.sheet = .history }
             }
         }
     }
@@ -687,4 +690,120 @@ struct AnalyticsView: View {
         let p = v / total * 100
         return p < 9.95 ? String(format: "%.1f%%", p) : "\(Int(p.rounded()))%"
     }
+}
+
+
+// MARK: - History
+
+/// Everything that has happened in this flat, newest first. The rows come
+/// from database triggers rather than the app, so an expense edited on the
+/// web, added by Siri or deleted from a widget all show up the same way.
+struct HistoryView: View {
+    @Environment(AppModel.self) private var m
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                if m.activity.isEmpty {
+                    ContentUnavailableView("Nothing yet", systemImage: "clock",
+                                           description: Text("Everything anyone adds, changes or deletes shows up here."))
+                        .padding(.top, 60)
+                } else {
+                    ForEach(Array(days.enumerated()), id: \.element.key) { _, day in
+                        SectionLabel(day.label)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16).padding(.top, 18).padding(.bottom, 8)
+                        HeimatCard(radius: 22, padding: 0) {
+                            VStack(spacing: 0) {
+                                ForEach(Array(day.list.enumerated()), id: \.element.id) { i, a in
+                                    row(a)
+                                    if i < day.list.count - 1 { RowDivider(inset: 56) }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                    }
+                }
+            }
+            .padding(.bottom, 24)
+        }
+        .navigationTitle("History")
+        .navigationBarTitleDisplayMode(.inline)
+        .heimatScreen()
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        .task { await m.loadActivity() }
+        .refreshable { await m.loadActivity() }
+    }
+
+    /// grouped by day, because "when" is the question being asked
+    private var days: [(key: String, label: String, list: [Activity])] {
+        var out: [(key: String, label: String, list: [Activity])] = []
+        for a in m.activity {
+            // the day it was here, not the day it was in UTC: slicing the
+            // timestamp files anything after local midnight under yesterday
+            let k = ISO8601DateFormatter.heimat.date(from: a.at).map(Fmt.ymd) ?? String(a.at.prefix(10))
+            if out.last?.key != k { out.append((k, Fmt.relDay(k), [])) }
+            out[out.count - 1].list.append(a)
+        }
+        return out
+    }
+
+    private func row(_ a: Activity) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: a.symbol)
+                .font(.system(size: 19))
+                .foregroundStyle(a.isGone ? Color.secondary : Color.accentColor)
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(line(a)).font(.system(size: 14.5))
+                Text(time(a.at)).font(.system(size: 12)).foregroundStyle(.tertiary)
+            }
+            Spacer(minLength: 8)
+            if let amt = a.amount {
+                Text(m.fH(amt))
+                    .font(.system(size: 14.5, weight: .semibold)).monospacedDigit()
+                    .foregroundStyle(a.isGone ? Color.secondary : Color.primary)
+                    .strikethrough(a.isGone, color: .secondary)
+            }
+        }
+        .padding(.horizontal, 16).padding(.vertical, 11)
+    }
+
+    private func line(_ a: Activity) -> AttributedString {
+        let who = a.actor.map { m.nameOf($0) } ?? "Someone"
+        let what = a.subject ?? "an expense"
+        let text: String
+        switch a.kind {
+        case "expense_added":    text = "\(who) added \(what)"
+        case "expense_edited":   text = "\(who) changed \(what)"
+        case "expense_deleted":  text = "\(who) deleted \(what)"
+        case "settled":          text = "\(who) settled up with \(what)"
+        case "settle_undone":    text = "\(who) undid a payment to \(what)"
+        case "joined":           text = "\(what) joined"
+        case "invited":          text = "\(who) invited \(what)"
+        case "left":             text = "\(what) left"
+        case "invite_withdrawn": text = "\(who) withdrew the invite to \(what)"
+        default:                 text = "\(who) \(a.kind)"
+        }
+        var s = AttributedString(text)
+        // the thing it happened to, picked out of the sentence
+        if let r = s.range(of: what) { s[r].font = .system(size: 14.5, weight: .semibold) }
+        return s
+    }
+
+    private func time(_ iso: String) -> String {
+        guard let d = ISO8601DateFormatter.heimat.date(from: iso) else { return "" }
+        return d.formatted(date: .omitted, time: .shortened)
+    }
+}
+
+extension ISO8601DateFormatter {
+    /// Postgres timestamptz comes back with fractional seconds, which the
+    /// default parser rejects outright.
+    static let heimat: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
 }

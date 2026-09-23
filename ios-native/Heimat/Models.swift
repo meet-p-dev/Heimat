@@ -75,6 +75,34 @@ struct Settlement: Codable, Identifiable, Hashable {
     enum CodingKeys: String, CodingKey { case id, amount, flatId = "flat_id", fromUser = "from_user", toUser = "to_user", settledOn = "settled_on" }
 }
 
+/// One line of a flat's history. Written by database triggers, never by the
+/// app, so nothing that changes the money can quietly skip it.
+struct Activity: Codable, Identifiable, Hashable {
+    let id: String
+    let flatId: String
+    let actor: String?
+    let kind: String
+    let subject: String?
+    let amount: Double?
+    let at: String
+    enum CodingKeys: String, CodingKey { case id, actor, kind, subject, amount, at, flatId = "flat_id" }
+
+    var symbol: String {
+        switch kind {
+        case "expense_added": "plus.circle.fill"
+        case "expense_edited": "pencil.circle.fill"
+        case "expense_deleted": "trash.circle.fill"
+        case "settled": "arrow.left.arrow.right.circle.fill"
+        case "settle_undone": "arrow.uturn.backward.circle.fill"
+        case "joined": "person.crop.circle.badge.plus"
+        case "invited": "envelope.circle.fill"
+        case "left", "invite_withdrawn": "person.crop.circle.badge.minus"
+        default: "circle.fill"
+        }
+    }
+    var isGone: Bool { kind == "expense_deleted" || kind == "left" || kind == "invite_withdrawn" || kind == "settle_undone" }
+}
+
 struct ListItem: Codable, Identifiable, Hashable {
     let id: String
     let flatId: String

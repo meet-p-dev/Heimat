@@ -33,6 +33,7 @@ final class AppModel {
     var flatId: String? { didSet { UserDefaults.standard.set(flatId, forKey: "flatId") } }
     var members: [Member] = []
     /// the same three tables across every flat you belong to, for Home
+    var activity: [Activity] = []
     var allMembers: [Member] = []
     var allExpenses: [Expense] = []
     var allSettles: [Settlement] = []
@@ -250,7 +251,16 @@ final class AppModel {
         }
     }
 
-    private func clearFlat() { members = []; expenses = []; settles = []; items = []; flatCats = [] }
+    private func clearFlat() { members = []; expenses = []; settles = []; items = []; flatCats = []; activity = [] }
+
+    /// Only fetched when the History sheet is opened — it is the one thing
+    /// here that grows without bound and nothing else on screen needs it.
+    func loadActivity() async {
+        guard let id = flatId else { return }
+        activity = (try? await client.from("activity").select()
+            .eq("flat_id", value: id).order("at", ascending: false).limit(300)
+            .execute().value) ?? []
+    }
 
     func switchFlat(_ id: String) {
         guard id != flatId else { return }
