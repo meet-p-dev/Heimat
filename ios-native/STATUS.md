@@ -62,6 +62,16 @@ needs `resend_key` in `app_config` before anything is sent; without it the
 invite is still saved and the function says so. `invite_from` must be on a
 domain verified with Resend. The email links to `public/invite.html`.
 
+The invite email lands on `invite.html` / `src/invite.ts` — a Vite entry, not
+a public/ asset, built the way `reset.ts` is: plain DOM, no React, no app
+boot, opened cold by a stranger who has no account. `invite_preview()` reads
+who invited them and to what with no session at all, so the page can ask
+before it asks for anything. Declining needs no account either, and takes them
+back out of every split they were in. Accepting means signing up, after which
+it shows how to add Heimat to the home screen — the steps for the device in
+hand, since iOS and Android differ and iOS only allows notifications once it
+is installed.
+
 The web app filters flats to `kind = 'flat'`, so groups are the native app's
 alone for now.
 

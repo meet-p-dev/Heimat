@@ -15,12 +15,13 @@ export default defineConfig({
   base: native ? '/' : process.env.VITE_BASE || '/',
   build: {
     rollupOptions: {
-      // reset.html is a second entry, not a public/ asset: it needs the Supabase
-      // URL and key compiled in the same way the app does. The emailed
-      // password-reset link points at it.
+      // reset.html and invite.html are entries, not public/ assets: they need
+      // the Supabase URL and key compiled in the same way the app does. Both
+      // are landed on from an email, by someone who may have no account yet.
       input: {
         main: resolve(__dirname, 'index.html'),
         reset: resolve(__dirname, 'reset.html'),
+        invite: resolve(__dirname, 'invite.html'),
       },
     },
   },
@@ -44,7 +45,7 @@ export default defineConfig({
         // was served in their place, index.html forwarded the reset link to
         // reset.html, the worker answered with the shell again — a loop that
         // flickered on screen and never reached the token.
-        navigateFallbackDenylist: [/\/(privacy|terms|cb|reset)\.html(\?|#|$)/],
+        navigateFallbackDenylist: [/\/(privacy|terms|cb|reset|invite)\.html(\?|#|$)/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers
         // live in public/push-sw.js and get pulled into it here
         importScripts: ['push-sw.js'],
