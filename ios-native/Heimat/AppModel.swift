@@ -278,7 +278,9 @@ final class AppModel {
             )).execute().value
             Haptic.success()
             await loadFlat()
-            show(row.isPending ? "Invited \(row.displayName) — we've emailed them" : "\(row.displayName) is in")
+            // whether the email got there is the invite function's business and
+            // it hasn't reported yet — the sheet says so once it has
+            show(row.isPending ? "Invited \(row.displayName)" : "\(row.displayName) is in")
             return nil
         } catch {
             return friendly(error, "Couldn't add them right now. Please try again in a minute.")

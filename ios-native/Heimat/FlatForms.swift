@@ -299,21 +299,36 @@ struct InviteView: View {
                     if !pending.isEmpty {
                         Section {
                             ForEach(pending) { p in
-                                HStack(spacing: 12) {
-                                    AvatarView(name: p.displayName, seed: p.userId, size: 34)
-                                    VStack(alignment: .leading, spacing: 1) {
-                                        Text(p.displayName).font(.system(size: 15.5, weight: .semibold))
-                                        Text(p.inviteEmail ?? "").font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(1)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack(spacing: 12) {
+                                        AvatarView(name: p.displayName, seed: p.userId, size: 34)
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(p.displayName).font(.system(size: 15.5, weight: .semibold))
+                                            Text(p.inviteEmail ?? "").font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(1)
+                                        }
+                                        Spacer(minLength: 6)
+                                        sendState(p)
                                     }
-                                    Spacer(minLength: 6)
-                                    Text("Invited").font(.system(size: 11, weight: .bold))
-                                        .padding(.horizontal, 8).padding(.vertical, 3)
-                                        .background(Color.secondary.opacity(0.16), in: Capsule())
-                                        .foregroundStyle(.secondary)
+                                    if let why = p.inviteError {
+                                        Text(why).font(.system(size: 12)).foregroundStyle(.secondary)
+                                        if let link = p.inviteLink {
+                                            HStack(spacing: 10) {
+                                                Button {
+                                                    UIPasteboard.general.string = link
+                                                    Haptic.success(); m.show("Invite link copied")
+                                                } label: { Label("Copy link", systemImage: "link") }
+                                                ShareLink(item: link) { Label("Share", systemImage: "square.and.arrow.up") }
+                                            }
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .buttonStyle(.borderless)
+                                        }
+                                    }
                                 }
                                 .swipeActions { Button("Remove", role: .destructive) { revoking = p } }
                             }
-                        } header: { Text("Waiting to join") } footer: { Text("Swipe to take an invite back. Anything already split with them comes back to the rest of you.") }
+                        } header: { Text("Waiting to join") } footer: {
+                            Text("Swipe to take an invite back. Anything already split with them comes back to the rest of you.")
+                        }
                     }
 
                     Section {
@@ -346,6 +361,19 @@ struct InviteView: View {
                 }
             }
         }
+    }
+
+    /// Three states worth telling apart: we haven't heard yet, it went, or it
+    /// didn't — and only the last one needs the link offering underneath.
+    @ViewBuilder private func sendState(_ p: Member) -> some View {
+        let (text, tint): (String, Color) =
+            p.inviteError != nil ? ("Not emailed", .orange)
+            : p.inviteSentAt != nil ? ("Emailed", .secondary)
+            : ("Sending…", .secondary)
+        Text(text).font(.system(size: 11, weight: .bold))
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(tint.opacity(0.16), in: Capsule())
+            .foregroundStyle(tint)
     }
 
     private func send() async {

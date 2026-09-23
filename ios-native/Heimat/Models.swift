@@ -25,11 +25,19 @@ struct Member: Codable, Identifiable, Hashable {
     var displayName: String
     var inviteEmail: String?
     var claimedAt: String?
+    var inviteToken: String?
+    /// Written back by the invite function once it knows. Both nil means it
+    /// hasn't reported yet; an error means the invite stands but no email got
+    /// to them, and the link is the way round it.
+    var inviteSentAt: String?
+    var inviteError: String?
     /// invited, but not on Heimat yet
     var isPending: Bool { inviteEmail != nil && claimedAt == nil }
+    var inviteLink: String? { inviteToken.map { "\(Secrets.publicURL)invite.html?t=\($0)" } }
     enum CodingKeys: String, CodingKey {
         case id, flatId = "flat_id", userId = "user_id", displayName = "display_name"
-        case inviteEmail = "invite_email", claimedAt = "claimed_at"
+        case inviteEmail = "invite_email", claimedAt = "claimed_at", inviteToken = "invite_token"
+        case inviteSentAt = "invite_sent_at", inviteError = "invite_error"
     }
 }
 

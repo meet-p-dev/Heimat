@@ -79,6 +79,15 @@ Deno.serve(async (req) => {
     }
     if (!p.email || !p.invite) return new Response('nothing to send', { status: 200 })
 
+    // The app shows whatever lands here, so it has to be the truth rather than
+    // a hope: a refused send must still say so, and must still not fail.
+    const record = async (error: string | null) => {
+      await admin
+        .from('flat_members')
+        .update({ invite_sent_at: error ? null : new Date().toISOString(), invite_error: error })
+        .eq('invite_token', p.invite)
+    }
+
     const base = (c.public_url || 'https://meet-p-dev.github.io/Heimat/').replace(/\/?$/, '/')
     const link = `${base}invite.html?t=${encodeURIComponent(p.invite)}`
     const subject = `${p.inviter || 'Someone'} split an expense with you on Heimat`
@@ -103,9 +112,15 @@ Deno.serve(async (req) => {
           content: plain(p, link),
           html: html(p, link),
         })
-      } finally {
+      } catch (e) {
         await client.close()
+        const why = e instanceof Error ? e.message : String(e)
+        console.error('smtp refused', why)
+        await record(why.slice(0, 300))
+        return new Response('send failed', { status: 200 })
       }
+      await client.close()
+      await record(null)
       return new Response('sent via smtp', { status: 200 })
     }
 
@@ -121,12 +136,20 @@ Deno.serve(async (req) => {
         }),
       })
       if (!res.ok) {
-        console.error('resend refused', res.status, await res.text())
+        const why = await res.text()
+        console.error('resend refused', res.status, why)
+        // Resend's own wording is the clearest explanation there is, and the
+        // person reading it in the app is the one who can act on it
+        let msg = why
+        try { msg = JSON.parse(why).message || why } catch { /* keep the raw body */ }
+        await record(msg.slice(0, 300))
         return new Response('send failed', { status: 200 })
       }
+      await record(null)
       return new Response('sent via resend', { status: 200 })
     }
 
+    await record('No email is set up yet — share the link instead.')
     return new Response('no mail transport configured — invite saved, email skipped', { status: 200 })
   } catch (e) {
     console.error('invite function failed', e)
