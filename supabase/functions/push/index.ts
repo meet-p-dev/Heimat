@@ -17,6 +17,7 @@ type Payload = {
   flat_id?: string
   actor?: string          // who did it — never notified
   to_user?: string        // settlement recipient
+  paid_by?: string        // who put the money down, who may not be in the split
   title?: string          // list item title / broadcast heading
   amount?: number
   description?: string    // expense description
@@ -70,11 +71,19 @@ Deno.serve(async (req) => {
       const who = await nameOf(body.actor, body.flat_id)
       const parts = body.split_among || []
       const share = parts.length ? Number(body.amount || 0) / parts.length : 0
-      recipients = (await members(body.flat_id)).filter((u) => u !== body.actor)
+      // Only the people the expense is actually about: whoever it is split
+      // between, plus whoever paid — they may not be in the split, and it is
+      // still their money. An empty split means the payer alone, which is the
+      // app's convention and means nobody else needs telling.
+      const involved = new Set<string>(parts)
+      if (body.paid_by) involved.add(body.paid_by)
+      const inFlat = await members(body.flat_id)
+      recipients = inFlat.filter((u) => u !== body.actor && involved.has(u))
       title = body.description || 'New shared expense'
-      // each flatmate sees their own share of it
+      // each of them sees their own share of it
       bodyFor = (uid) =>
-        `${who} added ${euro(Number(body.amount || 0))}` + (parts.includes(uid) ? ` · you owe ${euro(share)}` : '')
+        `${who} added ${euro(Number(body.amount || 0))}` +
+        (parts.includes(uid) ? ` · you owe ${euro(share)}` : uid === body.paid_by ? ' · you paid' : '')
     } else if (body.event === 'settlement' && body.to_user && body.actor && body.flat_id) {
       if (body.to_user === body.actor) return Response.json({ sent: 0, skipped: 'self' })
       const who = await nameOf(body.actor, body.flat_id)
