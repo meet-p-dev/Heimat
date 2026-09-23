@@ -11,8 +11,9 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    if let flat = m.flat { balance(flat) } else { noFlat }
+                    if m.flat != nil { balance() } else { noFlat }
                     quickActions
+                    if !m.standings.isEmpty { people }
                     tiles
                     if m.flat != nil && m.isAnon { guest }
                     if m.flat != nil { recent }
@@ -32,14 +33,19 @@ struct HomeView: View {
 
     // MARK: - Hero
 
-    private func balance(_ flat: Flat) -> some View {
-        let net = m.myNet
+    /// Where you stand everywhere at once, rather than in whichever flat
+    /// happens to be open — the question Home is actually asked.
+    private func balance() -> some View {
+        let net = m.overallNet
         let owed = net > 0.5, owing = net < -0.5
         let status = owed ? "you are owed" : owing ? "you owe" : "all settled up"
         let home = abs(net) > 0.5 ? m.fHome(abs(net)).map { " · ≈ \($0)" } ?? "" : ""
+        // when money runs both ways the single figure hides half the story
+        let both = m.owedToMe > 0.5 && m.iOwe > 0.5
+        let scope = m.flats.count > 1 ? "Across \(m.flats.count) flats and groups" : "Your balance"
         return HeimatCard(radius: 28, padding: 18, tinted: true) {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Your balance · \(flat.name)")
+                Text(scope)
                     .font(.system(size: 13.5, weight: .semibold))
                     .foregroundStyle(.secondary).lineLimit(1)
                 Text((owing ? "−" : owed ? "+" : "") + m.fH(abs(net)))
@@ -52,6 +58,15 @@ struct HomeView: View {
                 Text(status + home)
                     .font(.system(size: 14)).foregroundStyle(.secondary)
                     .padding(.top, 4)
+                if both {
+                    HStack(spacing: 6) {
+                        Text("you owe \(Text(m.fH(m.iOwe)).bold().foregroundColor(.hRed))")
+                        Text("·").foregroundStyle(.tertiary)
+                        Text("you're owed \(Text(m.fH(m.owedToMe)).bold().foregroundColor(.hGreen))")
+                    }
+                    .font(.system(size: 13)).foregroundStyle(.secondary)
+                    .padding(.top, 6)
+                }
                 HStack(spacing: 10) {
                     Button { m.startAddExpense() } label: {
                         Label("Add expense", systemImage: "plus").frame(maxWidth: .infinity)
@@ -69,6 +84,50 @@ struct HomeView: View {
             }
         }
         .animation(.smooth, value: net)
+    }
+
+    /// One row per person, netted across every flat you share with them —
+    /// two people can be square in one flat and not in another, and what you
+    /// want to know is the single number between you.
+    private var people: some View {
+        VStack(spacing: 0) {
+            SectionLabel("Who owes who").padding(.bottom, 10)
+            HeimatCard(radius: 24, padding: 0) {
+                VStack(spacing: 0) {
+                    ForEach(Array(m.standings.enumerated()), id: \.element.id) { i, s in
+                        let owesMe = s.amount > 0
+                        Button {
+                            m.sheet = .settle(Calc.Suggestion(
+                                from: owesMe ? s.person.userId : (m.uid ?? ""),
+                                to: owesMe ? (m.uid ?? "") : s.person.userId,
+                                amount: abs(s.amount)))
+                        } label: {
+                            HStack(spacing: 13) {
+                                AvatarView(name: s.person.displayName, seed: s.person.userId, size: 40)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(s.person.displayName).font(.system(size: 15.5, weight: .semibold))
+                                    Text(s.flats.joined(separator: " · "))
+                                        .font(.system(size: 12.5)).foregroundStyle(.tertiary).lineLimit(1)
+                                }
+                                Spacer(minLength: 8)
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(m.fH(abs(s.amount)))
+                                        .font(.system(size: 15.5, weight: .bold)).monospacedDigit()
+                                        .foregroundStyle(owesMe ? Color.hGreen : Color.hRed)
+                                    Text(owesMe ? "owes you" : "you owe")
+                                        .font(.system(size: 11.5)).foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.horizontal, 16).padding(.vertical, 13)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressStyle())
+                        .foregroundStyle(.primary)
+                        if i < m.standings.count - 1 { RowDivider() }
+                    }
+                }
+            }
+        }
     }
 
     private var noFlat: some View {

@@ -94,6 +94,36 @@ enum Calc {
         return out
     }
 
+    /// Who owes you what, person by person, across however many flats and
+    /// groups you share with them.
+    ///
+    /// `balances` nets everyone inside a single flat, which is what that
+    /// flat's own list wants. It cannot be added up across flats, because a
+    /// net of zero in one flat and zero in another says nothing about what you
+    /// and one particular person owe each other. So this keeps the pairs
+    /// apart: every expense moves money from the people in the split to
+    /// whoever paid, and every settlement moves it back.
+    ///
+    /// Positive means they owe you.
+    static func pairwise(mine uid: String, expenses: [Expense], settles: [Settlement]) -> [String: Double] {
+        var net: [String: Double] = [:]
+        for e in expenses {
+            let parts = e.parts
+            let share = e.share
+            if e.paidBy == uid {
+                for p in parts where p != uid { net[p, default: 0] += share }
+            } else if parts.contains(uid) {
+                net[e.paidBy, default: 0] -= share
+            }
+        }
+        for s in settles {
+            if s.fromUser == uid { net[s.toUser, default: 0] += s.amount }
+            else if s.toUser == uid { net[s.fromUser, default: 0] -= s.amount }
+        }
+        // anything under half a cent is a rounding artefact, not a debt
+        return net.filter { abs($0.value) > 0.005 }
+    }
+
     static func myShare(_ expenses: [Expense], uid: String?) -> Double {
         guard let uid else { return 0 }
         return expenses.reduce(0) { $0 + ($1.parts.contains(uid) ? $1.share : 0) }

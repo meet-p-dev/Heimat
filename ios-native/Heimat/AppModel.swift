@@ -32,6 +32,10 @@ final class AppModel {
     var flats: [Flat] = []
     var flatId: String? { didSet { UserDefaults.standard.set(flatId, forKey: "flatId") } }
     var members: [Member] = []
+    /// the same three tables across every flat you belong to, for Home
+    var allMembers: [Member] = []
+    var allExpenses: [Expense] = []
+    var allSettles: [Settlement] = []
     var expenses: [Expense] = []
     var settles: [Settlement] = []
     var items: [ListItem] = []
@@ -65,6 +69,41 @@ final class AppModel {
     var cats: [Cat] { Cats.merged(flatCats) }
     var balances: [String: Double] { Calc.balances(members: members, expenses: expenses, settles: settles) }
     var myNet: Double { uid.flatMap { balances[$0] } ?? 0 }
+
+    // MARK: everything, not just the flat you happen to be looking at
+    //
+    // Home answers "where do I stand", which spans every flat and group at
+    // once — so these are loaded across all of them, and the per-person
+    // figures are pairwise (see Calc.pairwise) rather than per-flat nets,
+    // which cannot be added together.
+
+    struct Standing: Identifiable {
+        let person: Member
+        let amount: Double        // positive: they owe you
+        let flats: [String]       // where the two of you share money
+        var id: String { person.userId }
+    }
+
+    var standings: [Standing] {
+        guard let uid else { return [] }
+        let net = Calc.pairwise(mine: uid, expenses: allExpenses, settles: allSettles)
+        return net.compactMap { id, amount -> Standing? in
+            guard let person = allMembers.first(where: { $0.userId == id }) else { return nil }
+            let names = allMembers
+                .filter { $0.userId == id }
+                .compactMap { mem in flats.first { $0.id == mem.flatId }?.name }
+            return Standing(person: person, amount: amount, flats: names.sorted())
+        }
+        .sorted { abs($0.amount) > abs($1.amount) }
+    }
+
+    var owedToMe: Double { standings.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount } }
+    var iOwe: Double { standings.filter { $0.amount < 0 }.reduce(0) { $0 - $1.amount } }
+    var overallNet: Double { owedToMe - iOwe }
+
+    /// the people in one flat, from the overview rather than the open flat
+    func members(of flatId: String) -> [Member] { allMembers.filter { $0.flatId == flatId } }
+    func flatName(_ id: String) -> String { flats.first { $0.id == id }?.name ?? "" }
     var work: Calc.WorkStats { Calc.work(shifts, weekCap: prefs.weekCap, yearDays: prefs.yearDays) }
     var hostCur: String { profile.hostCur }
     var homeCur: String { profile.homeCur }
@@ -89,6 +128,12 @@ final class AppModel {
     func fH(_ v: Double) -> String { Fmt.money(v, hostCur) }
     func fHome(_ v: Double) -> String? { homeCur == hostCur ? nil : Fmt.money(v * profile.rate, homeCur) }
     func nameOf(_ u: String) -> String { u == uid ? "You" : members.first { $0.userId == u }?.displayName ?? "Someone" }
+    /// the same, for a flat other than the one you have open
+    func nameOf(_ u: String, in flat: String) -> String {
+        if u == uid { return "You" }
+        return allMembers.first { $0.flatId == flat && $0.userId == u }?.displayName
+            ?? members.first { $0.userId == u }?.displayName ?? "Someone"
+    }
     /// you can edit an expense you added, or one someone else logged but you paid for
     func canEdit(_ e: Expense) -> Bool { e.createdBy == uid || e.paidBy == uid }
     func open(_ e: Expense) { Haptic.tap(); sheet = canEdit(e) ? .expense(e, nil) : .expenseDetail(e) }
@@ -174,6 +219,26 @@ final class AppModel {
             (members, expenses, settles, items, flatCats) = try await (m, e, s, it, c)
         } catch {
             show("Sync error — pull down to retry")
+        }
+        // Home spans every flat, so it has to follow the same refreshes —
+        // including the ones realtime triggers for the flat you have open
+        await loadOverview()
+    }
+
+    /// Three queries for all of your flats at once rather than three per flat.
+    /// Home needs the lot; the Flat tab still works off the open flat's own
+    /// copies, which realtime keeps fresher.
+    func loadOverview() async {
+        let ids = flats.map(\.id)
+        guard !ids.isEmpty else { allMembers = []; allExpenses = []; allSettles = []; return }
+        do {
+            async let m: [Member] = client.from("flat_members").select().in("flat_id", values: ids).execute().value
+            async let e: [Expense] = client.from("expenses").select().in("flat_id", values: ids).order("spent_on", ascending: false).execute().value
+            async let s: [Settlement] = client.from("settlements").select().in("flat_id", values: ids).execute().value
+            (allMembers, allExpenses, allSettles) = try await (m, e, s)
+        } catch {
+            // Home falls back to showing nothing rather than something wrong
+            allMembers = []; allExpenses = []; allSettles = []
         }
     }
 
@@ -338,7 +403,8 @@ final class AppModel {
     }
 
     func addExpense(_ d: ExpenseDraft) async {
-        guard let id = flatId else { return }
+        // the draft carries its own flat: Home can add to any of them
+        guard let id = d.flatId ?? flatId else { return }
         await run("Expense added") {
             try await self.client.from("expenses").insert(NewExpense(flat_id: id, description: d.desc, amount: d.amount, currency: self.hostCur, paid_by: d.paidBy,
                                                                      split_among: d.among, category: d.category, created_by: self.uid, spent_on: d.spentOn)).execute()

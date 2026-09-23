@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ExpenseDraft {
+    /// which flat or group it belongs to; nil means the one that is open
+    var flatId: String?
     var desc: String
     var amount: Double
     var paidBy: String
@@ -21,11 +23,18 @@ struct ExpenseForm: View {
     @State private var cat = "groceries"
     @State private var date = Date()
     @State private var confirmDelete = false
+    /// where it lands. Home can reach any flat, so this is not always the open one.
+    @State private var target = ""
+
+    private var people: [Member] {
+        let list = m.members(of: target)
+        return list.isEmpty ? m.members : list
+    }
 
     var body: some View {
         let v = Fmt.parse(amount)
-        let valid = v > 0 && !among.isEmpty && !payer.isEmpty
-        let everyone = among.count == m.members.count
+        let valid = v > 0 && !among.isEmpty && !payer.isEmpty && !target.isEmpty
+        let everyone = among.count == people.count
         NavigationStack {
             Form {
                 Section {
@@ -39,14 +48,24 @@ struct ExpenseForm: View {
                 }
                 Section {
                     TextField("What for? e.g. Rewe groceries", text: $desc)
+                    if m.flats.count > 1 {
+                        Picker("Flat", selection: $target) {
+                            ForEach(m.flats) { f in
+                                Label(f.name, systemImage: f.isGroup ? "person.2.fill" : "house.fill").tag(f.id)
+                            }
+                        }
+                        // moving an expense between flats would rewrite whose
+                        // debt it is, so it is only a choice when adding
+                        .disabled(editing != nil)
+                    }
                     Picker("Category", selection: $cat) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
-                    Picker("Paid by", selection: $payer) { ForEach(m.members) { Text(m.nameOf($0.userId)).tag($0.userId) } }
+                    Picker("Paid by", selection: $payer) { ForEach(people) { Text(m.nameOf($0.userId, in: target)).tag($0.userId) } }
                 } footer: {
                     Button("Edit categories") { m.sheet = .categories }.font(.footnote)
                 }
                 Section {
-                    ForEach(m.members) { mem in
+                    ForEach(people) { mem in
                         let on = among.contains(mem.userId)
                         Button {
                             Haptic.tap()
@@ -54,7 +73,7 @@ struct ExpenseForm: View {
                         } label: {
                             HStack(spacing: 12) {
                                 AvatarView(name: mem.displayName, seed: mem.userId, size: 30)
-                                Text(m.nameOf(mem.userId)).foregroundStyle(.primary)
+                                Text(m.nameOf(mem.userId, in: target)).foregroundStyle(.primary)
                                 Spacer()
                                 if on { Text(Fmt.money(v / Double(max(among.count, 1)), m.hostCur)).monospacedDigit().foregroundStyle(.secondary) }
                                 Image(systemName: on ? "checkmark.circle.fill" : "circle")
@@ -67,7 +86,7 @@ struct ExpenseForm: View {
                         Text("Split between · \(among.count)")
                         Spacer()
                         Button(everyone ? "Just me" : "Everyone") {
-                            among = everyone ? Set([m.uid].compactMap { $0 }) : Set(m.members.map(\.userId))
+                            among = everyone ? Set([m.uid].compactMap { $0 }) : Set(people.map(\.userId))
                         }
                         .font(.footnote.weight(.semibold)).textCase(nil)
                     }
@@ -83,7 +102,7 @@ struct ExpenseForm: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(editing == nil ? "Add" : "Save") {
-                        let d = ExpenseDraft(desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: payer,
+                        let d = ExpenseDraft(flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: payer,
                                              among: Array(among), category: cat, spentOn: Fmt.ymd(date))
                         Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
                         dismiss()
@@ -96,12 +115,20 @@ struct ExpenseForm: View {
             }
             .onAppear {
                 if let e = editing {
+                    target = e.flatId
                     amount = Fmt.input(e.amount); desc = e.description ?? ""; payer = e.paidBy
                     among = Set(e.splitAmong); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
                 } else {
+                    target = m.flatId ?? m.flats.first?.id ?? ""
                     desc = prefill?.desc ?? ""; cat = prefill?.category ?? "groceries"
-                    payer = m.uid ?? ""; among = Set(m.members.map(\.userId))
+                    payer = m.uid ?? ""; among = Set(people.map(\.userId))
                 }
+            }
+            // a different flat means different people, so the split starts over
+            .onChange(of: target) { _, _ in
+                guard editing == nil else { return }
+                payer = m.uid ?? ""
+                among = Set(people.map(\.userId))
             }
         }
     }
