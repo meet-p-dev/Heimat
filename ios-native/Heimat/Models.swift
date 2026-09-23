@@ -31,13 +31,17 @@ struct Member: Codable, Identifiable, Hashable {
     /// to them, and the link is the way round it.
     var inviteSentAt: String?
     var inviteError: String?
+    /// Set when they leave or are removed. The row stays so that past
+    /// expenses still resolve to a name and the books still balance.
+    var leftAt: String?
+    var hasLeft: Bool { leftAt != nil }
     /// invited, but not on Heimat yet
     var isPending: Bool { inviteEmail != nil && claimedAt == nil }
     var inviteLink: String? { inviteToken.map { "\(Secrets.publicURL)invite.html?t=\($0)" } }
     enum CodingKeys: String, CodingKey {
         case id, flatId = "flat_id", userId = "user_id", displayName = "display_name"
         case inviteEmail = "invite_email", claimedAt = "claimed_at", inviteToken = "invite_token"
-        case inviteSentAt = "invite_sent_at", inviteError = "invite_error"
+        case inviteSentAt = "invite_sent_at", inviteError = "invite_error", leftAt = "left_at"
     }
 }
 

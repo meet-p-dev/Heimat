@@ -67,6 +67,14 @@ final class AppModel {
     var homeFlats: [Flat] { flats.filter { !$0.isGroup } }
     var groups: [Flat] { flats.filter { $0.isGroup } }
     var cats: [Cat] { Cats.merged(flatCats) }
+    /// Who is actually in the flat now. `members` keeps everyone who ever was,
+    /// because the balance maths and every past expense still need their name.
+    var roster: [Member] { members.filter { !$0.hasLeft } }
+    /// the roster, plus anyone who left still carrying a balance
+    var balanceRoster: [Member] {
+        let b = balances
+        return members.filter { !$0.hasLeft || abs(b[$0.userId] ?? 0) > 0.005 }
+    }
     var balances: [String: Double] { Calc.balances(members: members, expenses: expenses, settles: settles) }
     var myNet: Double { uid.flatMap { balances[$0] } ?? 0 }
 
@@ -102,7 +110,7 @@ final class AppModel {
     var overallNet: Double { owedToMe - iOwe }
 
     /// the people in one flat, from the overview rather than the open flat
-    func members(of flatId: String) -> [Member] { allMembers.filter { $0.flatId == flatId } }
+    func members(of flatId: String) -> [Member] { allMembers.filter { $0.flatId == flatId && !$0.hasLeft } }
     func flatName(_ id: String) -> String { flats.first { $0.id == id }?.name ?? "" }
     var work: Calc.WorkStats { Calc.work(shifts, weekCap: prefs.weekCap, yearDays: prefs.yearDays) }
     var hostCur: String { profile.hostCur }
@@ -352,6 +360,36 @@ final class AppModel {
         }
     }
 
+    /// Takes someone out of the flat. The database refuses while they are up
+    /// or down, because a debt that vanishes with the person is worse than the
+    /// conversation about removing them.
+    func remove(_ member: Member) async {
+        guard let id = flatId else { return }
+        struct P: Encodable { let p_flat: String, p_uid: String }
+        do {
+            _ = try await client.rpc("remove_member", params: P(p_flat: id, p_uid: member.userId)).execute()
+            Haptic.success()
+            await loadFlat()
+            show("\(member.displayName) is no longer in the flat")
+        } catch {
+            show(raised(error) ?? friendly(error, "Couldn't remove them right now."))
+        }
+    }
+
+    /// A reminder to whoever owes you. Once a day each, because it is much
+    /// easier to send than to say.
+    func nudge(_ member: Member) async {
+        guard let id = flatId else { return }
+        struct P: Encodable { let p_flat: String, p_uid: String }
+        do {
+            _ = try await client.rpc("nudge", params: P(p_flat: id, p_uid: member.userId)).execute()
+            Haptic.success()
+            show("Reminded \(member.displayName)")
+        } catch {
+            show(raised(error) ?? friendly(error, "Couldn't send that reminder."))
+        }
+    }
+
     func revokeInvite(_ memberId: String) async {
         do {
             _ = try await client.rpc("revoke_invite", params: ["p_member": memberId]).execute()
@@ -384,8 +422,8 @@ final class AppModel {
     }
 
     func leaveFlat() async {
-        guard let id = flatId, let uid else { return }
-        _ = try? await client.from("flat_members").delete().eq("flat_id", value: id).eq("user_id", value: uid).execute()
+        guard let id = flatId else { return }
+        _ = try? await client.rpc("leave_flat", params: ["p_flat": id]).execute()
         flatId = nil
         clearFlat()
         await loadMyFlats()
@@ -714,6 +752,18 @@ final class AppModel {
     }
 
     /// the handful of auth errors people actually hit, in words that say what to do next
+    /// The database raises these on purpose and writes them for a person to
+    /// read — "Settle up with them first", "You already reminded them today".
+    /// Passing them through beats replacing them with something vaguer.
+    private func raised(_ error: Error) -> String? {
+        guard let e = error as? PostgrestError else { return nil }
+        let m = e.message.trimmingCharacters(in: .whitespacesAndNewlines)
+        // anything that reads like plumbing rather than a sentence stays hidden
+        guard !m.isEmpty, m.first?.isUppercase == true, !m.lowercased().contains("function"),
+              !m.contains("relation"), !m.contains("permission denied") else { return nil }
+        return m
+    }
+
     private func friendly(_ error: Error, _ fallback: String) -> String {
         let m = String(describing: error).lowercased() + " " + error.localizedDescription.lowercased()
         if m.contains("invalid login") || m.contains("invalid_credentials") { return "That email and password don't match. Check for typos, or reset your password." }

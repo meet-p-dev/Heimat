@@ -5,6 +5,7 @@ struct FlatView: View {
     @Environment(AppModel.self) private var m
     @State private var confirmLeave = false
     @State private var deleting: Expense?
+    @State private var removing: Member?
 
     var body: some View {
         NavigationStack {
@@ -57,6 +58,13 @@ struct FlatView: View {
         }
         .confirmationDialog("Delete this expense for everyone in the flat?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
             Button("Delete expense", role: .destructive) { if let e = deleting { Task { await m.deleteExpense(e.id) } } }
+        }
+        .confirmationDialog(
+            removing.map { "Remove \($0.displayName)? Their past expenses stay, so the balances still add up." } ?? "",
+            isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive) { if let r = removing { Task { await m.remove(r) } } }
         }
     }
 
@@ -111,7 +119,7 @@ struct FlatView: View {
                     .controlSize(.small)
                 }
                 HStack(spacing: 0) {
-                    ForEach(Array(m.members.prefix(6).enumerated()), id: \.element.id) { i, mem in
+                    ForEach(Array(m.roster.prefix(6).enumerated()), id: \.element.id) { i, mem in
                         AvatarView(name: mem.displayName, seed: mem.userId, size: 30)
                             .overlay(Circle().strokeBorder(Color.primary.opacity(0.001), lineWidth: 0))
                             .padding(.leading, i == 0 ? 0 : -9)
@@ -130,11 +138,11 @@ struct FlatView: View {
     /// "4 flatmates · 1 invited" — an invited person is already splitting bills,
     /// so they are counted, just marked as not here yet.
     private func peopleLine(_ flat: Flat) -> String {
-        let waiting = m.members.filter(\.isPending).count
+        let waiting = m.roster.filter(\.isPending).count
         let noun = flat.isGroup ? "people" : "flatmates"
-        let base = m.members.count == 1
+        let base = m.roster.count == 1
             ? (flat.isGroup ? "Just you — add the people you split with" : "1 person — invite your flatmates")
-            : "\(m.members.count) \(noun)"
+            : "\(m.roster.count) \(noun)"
         return waiting > 0 ? "\(base) · \(waiting) invited" : base
     }
 
@@ -143,7 +151,8 @@ struct FlatView: View {
             SectionLabel("Balances").padding(.bottom, 10)
             HeimatCard(radius: 24, padding: 0) {
                 VStack(spacing: 0) {
-                    ForEach(Array(m.members.enumerated()), id: \.element.id) { i, mem in
+                    let rows = m.balanceRoster
+                    ForEach(Array(rows.enumerated()), id: \.element.id) { i, mem in
                         let net = m.balances[mem.userId] ?? 0
                         let owes = suggestions.filter { $0.from == mem.userId }
                         let gets = suggestions.filter { $0.to == mem.userId }
@@ -153,8 +162,9 @@ struct FlatView: View {
                                 HStack(spacing: 6) {
                                     Text(mem.displayName + (mem.userId == m.uid ? " (you)" : ""))
                                         .font(.system(size: 15.5, weight: .semibold))
-                                    if mem.isPending {
-                                        Text("invited").font(.system(size: 10.5, weight: .bold))
+                                    if mem.isPending || mem.hasLeft {
+                                        Text(mem.hasLeft ? "left" : "invited")
+                                            .font(.system(size: 10.5, weight: .bold))
                                             .padding(.horizontal, 7).padding(.vertical, 2)
                                             .background(Color.secondary.opacity(0.16), in: Capsule())
                                             .foregroundStyle(.secondary)
@@ -178,7 +188,25 @@ struct FlatView: View {
                                 .foregroundStyle(net > 0.5 ? Color.hGreen : net < -0.5 ? Color.hRed : Color.secondary)
                         }
                         .padding(.horizontal, 16).padding(.vertical, 12)
-                        if i < m.members.count - 1 { RowDivider(inset: 69) }
+                        .contentShape(Rectangle())
+                        .contextMenu {
+                            if mem.userId != m.uid && !mem.hasLeft {
+                                if net < -0.5 {
+                                    Button { Task { await m.nudge(mem) } } label: {
+                                        Label("Remind them about \(m.fH(-net))", systemImage: "bell.badge")
+                                    }
+                                }
+                                if net > 0.5 {
+                                    Button { m.sheet = .settle(Calc.Suggestion(from: m.uid ?? "", to: mem.userId, amount: net)) } label: {
+                                        Label("Pay them back", systemImage: "arrow.left.arrow.right")
+                                    }
+                                }
+                                Button(role: .destructive) { removing = mem } label: {
+                                    Label("Remove from \(m.flat?.noun ?? "flat")", systemImage: "person.badge.minus")
+                                }
+                            }
+                        }
+                        if i < rows.count - 1 { RowDivider(inset: 69) }
                     }
                 }
             }

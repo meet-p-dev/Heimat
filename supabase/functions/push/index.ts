@@ -13,7 +13,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 type Payload = {
   token: string
-  event: 'item_added' | 'settlement' | 'expense_added' | 'broadcast'
+  event: 'item_added' | 'settlement' | 'expense_added' | 'nudge' | 'broadcast'
   flat_id?: string
   actor?: string          // who did it — never notified
   to_user?: string        // settlement recipient
@@ -90,6 +90,12 @@ Deno.serve(async (req) => {
       recipients = [body.to_user]
       title = 'Payment recorded'
       bodyFor = () => `${who} paid you ${euro(Number(body.amount || 0))}`
+    } else if (body.event === 'nudge' && body.to_user && body.actor && body.flat_id) {
+      // one person, on purpose: a reminder is a private thing
+      const who = await nameOf(body.actor, body.flat_id)
+      recipients = [body.to_user]
+      title = 'A nudge from ' + who
+      bodyFor = () => `${who} is still waiting on ${euro(Number(body.amount || 0))}`
     } else if (body.event === 'broadcast' && body.flat_id) {
       recipients = await members(body.flat_id)
       title = body.title || 'Heimat'
