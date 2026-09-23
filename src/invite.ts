@@ -20,7 +20,7 @@
    covers signing up with a different address than the invite was sent to.
 
    Deliberately plain DOM: no React, no app state, no service worker. */
-import { sb, friendlyAuthError } from './lib/supabase'
+import { sb, authErrorText } from './lib/supabase'
 import { DK, LT } from './lib/theme'
 
 const dark = !window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -38,7 +38,7 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 const pStyle = `font-size:14.5px;color:${T.txt2};line-height:1.55;margin:0 0 20px`
 const inputStyle = `display:block;width:100%;box-sizing:border-box;background:${T.inp};color:${T.txt};border:1.5px solid ${T.border};border-radius:14px;padding:15px 16px;font-size:16px;outline:none;-webkit-appearance:none;margin-bottom:12px`
-const btnStyle = (on: boolean) => `width:100%;box-sizing:border-box;background:${on ? T.acc : T.border};color:${on ? T.onAcc : T.txt3};border:none;border-radius:16px;padding:16px;font-weight:700;font-size:16px;cursor:${on ? 'pointer' : 'default'}`
+const btnStyle = (on: boolean) => `width:100%;box-sizing:border-box;background:${on ? T.acc : T.border};color:${on ? '#fff' : T.txt3};border:none;border-radius:16px;padding:16px;font-weight:700;font-size:16px;cursor:${on ? 'pointer' : 'default'}`
 const ghostStyle = `width:100%;box-sizing:border-box;background:transparent;color:${T.txt2};border:1.5px solid ${T.border};border-radius:16px;padding:15px;font-weight:600;font-size:15px;cursor:pointer;margin-top:10px`
 const noteStyle = (color: string) => `font-size:13px;color:${color};line-height:1.5;margin:0 0 14px`
 const linkStyle = `display:block;text-align:center;margin-top:16px;color:${T.txt2};font-size:13px;font-weight:600;text-decoration:none`
@@ -47,7 +47,7 @@ function shell(title: string, body: string) {
   root.innerHTML = `
     <div style="max-width:420px;margin:0 auto;padding:48px 20px 40px;box-sizing:border-box">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
-        <div style="width:34px;height:34px;border-radius:11px;background:${T.acc};display:flex;align-items:center;justify-content:center;color:${T.onAcc};font-weight:800;font-size:17px">H</div>
+        <div style="width:34px;height:34px;border-radius:11px;background:${T.acc};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px">H</div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-0.2px">Heimat</div>
       </div>
       <h1 style="font-size:23px;font-weight:700;letter-spacing:-0.4px;margin:0 0 10px">${title}</h1>
@@ -139,7 +139,7 @@ function signUp(p: Preview) {
       password: pw.value,
       options: { data: { display_name: nm.value.trim() }, emailRedirectTo: location.origin + appUrl },
     })
-    if (error) return fail(friendlyAuthError(error, 'Couldn’t create the account. Please try again in a minute.'))
+    if (error) return fail(authErrorText(error, 'Couldn’t create the account. Please try again in a minute.'))
 
     /* The trigger has already handed over anything addressed to that email. If
        they signed up with a different one, the token still names this invite —
