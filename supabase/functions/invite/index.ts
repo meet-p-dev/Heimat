@@ -3,13 +3,22 @@
 // member_invited trigger, never by the client — auth is the same shared token
 // in app_config that the push function uses.
 //
-// Everything it needs is in app_config, so a key can be added or rotated
-// without redeploying: `resend_key` turns sending on at all, `invite_from` is
-// the From address (it must be on a domain verified with Resend), and
-// `public_url` is where invite.html is served. With no key the function says
-// so and returns 200 — the invite itself is already saved either way, and the
-// person can still be let in by the code on the flat's Invite screen.
+// Two ways out, chosen by what is in app_config, so neither the code nor a
+// redeploy is involved in switching:
+//
+//   SMTP   `smtp_user` + `smtp_pass` set. Sends through an ordinary mailbox —
+//          Gmail with an app password, at the time of writing. Reaches anybody
+//          and needs no domain, but the invite arrives from a personal address.
+//   Resend `resend_key` set. Better looking and better delivered, but until a
+//          domain is verified it refuses every recipient except the account's
+//          own address, with a 403.
+//
+// SMTP wins when both are set. With neither, the function says so and returns
+// 200: the invite itself is already saved, and the flat's code still works as
+// a way in. It always returns 200 for the same reason — a failed send must
+// never roll back the invite that triggered it.
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { SMTPClient } from 'https://deno.land/x/denomailer@1.6.0/mod.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -35,7 +44,7 @@ const cfg = async (): Promise<Record<string, string>> => {
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-const body = (p: Payload, link: string) => {
+const html = (p: Payload, link: string) => {
   const who = esc(p.inviter || 'Someone')
   const place = esc(p.flat || (p.kind === 'flat' ? 'their flat' : 'their group'))
   const noun = p.kind === 'flat' ? 'flat' : 'group'
@@ -55,6 +64,11 @@ const body = (p: Payload, link: string) => {
 </div></body></html>`
 }
 
+const plain = (p: Payload, link: string) =>
+  `${p.inviter || 'Someone'} added you to ${p.flat || 'a group'} on Heimat and split an expense with you.\n\n` +
+  `Your share is already counted. Open this to see it:\n${link}\n\n` +
+  `Sign up with this email address and it will be waiting for you. If you weren't expecting this, ignore it.`
+
 Deno.serve(async (req) => {
   try {
     const p = (await req.json()) as Payload
@@ -64,30 +78,56 @@ Deno.serve(async (req) => {
       return new Response('unauthorized', { status: 401 })
     }
     if (!p.email || !p.invite) return new Response('nothing to send', { status: 200 })
-    if (!c.resend_key) return new Response('no resend_key in app_config — invite saved, email skipped', { status: 200 })
 
     const base = (c.public_url || 'https://meet-p-dev.github.io/Heimat/').replace(/\/?$/, '/')
     const link = `${base}invite.html?t=${encodeURIComponent(p.invite)}`
-    const who = p.inviter || 'Someone'
+    const subject = `${p.inviter || 'Someone'} split an expense with you on Heimat`
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${c.resend_key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: c.invite_from || 'Heimat <onboarding@resend.dev>',
-        to: [p.email],
-        subject: `${who} split an expense with you on Heimat`,
-        html: body(p, link),
-      }),
-    })
-
-    if (!res.ok) {
-      // the invite row is already written; this only means the email bounced
-      // off Resend, and the flat's code still works as a way in
-      console.error('resend refused', res.status, await res.text())
-      return new Response('send failed', { status: 200 })
+    if (c.smtp_user && c.smtp_pass) {
+      // Google shows an app password in four blocks of four; people paste it
+      // exactly as shown, and it fails authentication with the spaces in.
+      const pass = c.smtp_pass.replace(/\s+/g, '')
+      const client = new SMTPClient({
+        connection: {
+          hostname: c.smtp_host || 'smtp.gmail.com',
+          port: Number(c.smtp_port || '465'),
+          tls: true,
+          auth: { username: c.smtp_user, password: pass },
+        },
+      })
+      try {
+        await client.send({
+          from: c.invite_from || c.smtp_user,
+          to: p.email,
+          subject,
+          content: plain(p, link),
+          html: html(p, link),
+        })
+      } finally {
+        await client.close()
+      }
+      return new Response('sent via smtp', { status: 200 })
     }
-    return new Response('sent', { status: 200 })
+
+    if (c.resend_key) {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${c.resend_key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: c.invite_from || 'Heimat <onboarding@resend.dev>',
+          to: [p.email],
+          subject,
+          html: html(p, link),
+        }),
+      })
+      if (!res.ok) {
+        console.error('resend refused', res.status, await res.text())
+        return new Response('send failed', { status: 200 })
+      }
+      return new Response('sent via resend', { status: 200 })
+    }
+
+    return new Response('no mail transport configured — invite saved, email skipped', { status: 200 })
   } catch (e) {
     console.error('invite function failed', e)
     return new Response('error', { status: 200 })
