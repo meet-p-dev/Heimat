@@ -37,12 +37,11 @@ struct FlatView: View {
     }
 
     private func content(_ flat: Flat) -> some View {
-        let suggestions = Calc.suggestions(m.balances)
         return ScrollView {
             VStack(spacing: 14) {
                 flatPicker
                 header(flat)
-                balances(suggestions)
+                balances()
                 actions
                 shortcuts
                 if m.expenses.isEmpty { emptyExpenses } else { months }
@@ -146,7 +145,12 @@ struct FlatView: View {
         return waiting > 0 ? "\(base) · \(waiting) invited" : base
     }
 
-    private func balances(_ suggestions: [Calc.Suggestion]) -> some View {
+    /// Who owes whom, as it actually stands — not the shortest way to square
+    /// up. Those are different numbers: simplifying moves a debt onto whoever
+    /// makes the fewest payments, so it would say you owe Kevin when you owe
+    /// Kartik. The suggestion belongs in Settle up, where it is offered as
+    /// one, and these lines agree with Home.
+    private func balances() -> some View {
         VStack(spacing: 0) {
             SectionLabel("Balances").padding(.bottom, 10)
             HeimatCard(radius: 24, padding: 0) {
@@ -154,8 +158,10 @@ struct FlatView: View {
                     let rows = m.balanceRoster
                     ForEach(Array(rows.enumerated()), id: \.element.id) { i, mem in
                         let net = m.balances[mem.userId] ?? 0
-                        let owes = suggestions.filter { $0.from == mem.userId }
-                        let gets = suggestions.filter { $0.to == mem.userId }
+                        let pairs = Calc.pairwise(mine: mem.userId, expenses: m.expenses, settles: m.settles)
+                            .sorted { abs($0.value) > abs($1.value) }
+                        let owes = pairs.filter { $0.value < -0.005 }
+                        let gets = pairs.filter { $0.value > 0.005 }
                         HStack(alignment: .top, spacing: 13) {
                             AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
                             VStack(alignment: .leading, spacing: 2) {
@@ -173,12 +179,12 @@ struct FlatView: View {
                                 if owes.isEmpty && gets.isEmpty {
                                     Text("settled up").font(.system(size: 12.5)).foregroundStyle(.tertiary)
                                 }
-                                ForEach(owes, id: \.self) { s in
-                                    Text("owes \(Text(m.fH(s.amount)).bold().foregroundColor(.hRed)) to \(m.nameOf(s.to))")
+                                ForEach(owes, id: \.key) { other, amt in
+                                    Text("owes \(Text(m.fH(-amt)).bold().foregroundColor(.hRed)) to \(m.nameOf(other))")
                                         .font(.system(size: 12.5)).foregroundStyle(.secondary)
                                 }
-                                ForEach(gets, id: \.self) { s in
-                                    Text("gets \(Text(m.fH(s.amount)).bold().foregroundColor(.hGreen)) from \(m.nameOf(s.from))")
+                                ForEach(gets, id: \.key) { other, amt in
+                                    Text("gets \(Text(m.fH(amt)).bold().foregroundColor(.hGreen)) from \(m.nameOf(other))")
                                         .font(.system(size: 12.5)).foregroundStyle(.secondary)
                                 }
                             }
