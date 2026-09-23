@@ -46,6 +46,25 @@ content. `Surface.swift` draws the ambient background.
 carries the page. `GlassTabBar` reads the same offset, so its indicator travels
 with the finger and stretches between tabs mid-crossing.
 
+**Groups and invites.** A `flats` row is either the flat you live in
+(`kind = 'flat'`) or a group you split with (`kind = 'group'`); everything
+downstream hangs off `flat_id` and never asks which. Someone who isn't on
+Heimat can still be added, by email: they get a member row with a placeholder
+id, and that id is what expenses and settlements point at, so their share
+counts from the moment they are added. Membership is a *claimed* membership,
+so the placeholder grants no access to anything. Signing up with that address
+claims it — a trigger on `auth.users` rewrites every reference to the real
+account, on any client, without the client asking. `heimat://invite/<token>`
+claims one specific invite and jumps to the group.
+
+The invite email goes out from the `invite` edge function via Resend, and
+needs `resend_key` in `app_config` before anything is sent; without it the
+invite is still saved and the function says so. `invite_from` must be on a
+domain verified with Resend. The email links to `public/invite.html`.
+
+The web app filters flats to `kind = 'flat'`, so groups are the native app's
+alone for now.
+
 **Push** (`Push.swift`). Stores the APNs token as `apns:<token>` in
 `push_subscriptions`. The server half already existed and is shared with the
 web build — `supabase/functions/push` plus database triggers. No server work is
@@ -104,6 +123,11 @@ indicator (with deliberately thumb-like diagonal drags — see the bugs below), 
 Shortcuts, the widget on the home screen with live data and a working button,
 Analytics month selection and drill-down.
 
+Groups were driven end to end in the simulator against the live database —
+create, invite by email, pending member shown, expense split with them, correct
+balances — and the sign-up claim was tested in SQL with a throwaway auth user.
+Test data was removed afterwards.
+
 **Not yet verified on a real device:** iCloud backup then restore, and a push
 arriving from a Supabase trigger. Neither could be tested in the simulator —
 simulator builds carry no entitlements, so `ubiquityIdentityToken` is always
@@ -133,9 +157,12 @@ the compiled metadata is correct.
 
 ## Next
 
-- Expenses with people outside a flat: add `flats.kind`, make
-  `flat_members.user_id` nullable with an invited email, and key
-  `expenses.parts[]` on `flat_members.id` rather than `user_id`. That last part
-  touches RLS, the balance maths and the notify triggers. Invite by share link
-  rather than SMS. Storing a non-user's email needs a privacy-policy line.
+- Put `resend_key` and `invite_from` in `app_config` — until then invites are
+  saved but no email leaves. The flat's code still works as a way in.
+- Storing an invited person's email needs a line in the privacy policy.
+- Invites are email only. SMS would mean Twilio and a per-message cost.
+- The web app can create and see flats but not groups.
+- `supabase/migrations/20260911120000_member_display_name.sql` has never been
+  applied to the remote database, which is why renaming yourself in Profile
+  doesn't reach your flatmates. It is a column-level grant plus one policy.
 - Headless quick-add from the widget, using `Button(intent:)`.

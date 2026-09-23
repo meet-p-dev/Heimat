@@ -8,15 +8,29 @@ struct Flat: Codable, Identifiable, Hashable {
     let id: String
     var name: String
     var joinCode: String
-    enum CodingKeys: String, CodingKey { case id, name, joinCode = "join_code" }
+    /// "flat" for the place you live, "group" for people you split with
+    var kind: String?
+    var isGroup: Bool { kind == "group" }
+    var noun: String { isGroup ? "group" : "flat" }
+    enum CodingKeys: String, CodingKey { case id, name, kind, joinCode = "join_code" }
 }
 
 struct Member: Codable, Identifiable, Hashable {
     let id: String
     let flatId: String
+    /// A placeholder id until they sign up, and their real one afterwards. It
+    /// is what expenses and settlements point at either way, so the history
+    /// they arrive to is already theirs.
     let userId: String
     var displayName: String
-    enum CodingKeys: String, CodingKey { case id, flatId = "flat_id", userId = "user_id", displayName = "display_name" }
+    var inviteEmail: String?
+    var claimedAt: String?
+    /// invited, but not on Heimat yet
+    var isPending: Bool { inviteEmail != nil && claimedAt == nil }
+    enum CodingKeys: String, CodingKey {
+        case id, flatId = "flat_id", userId = "user_id", displayName = "display_name"
+        case inviteEmail = "invite_email", claimedAt = "claimed_at"
+    }
 }
 
 struct Expense: Codable, Identifiable, Hashable {

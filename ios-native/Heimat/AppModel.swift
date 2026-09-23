@@ -59,6 +59,9 @@ final class AppModel {
     // MARK: derived
 
     var flat: Flat? { flats.first { $0.id == flatId } }
+    /// the places you live, and the people you only split with
+    var homeFlats: [Flat] { flats.filter { !$0.isGroup } }
+    var groups: [Flat] { flats.filter { $0.isGroup } }
     var cats: [Cat] { Cats.merged(flatCats) }
     var balances: [String: Double] { Calc.balances(members: members, expenses: expenses, settles: settles) }
     var myNet: Double { uid.flatMap { balances[$0] } ?? 0 }
@@ -246,6 +249,71 @@ final class AppModel {
             show("That code didn't match a flat — check it and try again")
             return false
         }
+    }
+
+    func createGroup(_ name: String) async -> Bool {
+        do {
+            let f: Flat = try await client.rpc("create_group", params: ["p_name": name, "p_display_name": displayName]).execute().value
+            flatId = f.id
+            Haptic.success()
+            await loadMyFlats()
+            show("Group created — add the people you're splitting with")
+            return true
+        } catch {
+            show("Couldn't create the group — try again")
+            return false
+        }
+    }
+
+    /// Adds someone by email. If they already have a Heimat account they are in
+    /// straight away; if not they become a pending member — their share counts
+    /// from now on, and the invite email tells them where to claim it.
+    @discardableResult
+    func invite(email: String, name: String) async -> String? {
+        guard let id = flatId else { return "No flat open" }
+        struct Params: Encodable { let p_flat: String, p_email: String, p_name: String }
+        do {
+            let row: Member = try await client.rpc("invite_member", params: Params(
+                p_flat: id, p_email: email.trimmingCharacters(in: .whitespaces), p_name: name.trimmingCharacters(in: .whitespaces)
+            )).execute().value
+            Haptic.success()
+            await loadFlat()
+            show(row.isPending ? "Invited \(row.displayName) — we've emailed them" : "\(row.displayName) is in")
+            return nil
+        } catch {
+            return friendly(error, "Couldn't add them right now. Please try again in a minute.")
+        }
+    }
+
+    func revokeInvite(_ memberId: String) async {
+        do {
+            _ = try await client.rpc("revoke_invite", params: ["p_member": memberId]).execute()
+            await loadFlat()
+            show("Invite removed")
+        } catch {
+            show("Couldn't remove that invite")
+        }
+    }
+
+    /// Opening an invite link. The database also hands out anything addressed
+    /// to your email the moment you sign up, so this is for jumping straight
+    /// to the group you were invited to.
+    func claimInvite(_ token: String) async {
+        do {
+            let f: Flat = try await client.rpc("claim_invite", params: ["p_token": token]).execute().value
+            await loadMyFlats()
+            switchFlat(f.id)
+            tab = .flat
+            Haptic.success()
+            show("You're in \(f.name)")
+        } catch {
+            show("That invite has already been used")
+        }
+    }
+
+    /// Anything that was waiting for this address before we knew it.
+    private func claimWaitingInvites() async {
+        _ = try? await client.rpc("claim_invites").execute()
     }
 
     func leaveFlat() async {
@@ -472,6 +540,8 @@ final class AppModel {
             let user = try await client.auth.update(user: UserAttributes(email: email, password: password), redirectTo: URL(string: Secrets.publicURL))
             apply(user)
             if !name.isEmpty && name != profile.name { var p = profile; p.name = name; saveProfile(p) } else { await touchAppUser() }
+            await claimWaitingInvites()
+            await loadMyFlats()
             Haptic.success()
             // with email confirmation on, the address only attaches once the link is opened
             show(user.email != nil ? "Account created — sign in on any device" : "Almost there — confirm \(email) from the email we sent")
@@ -490,6 +560,7 @@ final class AppModel {
             apply(s.user)
             await touchAppUser()
             accountName = await appUserName()
+            await claimWaitingInvites()
             await loadMyFlats()
             Haptic.success()
             show("Signed in")

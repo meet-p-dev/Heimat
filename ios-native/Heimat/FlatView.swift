@@ -66,15 +66,17 @@ struct FlatView: View {
             HStack(spacing: 8) {
                 if m.flats.count > 1 {
                     ForEach(m.flats) { f in
-                        Chip(text: f.name, on: f.id == m.flatId) { m.switchFlat(f.id) }
+                        Chip(text: f.name, symbol: f.isGroup ? "person.2.fill" : nil, on: f.id == m.flatId) { m.switchFlat(f.id) }
                     }
                 }
+                Chip(text: "New group", symbol: "plus", dashed: true) { m.sheet = .flat(.group) }
                 Chip(text: "New flat", symbol: "plus", dashed: true) { m.sheet = .flat(.create) }
                 Chip(text: "Join with code", symbol: "key.fill", dashed: true) { m.sheet = .flat(.join) }
             }
             .padding(.horizontal, 16)
         }
         .scrollIndicators(.hidden)
+        .blocksTabSwipe()
         .padding(.horizontal, -16)
     }
 
@@ -115,7 +117,7 @@ struct FlatView: View {
                             .padding(.leading, i == 0 ? 0 : -9)
                             .zIndex(Double(6 - i))
                     }
-                    Text(m.members.count == 1 ? "1 person — invite your flatmates" : "\(m.members.count) flatmates")
+                    Text(peopleLine(flat))
                         .font(.system(size: 13.5)).foregroundStyle(.secondary)
                         .padding(.leading, 10)
                     Spacer(minLength: 0)
@@ -123,6 +125,17 @@ struct FlatView: View {
                 .padding(.top, 16)
             }
         }
+    }
+
+    /// "4 flatmates · 1 invited" — an invited person is already splitting bills,
+    /// so they are counted, just marked as not here yet.
+    private func peopleLine(_ flat: Flat) -> String {
+        let waiting = m.members.filter(\.isPending).count
+        let noun = flat.isGroup ? "people" : "flatmates"
+        let base = m.members.count == 1
+            ? (flat.isGroup ? "Just you — add the people you split with" : "1 person — invite your flatmates")
+            : "\(m.members.count) \(noun)"
+        return waiting > 0 ? "\(base) · \(waiting) invited" : base
     }
 
     private func balances(_ suggestions: [Calc.Suggestion]) -> some View {
@@ -137,8 +150,16 @@ struct FlatView: View {
                         HStack(alignment: .top, spacing: 13) {
                             AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(mem.displayName + (mem.userId == m.uid ? " (you)" : ""))
-                                    .font(.system(size: 15.5, weight: .semibold))
+                                HStack(spacing: 6) {
+                                    Text(mem.displayName + (mem.userId == m.uid ? " (you)" : ""))
+                                        .font(.system(size: 15.5, weight: .semibold))
+                                    if mem.isPending {
+                                        Text("invited").font(.system(size: 10.5, weight: .bold))
+                                            .padding(.horizontal, 7).padding(.vertical, 2)
+                                            .background(Color.secondary.opacity(0.16), in: Capsule())
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                                 if owes.isEmpty && gets.isEmpty {
                                     Text("settled up").font(.system(size: 12.5)).foregroundStyle(.tertiary)
                                 }

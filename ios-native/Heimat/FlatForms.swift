@@ -225,20 +225,31 @@ struct CreateJoinForm: View {
                             .font(.system(size: 28, weight: .bold, design: .monospaced)).multilineTextAlignment(.center)
                             .onChange(of: text) { _, t in text = t.uppercased().replacingOccurrences(of: " ", with: "") }
                     } header: { Text("Flat code") } footer: { Text("Ask a flatmate — it's on their Flat tab.") }
+                } else if mode == .group {
+                    Section {
+                        TextField("e.g. Sicily trip", text: $text)
+                    } header: { Text("Group name") } footer: {
+                        Text("For splitting with people you don't live with. Add them by email — they don't need a Heimat account first.")
+                    }
                 } else {
                     Section {
                         TextField("e.g. WG Hauptstraße", text: $text)
                     } header: { Text("Flat name") } footer: { Text("You'll get a code to share with your flatmates.") }
                 }
             }
-            .navigationTitle(mode == .join ? "Join a flat" : "Create a flat")
+            .navigationTitle(mode == .join ? "Join a flat" : mode == .group ? "New group" : "Create a flat")
             .heimatSurface()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     AsyncButton(action: {
-                        let ok = mode == .join ? await m.joinFlat(text) : await m.createFlat(text.trimmingCharacters(in: .whitespaces))
+                        let name = text.trimmingCharacters(in: .whitespaces)
+                        let ok = switch mode {
+                        case .join: await m.joinFlat(text)
+                        case .group: await m.createGroup(name)
+                        case .create: await m.createFlat(name)
+                        }
                         if ok { dismiss() }
                     }) { Text(mode == .join ? "Join" : "Create") }
                     .disabled(mode == .join ? text.count < 4 : text.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -253,30 +264,94 @@ struct CreateJoinForm: View {
 struct InviteView: View {
     @Environment(AppModel.self) private var m
     @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+    @State private var mail = ""
+    @State private var err: String?
+    @State private var revoking: Member?
+
+    private var mailOK: Bool { mail.range(of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#, options: .regularExpression) != nil }
+    private var pending: [Member] { m.members.filter(\.isPending) }
 
     var body: some View {
         NavigationStack {
             if let flat = m.flat {
-                let msg = "Join my flat “\(flat.name)” on Heimat\nCode: \(flat.joinCode)\nOpen \(Secrets.publicURL) → tap “Join with a code”."
-                VStack(spacing: 14) {
-                    Text("Code for \(flat.name)").font(.subheadline).foregroundStyle(.secondary)
-                    Text(flat.joinCode).font(.system(size: 46, weight: .heavy, design: .rounded)).kerning(6).foregroundStyle(.tint)
-                    Text("They open Heimat → Join with a code → type this.").font(.subheadline).foregroundStyle(.secondary)
-                    ShareLink(item: msg) { Label("Share invite", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }
-                        .buttonStyle(.glassProminent).controlSize(.large).padding(.top, 8)
-                    Button { UIPasteboard.general.string = flat.joinCode; m.show("Code copied") } label: {
-                        Label("Copy code", systemImage: "doc.on.doc").frame(maxWidth: .infinity)
+                let msg = "Join my \(flat.noun) “\(flat.name)” on Heimat\nCode: \(flat.joinCode)\nOpen \(Secrets.publicURL) → tap “Join with a code”."
+                Form {
+                    Section {
+                        TextField("Name", text: $name).textContentType(.givenName)
+                        TextField("Email", text: $mail)
+                            .textContentType(.emailAddress).keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        AsyncButton(action: send) {
+                            HStack { Spacer(); Text("Send invite").bold(); Spacer() }
+                        }
+                        .disabled(!mailOK)
+                    } header: {
+                        Text("Add by email")
+                    } footer: {
+                        Text("They don't need Heimat yet. Their share counts from the moment you add them, and we'll email them a link to claim it — the history is waiting when they sign up.")
                     }
-                    .buttonStyle(.glass).controlSize(.large)
+
+                    if let err {
+                        Section { Label(err, systemImage: "exclamationmark.triangle.fill").foregroundStyle(.red).font(.subheadline) }
+                    }
+
+                    if !pending.isEmpty {
+                        Section {
+                            ForEach(pending) { p in
+                                HStack(spacing: 12) {
+                                    AvatarView(name: p.displayName, seed: p.userId, size: 34)
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(p.displayName).font(.system(size: 15.5, weight: .semibold))
+                                        Text(p.inviteEmail ?? "").font(.system(size: 12.5)).foregroundStyle(.secondary).lineLimit(1)
+                                    }
+                                    Spacer(minLength: 6)
+                                    Text("Invited").font(.system(size: 11, weight: .bold))
+                                        .padding(.horizontal, 8).padding(.vertical, 3)
+                                        .background(Color.secondary.opacity(0.16), in: Capsule())
+                                        .foregroundStyle(.secondary)
+                                }
+                                .swipeActions { Button("Remove", role: .destructive) { revoking = p } }
+                            }
+                        } header: { Text("Waiting to join") } footer: { Text("Swipe to take an invite back. Anything already split with them comes back to the rest of you.") }
+                    }
+
+                    Section {
+                        Button {
+                            UIPasteboard.general.string = flat.joinCode
+                            Haptic.success()
+                            m.show("Code copied")
+                        } label: {
+                            HStack {
+                                Text(flat.joinCode).font(.system(size: 22, weight: .heavy, design: .rounded)).kerning(3).foregroundStyle(.tint)
+                                Spacer()
+                                Image(systemName: "doc.on.doc").foregroundStyle(.secondary)
+                            }
+                        }
+                        ShareLink(item: msg) { Label("Share the code", systemImage: "square.and.arrow.up") }
+                    } header: {
+                        Text("Or share a code")
+                    } footer: {
+                        Text("Anyone with an account can type this in — Heimat → Join with a code.")
+                    }
                 }
-                .padding(24)
-                .navigationTitle("Invite flatmates")
+                .navigationTitle(flat.isGroup ? "Add people" : "Invite flatmates")
                 .heimatSurface()
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+                .confirmationDialog("Remove this invite?", isPresented: Binding(get: { revoking != nil }, set: { if !$0 { revoking = nil } }), titleVisibility: .visible) {
+                    Button("Remove invite", role: .destructive) {
+                        if let r = revoking { Task { await m.revokeInvite(r.id) } }
+                    }
+                }
             }
         }
-        .presentationDetents([.medium])
+    }
+
+    private func send() async {
+        err = nil
+        if let e = await m.invite(email: mail, name: name) { err = e; return }
+        name = ""; mail = ""
     }
 }
 

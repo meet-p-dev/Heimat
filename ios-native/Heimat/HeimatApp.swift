@@ -31,6 +31,11 @@ struct HeimatApp: App {
                 .onOpenURL { url in
                     guard url.scheme == "heimat" else { return }
                     if url.host == "add-expense" { model.startAddExpense() }
+                    // heimat://invite/<token>, from the email we send
+                    if url.host == "invite" {
+                        let token = url.pathComponents.filter { $0 != "/" }.first ?? ""
+                        if !token.isEmpty { Task { await model.claimInvite(token) } }
+                    }
                 }
         }
     }
@@ -54,8 +59,31 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
     var index: Int { AppTab.allCases.firstIndex(of: self) ?? 0 }
 }
 enum AuthMode: String, Hashable { case signup, signin, forgot, password, email }
-enum FlatMode: Hashable { case create, join }
+enum FlatMode: Hashable { case create, join, group }
 struct ExpensePrefill: Hashable { var desc: String; var category: String }
+
+/// Sideways scrolling inside a page — the flat chips, anything else laid out
+/// in a row — should scroll rather than turn the page. Such a scroller marks
+/// itself with `.blocksTabSwipe()`, and while it is moving the pager leaves
+/// the drag to it.
+@Observable final class PagerGate { var busy = false }
+
+private struct BlocksTabSwipe: ViewModifier {
+    @Environment(PagerGate.self) private var gate
+    func body(content: Content) -> some View {
+        // Claimed on touch-down rather than on the scroll phase: the pager
+        // makes up its mind 22pt into the drag, and a phase change does not
+        // reliably land before that.
+        content.simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in gate.busy = true }
+                .onEnded { _ in gate.busy = false }
+        )
+    }
+}
+extension View {
+    func blocksTabSwipe() -> some View { modifier(BlocksTabSwipe()) }
+}
 
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
 /// system's own, so iOS draws them in Liquid Glass.
@@ -96,11 +124,14 @@ struct SheetHost: View {
 struct RootView: View {
     @Environment(AppModel.self) private var m
 
+    @State private var gate = PagerGate()
+
     var body: some View {
         @Bindable var m = m
         Group {
             if m.profile.onboarded { MainTabs() } else { OnboardingView() }
         }
+        .environment(gate)
         .overlay(alignment: .top) {
             if let t = m.toast {
                 ToastView(text: t).transition(.move(edge: .top).combined(with: .opacity))
@@ -123,6 +154,7 @@ struct RootView: View {
 /// first few points, whether this drag is ours or the page's.
 struct MainTabs: View {
     @Environment(AppModel.self) private var m
+    @Environment(PagerGate.self) private var gate
     @State private var progress: Double = 0   // where the pager sits, in page widths
     @State private var base: Double?          // progress when the drag took hold
     @State private var origin: CGFloat?       // and how far the finger had come by then
@@ -173,7 +205,9 @@ struct MainTabs: View {
             .onChanged { v in
                 let dx = v.translation.width, dy = v.translation.height
                 if sideways == nil {
-                    if abs(dx) > Self.slop && abs(dx) > abs(dy) {
+                    if gate.busy {
+                        sideways = false                    // a row inside the page has it
+                    } else if abs(dx) > Self.slop && abs(dx) > abs(dy) {
                         sideways = true; base = progress; origin = dx
                     } else if abs(dy) > Self.slop {
                         sideways = false                    // the page's drag, not ours
@@ -184,7 +218,7 @@ struct MainTabs: View {
             }
             .onEnded { v in
                 let ours = sideways, from = base, start = origin
-                sideways = nil; base = nil; origin = nil
+                sideways = nil; base = nil; origin = nil; gate.busy = false
                 guard ours == true, let from, let start else { return }
                 // where the flick would have carried us, never more than one page
                 let predicted = from - (v.predictedEndTranslation.width - start) / w
