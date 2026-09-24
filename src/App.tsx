@@ -95,7 +95,9 @@ export default function App() {
     const { data: mem } = await sb.from('flat_members').select('flat_id').eq('user_id', uid)
     const ids = [...new Set((mem || []).map((m: any) => m.flat_id))]
     if (!ids.length) { setMyFlats([]); setFlatIdP(null); return }
-    const { data: fl } = await sb.from('flats').select('*').in('id', ids)
+    // groups (people you split with but don't live with) are the native app's
+    // for now; showing them here would file them under "your flats"
+    const { data: fl } = await sb.from('flats').select('*').in('id', ids).eq('kind', 'flat')
     const list = (fl as Flat[]) || []
     setMyFlats(list)
     const cur = LS.g<string>('mt-h-flatid')
