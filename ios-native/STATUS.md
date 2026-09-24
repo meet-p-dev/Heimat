@@ -1,6 +1,6 @@
 # Heimat for iOS — where things stand
 
-Last updated: 2026-09-23
+Last updated: 2026-09-24
 
 ## Two apps share this repo
 
@@ -75,6 +75,9 @@ is installed.
 The web app filters flats to `kind = 'flat'`, so groups are the native app's
 alone for now.
 
+Notifications for an expense reach the people it is split between plus
+whoever paid — not the whole flat.
+
 **Push** (`Push.swift`). Stores the APNs token as `apns:<token>` in
 `push_subscriptions`. The server half already existed and is shared with the
 web build — `supabase/functions/push` plus database triggers. No server work is
@@ -91,6 +94,21 @@ Group — widgets must never touch the network.
 **iCloud** (`CloudBackup.swift`). Backs the on-device half up through
 `NSUbiquitousKeyValueStore`. Off by default. Backup and restore, not live sync.
 
+**Home** (`HomeView.swift`) answers where you stand across every flat and
+group at once, not in whichever one is open. Adding an expense from there asks
+which flat it belongs to.
+
+**Removing, leaving and nudging.** Removal is refused while someone is up or
+down. Anyone with history is marked as having left rather than deleted (see
+the bugs below). A nudge reaches one person, once a day, and only when they
+owe.
+
+**History** (`HistoryView` in `FlatView.swift`). Every change writes a row to
+`activity` from database triggers, so an expense edited on the web, added by
+Siri or deleted from a widget all land the same way and no client can skip it.
+Read-only to everyone. Backfilled from what was already stored, additions
+only — edits and deletions from before it existed left nothing to recover.
+
 **Analytics** (in `FlatView.swift`). Tapping a month bar scopes every figure to
 it; a category opens to the expenses behind it.
 
@@ -106,21 +124,32 @@ it; a category opens to the expenses behind it.
 
 TestFlight, via Xcode Organizer → Distribute App → TestFlight & App Store.
 
+**Build 7 is live with external testers** — everything below is in their
+hands, not just the simulator.
+
 **The build number must increase every upload** — bump
-`CURRENT_PROJECT_VERSION` in `project.yml`. Builds 1, 2 and 3 are uploaded —
-Xcode's distribute flow auto-increments, so the number on App Store Connect can
-run ahead of the one in `project.yml`. Check TestFlight before archiving. Build
-4 is the first with a tab swipe that works on a device.
+`CURRENT_PROJECT_VERSION` in `project.yml`. Xcode's distribute flow
+auto-increments on the way out, so the number on App Store Connect can run
+ahead of the repo's. Check TestFlight before archiving.
+
+Archiving from the command line works and lands in the Organizer:
+
+```sh
+xcodebuild -project ios-native/Heimat.xcodeproj -scheme Heimat \
+  -configuration Release -destination 'generic/platform=iOS' \
+  -archivePath "$HOME/Library/Developer/Xcode/Archives/$(date +%F)/Heimat.xcarchive" \
+  -allowProvisioningUpdates archive
+```
 
 Uploading a build does not give it to anyone. Each build is attached to
-groups, and a fresh upload goes to the internal group only — builds 1 to 3 all
-went out as Internal. An external group with no build reports "No Compatible
-Build", its testers read "No Builds Available", and its public link tells
-anyone who opens it that the beta isn't accepting testers.
+groups, and a fresh upload goes to the internal group only. An external group
+with no build reports "No Compatible Build", its testers read "No Builds
+Available", and its public link says the beta isn't accepting testers — which
+is what it did for a week while the upload was blamed.
 
 So for external testers: add the build to the external group, which submits it
-for **Beta App Review** (needs the Test Information filled in). Once approved,
-invites go out and the link works. Internal testers skip review entirely.
+for **Beta App Review** (needs the Test Information filled in, including a
+phone number). Internal testers skip review entirely.
 
 `aps-environment` is `development` for Debug and `production` for Release.
 An archive will read `development`; Xcode substitutes `production` when it
@@ -137,6 +166,9 @@ Groups were driven end to end in the simulator against the live database —
 create, invite by email, pending member shown, expense split with them, correct
 balances — and the sign-up claim was tested in SQL with a throwaway auth user.
 Test data was removed afterwards.
+
+Invite email goes out through Gmail SMTP and is confirmed arriving. Resend is
+still configured behind it and takes over the moment the SMTP keys are removed.
 
 **Not yet verified on a real device:** iCloud backup then restore, and a push
 arriving from a Supabase trigger. Neither could be tested in the simulator —
@@ -164,15 +196,38 @@ the compiled metadata is correct.
 - While our drag owns the gesture the pages are `.disabled`, which is what
   drops the press underneath. `.allowsHitTesting(false)` does not: a touch
   already being delivered carries on to the row and opens it.
+- Deleting a member row strands their id in `expenses.split_among` and in
+  `paid_by`. The balance maths counts only ids it can name while still
+  dividing by the whole split, so the flat quietly stops adding up — it cost a
+  real €110 here. Anyone with history is now marked `left_at` instead, by a
+  BEFORE DELETE trigger, so both apps get the safe behaviour unchanged.
+- A per-flat net cannot be added across flats. Two people square in one flat
+  and square in another say nothing about what they owe each other, so Home
+  uses `Calc.pairwise`. The Flat tab uses it too, because the settlement
+  simplification moves debts onto whoever makes the fewest payments and was
+  being shown as though it were the debt itself.
+- Postgres grants EXECUTE to PUBLIC and PostgREST turns that into an endpoint.
+  Every new SECURITY DEFINER function needs its grants set deliberately, or a
+  helper whose permission check lives in its caller is callable by anyone with
+  the anon key. Run the security advisor after adding any.
+- Group history by the local date, not by slicing the UTC timestamp — anything
+  after local midnight files itself under yesterday.
+- A verification query that joins on `user_id` without aggregating first
+  double-counts anyone who is a member of two flats. The app was right and the
+  check was wrong; it is worth being suspicious of the checker too.
 
 ## Next
 
-- Put `resend_key` and `invite_from` in `app_config` — until then invites are
-  saved but no email leaves. The flat's code still works as a way in.
-- Storing an invited person's email needs a line in the privacy policy.
+- **Storing an invited person's email needs a line in the privacy policy**,
+  before this goes anywhere near the App Store.
+- Invites currently leave from a personal Gmail. A domain would fix the From
+  address, the links, and let Resend take over again — two config values, no
+  code. See `supabase/functions/invite/index.ts`.
+- The one-line guard in `src/App.tsx` that hides groups from the web app is
+  **still uncommitted**, sitting among other in-progress edits there. Until it
+  ships, groups appear as flats on the web.
 - Invites are email only. SMS would mean Twilio and a per-message cost.
 - The web app can create and see flats but not groups.
-- `supabase/migrations/20260911120000_member_display_name.sql` has never been
-  applied to the remote database, which is why renaming yourself in Profile
-  doesn't reach your flatmates. It is a column-level grant plus one policy.
 - Headless quick-add from the widget, using `Button(intent:)`.
+- Expense amounts are split evenly and nothing else. Uneven shares, shares by
+  percentage and itemised bills are all Splitwise features this does not have.
