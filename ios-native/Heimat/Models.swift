@@ -60,10 +60,14 @@ struct Expense: Codable, Identifiable, Hashable {
         case id, description, amount, currency, category
         case flatId = "flat_id", paidBy = "paid_by", splitAmong = "split_among", spentOn = "spent_on", createdBy = "created_by"
     }
-    /// everyone the bill is split between; an empty split means the payer alone
-    var parts: [String] { splitAmong.isEmpty ? [paidBy] : splitAmong }
-    var share: Double { amount / Double(parts.count) }
+    /// everyone the bill is split between (each once); an empty split means the payer alone
+    var parts: [String] { Ledger.participants(self) }
+    /// what `uid` is charged for it: whole cents that add up to the total with
+    /// everyone else's (10 € between three is 3,34 for one of them) — see Ledger.allocate
+    func share(of uid: String?) -> Double { Ledger.share(self, of: uid) }
 }
+
+extension Expense: LedgerExpense {}
 
 struct Settlement: Codable, Identifiable, Hashable {
     let id: String
@@ -74,6 +78,8 @@ struct Settlement: Codable, Identifiable, Hashable {
     var settledOn: String
     enum CodingKeys: String, CodingKey { case id, amount, flatId = "flat_id", fromUser = "from_user", toUser = "to_user", settledOn = "settled_on" }
 }
+
+extension Settlement: LedgerSettlement {}
 
 /// One line of a flat's history. Written by database triggers, never by the
 /// app, so nothing that changes the money can quietly skip it.

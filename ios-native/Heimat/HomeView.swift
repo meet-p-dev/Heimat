@@ -36,11 +36,12 @@ struct HomeView: View {
     /// happens to be open — the question Home is actually asked.
     private func balance() -> some View {
         let net = m.overallNet
-        let owed = net > 0.5, owing = net < -0.5
+        // whole cents from the ledger: zero is settled, and nothing under 0,50 € is hidden any more
+        let owed = net > 0, owing = net < 0
         let status = owed ? "you are owed" : owing ? "you owe" : "all settled up"
-        let home = abs(net) > 0.5 ? m.fHome(abs(net)).map { " · ≈ \($0)" } ?? "" : ""
+        let home = net != 0 ? m.fHome(abs(net)).map { " · ≈ \($0)" } ?? "" : ""
         // when money runs both ways the single figure hides half the story
-        let both = m.owedToMe > 0.5 && m.iOwe > 0.5
+        let both = m.owedToMe > 0 && m.iOwe > 0
         let scope = m.flats.count > 1 ? "Across \(m.flats.count) flats and groups" : "Your balance"
         return HeimatCard(radius: 28, padding: 18, tinted: true) {
             VStack(alignment: .leading, spacing: 0) {

@@ -25,8 +25,9 @@ export default function HomeTab({ T, flat, uid, isAnon, myNet, runwayCalc, runwa
   openList: () => void; openCount: number; onLogShift: () => void; openSettle: (s: SettleSuggestion | null) => void
   onOpenExpense: (e: Expense) => void; onAuth: (m: AuthMode) => void
 }) {
-  const tone = myNet > 0.5 ? T.green : myNet < -0.5 ? T.red : T.txt
-  const status = myNet > 0.5 ? 'you are owed' : myNet < -0.5 ? 'you owe' : 'all settled up'
+  // myNet is whole cents from the ledger, so exactly zero is settled — no ±0,50 € blind spot
+  const tone = myNet > 0 ? T.green : myNet < 0 ? T.red : T.txt
+  const status = myNet > 0 ? 'you are owed' : myNet < 0 ? 'you owe' : 'all settled up'
   const home = fHome(Math.abs(myNet))
   const toneC = ws.tone === 'red' ? T.red : ws.tone === 'amber' ? T.amber : WORK
 
@@ -48,9 +49,9 @@ export default function HomeTab({ T, flat, uid, isAnon, myNet, runwayCalc, runwa
         <Card T={T} grad style={{ padding: '20px 18px 18px', borderRadius: 28, marginBottom: 14 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, color: T.txt2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Your balance · {flat.name}</div>
           <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: -1.8, margin: '4px 0 0', lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', color: tone }}>
-            {myNet < -0.5 ? '−' : myNet > 0.5 ? '+' : ''}<AnimatedNumber value={Math.abs(myNet)} format={fH} />
+            {myNet < 0 ? '−' : myNet > 0 ? '+' : ''}<AnimatedNumber value={Math.abs(myNet)} format={fH} />
           </div>
-          <div style={{ fontSize: 14, color: T.txt2, marginTop: 4 }}>{status}{home && Math.abs(myNet) > 0.5 ? ` · ≈ ${home}` : ''}</div>
+          <div style={{ fontSize: 14, color: T.txt2, marginTop: 4 }}>{status}{home && myNet !== 0 ? ` · ≈ ${home}` : ''}</div>
           <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
             <Btn size="md" icon={Plus} onClick={startAddExpense} style={{ flex: 1 }}>Add expense</Btn>
             <Btn size="md" kind="secondary" icon={ArrowRightLeft} onClick={() => openSettle(null)} style={{ flex: 1 }}>Settle up</Btn>

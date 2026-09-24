@@ -6,17 +6,42 @@ enum Fmt {
     static let de = Locale(identifier: "de_DE")
     private static var cal: Calendar { Calendar(identifier: .gregorian) }
 
+    /// Each currency with its own decimals (2 for EUR, 0 for JPY), rounded half
+    /// away from zero — what the web's Intl.NumberFormat does. Swift's default is
+    /// half-to-even, which printed 308,62 € here for a rent share the web
+    /// printed as 308,63 €. Ledger amounts are whole cents and never hit the
+    /// tie; this keeps converted amounts agreeing too.
     static func money(_ v: Double, _ code: String) -> String {
-        v.formatted(.currency(code: code).locale(de).precision(.fractionLength(2)))
+        v.formatted(.currency(code: code).locale(de).rounded(rule: .toNearestOrAwayFromZero))
     }
     /// German comma decimals, as everywhere in Heimat
     static func num(_ v: Double, _ digits: Int = 1) -> String {
-        v.formatted(.number.locale(de).precision(.fractionLength(digits)))
+        v.formatted(.number.locale(de).precision(.fractionLength(digits)).rounded(rule: .toNearestOrAwayFromZero))
     }
-    /// "12,50" or "12.50" → 12.5
+    /// A plain number someone typed — a rate, hours, a wage: "12,5", "12.5",
+    /// "1.234,56" and "1,234.56" all read as they look; one lone separator is
+    /// the decimal point. For money amounts use `amount`, which knows the
+    /// currency's decimals. Unreadable input is 0, as before.
     static func parse(_ s: String) -> Double {
-        Double(s.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: ",", with: ".")) ?? 0
+        var t = s.filter { !$0.isWhitespace && $0 != "'" && $0 != "\u{2019}" }.replacingOccurrences(of: "\u{2212}", with: "-")
+        let dot = t.lastIndex(of: "."), comma = t.lastIndex(of: ",")
+        if let dot, let comma {
+            t = dot > comma ? t.replacingOccurrences(of: ",", with: "")
+                            : t.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
+        } else if t.filter({ $0 == "." || $0 == "," }).count > 1 {
+            t = t.filter { $0 != "." && $0 != "," }
+        } else {
+            t = t.replacingOccurrences(of: ",", with: ".")
+        }
+        return Double(t).flatMap { $0.isFinite ? $0 : nil } ?? 0
     }
+    /// A money amount someone typed, in major units — 0 if it is not a valid
+    /// amount in `cur`. "1.200" is twelve hundred euros (see Money.parse).
+    static func amount(_ s: String, _ cur: String) -> Double {
+        Money.parse(s, cur).map { Money.toMajor($0, cur) } ?? 0
+    }
+    /// an exchange rate to four significant digits: 104,52 · 1,080 · 0,09563
+    static func rate(_ r: Double) -> String { num(r, r > 0 ? max(2, 3 - Int(floor(log10(r)))) : 2) }
     static func input(_ v: Double) -> String { v == 0 ? "" : String(v).replacingOccurrences(of: ".", with: ",").replacingOccurrences(of: ",0$", with: "", options: .regularExpression) }
 
     static func ymd(_ d: Date) -> String {
@@ -59,74 +84,17 @@ enum Fmt {
     }
 }
 
-// MARK: - Money maths, ported one-to-one from src/lib/derive.ts
+// MARK: - Money maths
+//
+// Balances, who owes whom and the settle-up plan come from Ledger (Ledger.swift),
+// in whole cents. What is left here is the work maths.
 
 enum Calc {
-    static func balances(members: [Member], expenses: [Expense], settles: [Settlement]) -> [String: Double] {
-        var net: [String: Double] = [:]
-        members.forEach { net[$0.userId] = 0 }
-        for e in expenses where net[e.paidBy] != nil {
-            net[e.paidBy]! += e.amount
-            for u in e.parts where net[u] != nil { net[u]! -= e.share }
-        }
-        for s in settles {
-            if net[s.fromUser] != nil { net[s.fromUser]! += s.amount }
-            if net[s.toUser] != nil { net[s.toUser]! -= s.amount }
-        }
-        return net
-    }
-
     struct Suggestion: Hashable { let from: String, to: String, amount: Double }
 
-    /// greedy debt simplification: largest debtor pays largest creditor until everyone is within ±0,50
-    static func suggestions(_ b: [String: Double]) -> [Suggestion] {
-        var debtors = b.filter { $0.value < -0.5 }.map { ($0.key, -$0.value) }.sorted { $0.1 > $1.1 }
-        var creditors = b.filter { $0.value > 0.5 }.map { ($0.key, $0.value) }.sorted { $0.1 > $1.1 }
-        var out: [Suggestion] = []
-        var i = 0, j = 0
-        while i < debtors.count && j < creditors.count {
-            let pay = min(debtors[i].1, creditors[j].1)
-            if pay > 0.5 { out.append(Suggestion(from: debtors[i].0, to: creditors[j].0, amount: pay)) }
-            debtors[i].1 -= pay; creditors[j].1 -= pay
-            if debtors[i].1 <= 0.5 { i += 1 }
-            if creditors[j].1 <= 0.5 { j += 1 }
-        }
-        return out
-    }
-
-    /// Who owes you what, person by person, across however many flats and
-    /// groups you share with them.
-    ///
-    /// `balances` nets everyone inside a single flat, which is what that
-    /// flat's own list wants. It cannot be added up across flats, because a
-    /// net of zero in one flat and zero in another says nothing about what you
-    /// and one particular person owe each other. So this keeps the pairs
-    /// apart: every expense moves money from the people in the split to
-    /// whoever paid, and every settlement moves it back.
-    ///
-    /// Positive means they owe you.
-    static func pairwise(mine uid: String, expenses: [Expense], settles: [Settlement]) -> [String: Double] {
-        var net: [String: Double] = [:]
-        for e in expenses {
-            let parts = e.parts
-            let share = e.share
-            if e.paidBy == uid {
-                for p in parts where p != uid { net[p, default: 0] += share }
-            } else if parts.contains(uid) {
-                net[e.paidBy, default: 0] -= share
-            }
-        }
-        for s in settles {
-            if s.fromUser == uid { net[s.toUser, default: 0] += s.amount }
-            else if s.toUser == uid { net[s.fromUser, default: 0] -= s.amount }
-        }
-        // anything under half a cent is a rounding artefact, not a debt
-        return net.filter { abs($0.value) > 0.005 }
-    }
-
-    static func myShare(_ expenses: [Expense], uid: String?) -> Double {
-        guard let uid else { return 0 }
-        return expenses.reduce(0) { $0 + ($1.parts.contains(uid) ? $1.share : 0) }
+    /// the fewest payments that square everyone up — see Ledger.plan
+    static func suggestions(_ book: Ledger.Book) -> [Suggestion] {
+        Ledger.plan(book.netMinor, book.currency).map { Suggestion(from: $0.from, to: $0.to, amount: $0.amount) }
     }
 
     static func minutes(_ t: String) -> Int {
@@ -199,6 +167,8 @@ enum Rates {
         struct R: Decodable { let rates: [String: Double]? }
         guard let (data, _) = try? await URLSession.shared.data(from: url),
               let v = (try? JSONDecoder().decode(R.self, from: data))?.rates?[home] else { return nil }
-        return (v * 100).rounded() / 100
+        // six significant digits, not two decimals: 1 SEK is 0,0956 USD, and
+        // rounding that to 0,10 made every home-currency figure 4,6% too high
+        return Double(String(format: "%.6g", v))
     }
 }

@@ -197,15 +197,36 @@ the compiled metadata is correct.
   drops the press underneath. `.allowsHitTesting(false)` does not: a touch
   already being delivered carries on to the row and opens it.
 - Deleting a member row strands their id in `expenses.split_among` and in
-  `paid_by`. The balance maths counts only ids it can name while still
-  dividing by the whole split, so the flat quietly stops adding up — it cost a
-  real €110 here. Anyone with history is now marked `left_at` instead, by a
-  BEFORE DELETE trigger, so both apps get the safe behaviour unchanged.
+  `paid_by`. The old balance maths counted only ids it could name while still
+  dividing by the whole split, so the flat quietly stopped adding up — it cost
+  a real €110 here. Anyone with history is now marked `left_at` instead, by a
+  BEFORE DELETE trigger, and the ledger no longer looks at the member list at
+  all: every id in an expense or settlement keeps its money on the books.
 - A per-flat net cannot be added across flats. Two people square in one flat
   and square in another say nothing about what they owe each other, so Home
-  uses `Calc.pairwise`. The Flat tab uses it too, because the settlement
+  uses `Ledger.pairwise`. The Flat tab uses it too, because the settlement
   simplification moves debts onto whoever makes the fewest payments and was
   being shown as though it were the debt itself.
+- Money is whole cents (`Ledger.swift`, `src/lib/ledger.ts`, and
+  `flat_balance()` in SQL — three implementations of one set of rules). An
+  expense is split into cents that add up to its total, the odd cent going to
+  whoever sorts first by FNV-1a of expense id + user id, so every figure is a
+  sum of the same shares and a flat sums to exactly zero. `npm test` holds the
+  Swift to the web's answers through `tests/ledger-vectors.json`; change the
+  rules in one place and the other two fail until they match.
+- Never sort a `Dictionary` and show the result. Its order is randomised per
+  launch, and `sorted(by:)` keeps it for ties — the settle-up plan named a
+  different person on different launches with the same data. Every tie needs
+  an id to break it.
+- Swift's number formatting rounds half to even; the web's rounds half away
+  from zero. 1.234,50 € rent between four printed 308,62 € on the phone and
+  308,63 € on the web. `Fmt.money` sets the rule explicitly.
+- "1.200" typed into a German-formatted money app is twelve hundred euros.
+  Parsing it by swapping commas for dots made it €1,20; `Money.parse` knows
+  a euro amount cannot have three decimals.
+- The expense id seeds who takes the odd cent, so a new expense's id is made
+  on the phone — lowercased, because Postgres hands uuids back lowercase — and
+  the split previewed is the split saved.
 - Postgres grants EXECUTE to PUBLIC and PostgREST turns that into an endpoint.
   Every new SECURITY DEFINER function needs its grants set deliberately, or a
   helper whose permission check lives in its caller is callable by anyone with

@@ -3,7 +3,7 @@ import type { Theme, Expense, Member, Cat } from '../../lib/types'
 import { tod } from '../../lib/format'
 import { catOf } from '../../lib/data'
 import { colorOf, WORK } from '../../lib/theme'
-import { inRange, monthlyTotals, byCategory, byMember, myShareTotal, total, type Range } from '../../lib/analytics'
+import { inRange, monthlyTotals, byCategory, byMember, myShareTotal, total, monthNo, ymOf, type Range } from '../../lib/analytics'
 import { Sheet, SegmentedControl, StatHero, SectionLabel, Card } from '../ui'
 import LineArea from '../charts/LineArea'
 import Bars from '../charts/Bars'
@@ -26,10 +26,10 @@ export default function AnalyticsModal({ open, onClose, T, expenses, members, ui
   const totalSpend = total(scoped)
   const myShare = myShareTotal(scoped, uid)
   const ymNow = today.slice(0, 7)
-  const prevD = new Date(today + 'T00:00:00'); prevD.setMonth(prevD.getMonth() - 1)
-  const ymPrev = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, '0')}`
-  const mNow = expenses.filter((e) => e.spent_on.slice(0, 7) === ymNow).reduce((s, e) => s + e.amount, 0)
-  const mPrev = expenses.filter((e) => e.spent_on.slice(0, 7) === ymPrev).reduce((s, e) => s + e.amount, 0)
+  // by month number: setMonth(-1) on 31 May lands on "31 April" = 1 May, comparing May with itself
+  const ymPrev = ymOf(monthNo(today) - 1)
+  const mNow = total(expenses.filter((e) => e.spent_on.slice(0, 7) === ymNow))
+  const mPrev = total(expenses.filter((e) => e.spent_on.slice(0, 7) === ymPrev))
   const dPct = mPrev > 0 ? Math.round(((mNow - mPrev) / mPrev) * 100) : null
   const heroLbl = range === 'month' ? 'Group spend · this month' : range === 'year' ? 'Group spend · this year' : 'Group spend · last 6 months'
   return (

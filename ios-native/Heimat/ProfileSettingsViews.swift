@@ -74,7 +74,7 @@ struct ProfileView: View {
             Section("Home & money") {
                 LabeledContent("Home", value: "\(p.homeCountry) · \(p.homeCur)")
                 LabeledContent("Studying in", value: "\(p.hostCountry) · \(p.hostCur)")
-                if p.homeCur != p.hostCur { LabeledContent("Exchange rate", value: "1 \(p.hostCur) = \(Fmt.num(p.rate, 2)) \(p.homeCur)") }
+                if p.homeCur != p.hostCur { LabeledContent("Exchange rate", value: "1 \(p.hostCur) = \(Fmt.rate(p.rate)) \(p.homeCur)") }
             }
 
             Section {
@@ -285,7 +285,7 @@ struct SettingsView: View {
                 }
                 if p.homeCur != p.hostCur {
                     LabeledContent {
-                        Text("\(Fmt.num(p.rate, 2)) \(p.homeCur)").monospacedDigit()
+                        Text("\(Fmt.rate(p.rate)) \(p.homeCur)").monospacedDigit()
                     } label: {
                         Label { VStack(alignment: .leading) { Text("Exchange rate"); Text(p.rateAt.map { "Updated \(Fmt.relDay($0).lowercased())" } ?? "Set by hand").font(.caption).foregroundStyle(.secondary) } } icon: { SettingIcon(symbol: "arrow.left.arrow.right", color: .gray) }
                     }

@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import type { Theme, Member } from '../../lib/types'
 import { settleSuggestions } from '../../lib/derive'
+import { minorToInput, toMinor } from '../../lib/ledger'
+import type { Ledger } from '../../lib/ledger'
 import { Sheet, Field, Btn, Chip, Avatar } from '../ui'
-import { numVal } from '../../lib/format'
+import { amountVal } from '../../lib/format'
 
-export default function SettleModal({ open, onClose, T, members, balances, uid, nameOf, fH, settleUp, initial }: {
-  open: boolean; onClose: () => void; T: Theme; members: Member[]; balances: Record<string, number>
+export default function SettleModal({ open, onClose, T, members, ledger, uid, nameOf, fH, settleUp, initial }: {
+  open: boolean; onClose: () => void; T: Theme; members: Member[]; ledger: Ledger
   uid: string | null; nameOf: (u: string) => string; fH: (v: number) => string
   settleUp: (from: string, to: string, amount: number) => void
   initial: { from: string; to: string; amount: number } | null
@@ -14,8 +16,9 @@ export default function SettleModal({ open, onClose, T, members, balances, uid, 
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [amt, setAmt] = useState('')
-  const suggestions = settleSuggestions(balances)
-  const fill = (s: { from: string; to: string; amount: number }) => { setFrom(s.from); setTo(s.to); setAmt(s.amount.toFixed(2).replace('.', ',')) }
+  const suggestions = useMemo(() => settleSuggestions(ledger.netMinor, ledger.currency), [ledger])
+  // straight from whole cents, so the field says exactly what the button said
+  const fill = (s: { from: string; to: string; amount: number }) => { setFrom(s.from); setTo(s.to); setAmt(minorToInput(toMinor(s.amount, ledger.currency), ledger.currency)) }
   useEffect(() => {
     if (!open) return
     const mine = suggestions.find((s) => s.from === uid || s.to === uid)
@@ -23,7 +26,7 @@ export default function SettleModal({ open, onClose, T, members, balances, uid, 
     else if (mine || suggestions[0]) fill(mine || suggestions[0])
     else { setFrom(uid || ''); setTo(members.find((m) => m.user_id !== uid)?.user_id || ''); setAmt('') }
   }, [open])
-  const v = numVal(amt)
+  const v = amountVal(amt, ledger.currency)
   const valid = v > 0 && !!from && !!to && from !== to
 
   const picker = (value: string, set: (u: string) => void, exclude?: string) => (

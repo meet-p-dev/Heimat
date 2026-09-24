@@ -2,7 +2,7 @@ import { Settings, Pencil, ShieldAlert, ShieldCheck, MailCheck, Home, Check, Use
 import type { Theme, Profile, Flat, AuthMode, ModalId } from '../../lib/types'
 import type { RunwayCalc } from '../../lib/derive'
 import { COUNTRIES, HOSTS } from '../../lib/data'
-import { fixDe } from '../../lib/format'
+import { fixDe, rateDe } from '../../lib/format'
 import { Page, Card, Btn, IconBtn, Avatar, Group, Item, Flag, TINT } from '../ui'
 
 export default function ProfilePage({ T, profile, uid, isAnon, email, pendingEmail, myFlats, flatId, earnedTotal, spentTotal, shiftCount, runwayCalc, fH, onBack, onAuth, onSwitchFlat, setModal, onOpenSettings }: {
@@ -85,7 +85,7 @@ export default function ProfilePage({ T, profile, uid, isAnon, email, pendingEma
       <Group T={T} title="Home & money">
         <Item T={T} icon={Globe} tint={TINT.teal} label="Home" value={`${profile.homeCountry} · ${profile.homeCur}`} onClick={() => setModal('profile')} />
         <Item T={T} icon={MapPin} tint={TINT.indigo} label="Studying in" value={`${profile.hostCountry} · ${profile.hostCur}`} onClick={() => setModal('profile')} />
-        {diff && <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label="Exchange rate" value={`1 ${profile.hostCur} = ${fixDe(profile.rate || 0, 2)} ${profile.homeCur}`} onClick={() => setModal('profile')} />}
+        {diff && <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label="Exchange rate" value={`1 ${profile.hostCur} = ${rateDe(profile.rate || 0)} ${profile.homeCur}`} onClick={() => setModal('profile')} />}
         <Item T={T} icon={Wallet} tint={TINT.blue} label="Funds runway" value={runwayCalc ? `${fixDe(runwayCalc.monthsLeft)} months` : 'Not set'} onClick={() => setModal('runway')} />
       </Group>
 

@@ -4,6 +4,7 @@ import { catOf } from '../lib/data'
 import { iconOf } from '../icons'
 import { colorOf } from '../lib/theme'
 import { relDay } from '../lib/format'
+import { sharesOf, toMajor } from '../lib/ledger'
 
 /* One shared expense, with what it means for you — "you owe €4,20" — right under
    the amount, the way people actually read a split bill. */
@@ -13,14 +14,14 @@ export default function ExpenseRow({ T, e, cats, uid, nameOf, fH, onClick }: {
   const c = catOf(cats, e.category)
   const I = iconOf(c)
   const tint = colorOf(c)
-  const parts = e.split_among && e.split_among.length ? e.split_among : [e.paid_by]
-  const share = e.amount / parts.length
-  const inSplit = !!uid && parts.includes(uid)
+  const shares = sharesOf(e)
+  const mine = uid ? shares.find((s) => s.uid === uid) : undefined
   let note: { t: string; col: string } = { t: 'not involved', col: T.txt3 }
   if (uid && e.paid_by === uid) {
-    const lent = e.amount - (inSplit ? share : 0)
-    note = lent > 0.005 ? { t: `you lent ${fH(lent)}`, col: T.green } : { t: 'just you', col: T.txt3 }
-  } else if (inSplit) note = { t: `you owe ${fH(share)}`, col: T.red }
+    // what everyone else owes you for it, to the cent
+    const lent = shares.reduce((t, s) => t + (s.uid === uid ? 0 : s.minor), 0)
+    note = lent > 0 ? { t: `you lent ${fH(toMajor(lent, e.currency))}`, col: T.green } : { t: 'just you', col: T.txt3 }
+  } else if (mine) note = { t: `you owe ${fH(toMajor(mine.minor, e.currency))}`, col: T.red }
 
   return (
     <button type="button" className="h-item" onClick={onClick} style={{ '--inset': '69px' } as CSSProperties}>

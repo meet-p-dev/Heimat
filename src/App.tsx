@@ -7,7 +7,8 @@ import { tod, money, greeting, longToday } from './lib/format'
 import { haptic, setHapticsEnabled } from './lib/haptic'
 import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
-import { computeBalances, computeRunway, computeWorkStats } from './lib/derive'
+import { computeRunway, computeWorkStats } from './lib/derive'
+import { buildLedger, shareOf } from './lib/ledger'
 import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId, PageId, AuthMode } from './lib/types'
 import { mergeCats, slug } from './lib/data'
@@ -45,7 +46,7 @@ import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
 import { myShareTotal } from './lib/analytics'
 
-type ExpenseInput = { desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
+type ExpenseInput = { id?: string; desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
 
 const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Flat'], ['money', 'Money'], ['work', 'Work']]
 
@@ -202,9 +203,8 @@ export default function App() {
       .channel('flat-' + flatId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses', filter: 'flat_id=eq.' + flatId }, (payload: any) => {
         if (payload.eventType === 'INSERT' && payload.new && payload.new.created_by !== uid) {
-          const e = payload.new
-          const parts = e.split_among || []
-          const share = parts.includes(uid) ? e.amount / Math.max(parts.length, 1) : 0
+          const e = payload.new as Expense
+          const share = shareOf(e, uid)
           showToast(`${nameOf(e.created_by)} added ${money(e.amount, e.currency || hostCur)}${share ? ` · you owe ${money(share, e.currency || hostCur)}` : ''}`)
           haptic(14)
         }
@@ -245,7 +245,9 @@ export default function App() {
   }
   const addExpense = async (x: ExpenseInput) => {
     if (!sb || !flatId) return
-    const { error } = await sb.from('expenses').insert({ flat_id: flatId, description: x.desc, amount: x.amount, currency: hostCur, paid_by: x.paidBy, split_among: x.among, category: x.category, created_by: uid, spent_on: x.spentOn || tod() })
+    // the id is made here so the split shown before saving — who takes the odd
+    // cent — is the split that gets saved (see allocate in lib/ledger.ts)
+    const { error } = await sb.from('expenses').insert({ ...(x.id ? { id: x.id } : {}), flat_id: flatId, description: x.desc, amount: x.amount, currency: hostCur, paid_by: x.paidBy, split_among: x.among, category: x.category, created_by: uid, spent_on: x.spentOn || tod() })
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Expense added'); loadFlat()
   }
@@ -444,7 +446,8 @@ export default function App() {
 
   /* derived */
   const cats = useMemo(() => mergeCats(flatCats), [flatCats])
-  const balances = useMemo(() => computeBalances(members, expenses, settles), [members, expenses, settles])
+  const ledger = useMemo(() => buildLedger(expenses, settles, hostCur), [expenses, settles, hostCur])
+  const balances = ledger.net
   const myNet = uid ? balances[uid] || 0 : 0
   const runwayCalc = useMemo(() => computeRunway(runway, expenses, uid), [runway, expenses, uid])
   const workStats = useMemo(() => computeWorkStats(shifts, prefs), [shifts, prefs.weekCap, prefs.yearDays])
@@ -544,7 +547,7 @@ export default function App() {
         <div key={tab} className="h-main-in h-stagger">
           {tab === 'home' && <HomeTab {...{ T, flat, uid, isAnon, myNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle, onOpenExpense: openExpense, onAuth: setAuth }} />}
           {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast }} />
+            ? <FlatTab {...{ T, flat: flat!, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast }} />
             : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings }} />}
@@ -586,7 +589,7 @@ export default function App() {
 
       <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, T, members, uid, addExpense, updateExpense, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, flatName: flat ? flat.name : '', cats, openCategories: () => setModal('cats') }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
       <PickFlatModal {...{ open: modal === 'pickflat', onClose: closeModal, T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
-      <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, balances, uid, nameOf, fH, settleUp, initial: settleInit }} />
+      <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, ledger, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />
       <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, showToast }} />

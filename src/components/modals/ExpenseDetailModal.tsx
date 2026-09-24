@@ -4,6 +4,7 @@ import { catOf } from '../../lib/data'
 import { iconOf } from '../../icons'
 import { colorOf } from '../../lib/theme'
 import { relDay } from '../../lib/format'
+import { sharesOf, toMajor } from '../../lib/ledger'
 import { Sheet, Avatar, SectionLabel } from '../ui'
 
 export default function ExpenseDetailModal({ open, onClose, T, expense, fH, nameOf, cats }: {
@@ -15,8 +16,8 @@ export default function ExpenseDetailModal({ open, onClose, T, expense, fH, name
   const c = catOf(cats, e.category)
   const CIcon = iconOf(c)
   const tint = colorOf(c)
-  const parts = e.split_among && e.split_among.length ? e.split_among : [e.paid_by]
-  const share = e.amount / parts.length
+  // whole cents that add up to the total above them (10 € between three: 3,34 + 3,33 + 3,33)
+  const parts = sharesOf(e)
   return (
     <Sheet open={open} onClose={onClose} title="Expense" T={T}>
       <div style={{ textAlign: 'center', padding: '4px 0 6px' }}>
@@ -28,11 +29,11 @@ export default function ExpenseDetailModal({ open, onClose, T, expense, fH, name
       </div>
       <SectionLabel T={T}>Split between · {parts.length}</SectionLabel>
       <div className="h-well">
-        {parts.map((u) => (
+        {parts.map(({ uid: u, minor }) => (
           <div key={u} className="h-item" style={{ '--inset': '58px', minHeight: 50 } as CSSProperties}>
             <Avatar name={nameOf(u)} seed={u} size={30} />
             <span style={{ flex: 1, fontWeight: 500 }}>{nameOf(u)}</span>
-            <span style={{ fontWeight: 700, color: T.acc, fontVariantNumeric: 'tabular-nums' }}>{fH(share)}</span>
+            <span style={{ fontWeight: 700, color: T.acc, fontVariantNumeric: 'tabular-nums' }}>{fH(toMajor(minor, e.currency))}</span>
           </div>
         ))}
       </div>

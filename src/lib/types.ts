@@ -25,7 +25,15 @@ export interface Profile {
 }
 
 export interface Flat { id: string; name: string; join_code: string }
-export interface Member { user_id: string; flat_id: string; display_name: string }
+export interface Member {
+  user_id: string; flat_id: string; display_name: string
+  /* set when they left or were removed; the row stays so past expenses still add up */
+  left_at?: string | null
+  /* a pending invite has an email and no claim yet */
+  claimed_at?: string | null; invite_email?: string | null
+}
+export const hasLeft = (m: Member) => !!m.left_at
+export const isPending = (m: Member) => !!m.invite_email && !m.claimed_at
 
 export interface Expense {
   id: string; flat_id: string; description: string; amount: number; currency: string

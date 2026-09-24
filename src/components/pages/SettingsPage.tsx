@@ -6,7 +6,7 @@ import {
 import type { Theme, Profile, Shift, Runway, AuthMode } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
 import { DEFAULT_PREFS } from '../../lib/prefs'
-import { fixDe, numVal, relDay, tod } from '../../lib/format'
+import { fixDe, rateDe, numVal, relDay, tod } from '../../lib/format'
 import { fetchRate } from '../../lib/rates'
 import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } from '../../lib/push'
 import { isNative, openExternal, webOrigin, copyText } from '../../lib/native'
@@ -64,7 +64,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
   }
   const updateNow = async () => {
     const r = await liveRate()
-    if (r) { sProfile({ ...profile, rate: r, rateAt: tod() }); showToast(`1 ${hostCur} = ${fixDe(r, 2)} ${homeCur}`) }
+    if (r) { sProfile({ ...profile, rate: r, rateAt: tod() }); showToast(`1 ${hostCur} = ${rateDe(r)} ${homeCur}`) }
   }
   const saveRate = () => {
     const r = numVal(rate)
@@ -125,7 +125,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
         <Item T={T} icon={Globe} tint={TINT.teal} label="Currencies" value={diff ? `${hostCur} → ${homeCur}` : hostCur} onClick={onEditProfile} />
         {diff && (
           <>
-            <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label="Exchange rate" sub={profile.rateAt ? `Updated ${relDay(profile.rateAt).toLowerCase()}` : 'Set by hand'} value={`${fixDe(profile.rate || 0, 2)} ${homeCur}`} onClick={() => { setRate(String(profile.rate || '').replace('.', ',')); setRateOpen(true) }} />
+            <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label="Exchange rate" sub={profile.rateAt ? `Updated ${relDay(profile.rateAt).toLowerCase()}` : 'Set by hand'} value={`${rateDe(profile.rate || 0)} ${homeCur}`} onClick={() => { setRate(String(profile.rate || '').replace('.', ',')); setRateOpen(true) }} />
             <Item T={T} icon={RefreshCw} tint={TINT.green} label="Update daily" sub="Fetch a fresh rate once a day" right={<Toggle label="Update exchange rate daily" on={prefs.autoRate} onChange={(v) => set('autoRate', v)} />} />
           </>
         )}

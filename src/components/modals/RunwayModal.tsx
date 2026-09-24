@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Sparkles } from 'lucide-react'
 import type { Theme, Runway } from '../../lib/types'
-import { tod, numVal } from '../../lib/format'
+import { tod, amountVal } from '../../lib/format'
+import { minorToInput, toMinor } from '../../lib/ledger'
 import { Sheet, Field, Btn, Stepper } from '../ui'
 
 export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur, showToast }: {
@@ -13,13 +14,14 @@ export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur
   const [monthly, setMonthly] = useState('')
   const [target, setTarget] = useState(12)
   useEffect(() => {
-    if (open && runway) { setTotal(String(runway.total || '').replace('.', ',')); setStart(runway.start || tod()); setMonthly(runway.monthly ? String(runway.monthly).replace('.', ',') : ''); setTarget(runway.targetMonths || 12) }
+    if (open && runway) { setTotal(runway.total ? minorToInput(toMinor(runway.total, hostCur), hostCur) : ''); setStart(runway.start || tod()); setMonthly(runway.monthly ? minorToInput(toMinor(runway.monthly, hostCur), hostCur) : ''); setTarget(runway.targetMonths || 12) }
     else if (open) { setTotal(''); setStart(tod()); setMonthly(''); setTarget(12) }
   }, [open])
-  const t = numVal(total)
-  const save = () => { if (!t) return; sRunway({ total: t, start, monthly: numVal(monthly), targetMonths: target }); showToast('Runway saved'); onClose() }
+  // "11.904" is the blocked-account amount in euros, not eleven euros ninety
+  const t = amountVal(total, hostCur)
+  const save = () => { if (t <= 0) return; sRunway({ total: t, start, monthly: Math.max(amountVal(monthly, hostCur), 0), targetMonths: target }); showToast('Runway saved'); onClose() }
   return (
-    <Sheet open={open} onClose={onClose} title="Funds runway" T={T} footer={<Btn full disabled={!t} onClick={save}>Save runway</Btn>}>
+    <Sheet open={open} onClose={onClose} title="Funds runway" T={T} footer={<Btn full disabled={t <= 0} onClick={save}>Save runway</Btn>}>
       {hostCur === 'EUR' && (
         <button type="button" className="h-well" onClick={() => { setTotal('11904'); setMonthly('992'); setTarget(12) }} style={{ width: '100%', display: 'flex', gap: 10, alignItems: 'center', padding: '12px 14px', marginBottom: 16, cursor: 'pointer', color: T.txt, textAlign: 'left' }}>
           <Sparkles size={18} color={T.acc} style={{ flexShrink: 0 }} />

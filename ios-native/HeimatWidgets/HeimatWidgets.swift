@@ -102,10 +102,10 @@ private struct BalanceView: View {
         VStack(alignment: .leading, spacing: 2) {
             Heading(text: d.inFlat ? d.flatName : "Heimat")
             if d.inFlat {
-                Text((d.net < -0.5 ? "−" : d.net > 0.5 ? "+" : "") + money(abs(d.net), d.currency))
+                Text((d.net < 0 ? "−" : d.net > 0 ? "+" : "") + money(abs(d.net), d.currency))
                     .font(.system(size: 24, weight: .heavy)).minimumScaleFactor(0.5).lineLimit(1)
-                    .foregroundStyle(d.net > 0.5 ? accent : d.net < -0.5 ? bad : .primary)
-                Text(d.net > 0.5 ? "you are owed" : d.net < -0.5 ? "you owe" : "all settled up")
+                    .foregroundStyle(d.net > 0 ? accent : d.net < 0 ? bad : .primary)
+                Text(d.net > 0 ? "you are owed" : d.net < 0 ? "you owe" : "all settled up")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
             } else {
                 Text("No flat yet").font(.system(size: 17, weight: .bold))

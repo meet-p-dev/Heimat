@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ExpenseDraft {
+    /// set for a new expense: made on the phone so the split previewed is the split saved
+    var id: String? = nil
     /// which flat or group it belongs to; nil means the one that is open
     var flatId: String?
     var desc: String
@@ -23,6 +25,9 @@ struct ExpenseForm: View {
     @State private var cat = "groceries"
     @State private var date = Date()
     @State private var confirmDelete = false
+    /// lowercased because the database hands uuids back lowercase, and the id
+    /// seeds who takes the odd cent — it has to be the same string before and after saving
+    @State private var draftId = UUID().uuidString.lowercased()
     /// where it lands. Home can reach any flat, so this is not always the open one.
     @State private var target = ""
 
@@ -32,7 +37,10 @@ struct ExpenseForm: View {
     }
 
     var body: some View {
-        let v = Fmt.parse(amount)
+        let cur = editing?.currency ?? m.hostCur
+        let v = Fmt.amount(amount, cur)
+        // exactly what each person will be charged: whole cents that add up to the total
+        let shares = Ledger.allocate(Money.toMinor(v, cur) ?? 0, Array(among), seed: editing?.id ?? draftId)
         let valid = v > 0 && !among.isEmpty && !payer.isEmpty && !target.isEmpty
         let everyone = among.count == people.count
         NavigationStack {
@@ -41,10 +49,11 @@ struct ExpenseForm: View {
                     HStack {
                         TextField("0,00", text: $amount).keyboardType(.decimalPad)
                             .font(.system(size: 34, weight: .bold, design: .rounded))
-                        Text(m.hostCur).font(.title3.weight(.semibold)).foregroundStyle(.secondary)
+                        Text(cur).font(.title3.weight(.semibold)).foregroundStyle(.secondary)
                     }
                 } header: { Text("How much?") } footer: {
-                    if m.homeCur != m.hostCur && v > 0 { Text("≈ \(Fmt.money(v * m.profile.rate, m.homeCur)) in your home currency") }
+                    if !amount.isEmpty && v <= 0 { Text("Enter an amount like 12,50").foregroundStyle(.red) }
+                    else if cur == m.hostCur && m.homeCur != m.hostCur && v > 0 { Text("≈ \(Fmt.money(v * m.profile.rate, m.homeCur)) in your home currency") }
                 }
                 Section {
                     TextField("What for? e.g. Rewe groceries", text: $desc)
@@ -75,7 +84,7 @@ struct ExpenseForm: View {
                                 AvatarView(name: mem.displayName, seed: mem.userId, size: 30)
                                 Text(m.nameOf(mem.userId, in: target)).foregroundStyle(.primary)
                                 Spacer()
-                                if on { Text(Fmt.money(v / Double(max(among.count, 1)), m.hostCur)).monospacedDigit().foregroundStyle(.secondary) }
+                                if on { Text(Fmt.money(Money.toMajor(shares[mem.userId] ?? 0, cur), cur)).monospacedDigit().foregroundStyle(.secondary) }
                                 Image(systemName: on ? "checkmark.circle.fill" : "circle")
                                     .font(.title3).foregroundStyle(on ? Color.accentColor : Color.secondary)
                             }
@@ -102,7 +111,7 @@ struct ExpenseForm: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(editing == nil ? "Add" : "Save") {
-                        let d = ExpenseDraft(flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: payer,
+                        let d = ExpenseDraft(id: editing == nil ? draftId : nil, flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: payer,
                                              among: Array(among), category: cat, spentOn: Fmt.ymd(date))
                         Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
                         dismiss()
@@ -116,7 +125,7 @@ struct ExpenseForm: View {
             .onAppear {
                 if let e = editing {
                     target = e.flatId
-                    amount = Fmt.input(e.amount); desc = e.description ?? ""; payer = e.paidBy
+                    amount = Money.input(Money.toMinor(e.amount, e.currency) ?? 0, e.currency); desc = e.description ?? ""; payer = e.paidBy
                     among = Set(e.splitAmong); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
                 } else {
                     target = m.flatId ?? m.flats.first?.id ?? ""
@@ -158,13 +167,14 @@ struct ExpenseDetailView: View {
                     LabeledContent("Date", value: Fmt.relDay(expense.spentOn))
                     LabeledContent("Added by", value: expense.createdBy.map(m.nameOf) ?? "—")
                 } footer: { Text("Only the person who added it or the payer can edit it.") }
+                // whole cents that add up to the total above (10 € between three: 3,34 + 3,33 + 3,33)
                 Section("Split between · \(expense.parts.count)") {
-                    ForEach(expense.parts, id: \.self) { u in
+                    ForEach(Ledger.shares(expense), id: \.uid) { u, minor in
                         HStack(spacing: 12) {
                             AvatarView(name: m.nameOf(u), seed: u, size: 30)
                             Text(m.nameOf(u))
                             Spacer()
-                            Text(m.fH(expense.share)).monospacedDigit().foregroundStyle(.tint)
+                            Text(Fmt.money(Money.toMajor(minor, expense.currency), expense.currency)).monospacedDigit().foregroundStyle(.tint)
                         }
                     }
                 }
@@ -187,8 +197,8 @@ struct SettleForm: View {
     @State private var amount = ""
 
     var body: some View {
-        let suggestions = Calc.suggestions(m.balances)
-        let v = Fmt.parse(amount)
+        let suggestions = Calc.suggestions(m.book)
+        let v = Fmt.amount(amount, m.book.currency)
         NavigationStack {
             Form {
                 if !suggestions.isEmpty {
@@ -212,7 +222,7 @@ struct SettleForm: View {
                     Picker("Who paid", selection: $from) { ForEach(m.members) { Text(m.nameOf($0.userId)).tag($0.userId) } }
                     Picker("Paid to", selection: $to) { ForEach(m.members) { Text(m.nameOf($0.userId)).tag($0.userId) } }
                 } footer: { if !from.isEmpty && from == to { Text("Pick two different people.").foregroundStyle(.red) } }
-                Section("Amount (\(m.hostCur))") {
+                Section("Amount (\(m.book.currency))") {
                     TextField("0,00", text: $amount).keyboardType(.decimalPad).font(.title2.weight(.bold))
                 }
             }
@@ -233,7 +243,9 @@ struct SettleForm: View {
         }
     }
 
-    private func fill(_ s: Calc.Suggestion) { from = s.from; to = s.to; amount = String(format: "%.2f", s.amount).replacingOccurrences(of: ".", with: ",") }
+    /// straight from whole cents, so the field says exactly what the button said —
+    /// "%.2f" rounds half to even and could put 11,12 in the field under an 11,13 button
+    private func fill(_ s: Calc.Suggestion) { from = s.from; to = s.to; amount = Money.input(Money.toMinor(s.amount, m.book.currency) ?? 0, m.book.currency) }
 }
 
 struct CreateJoinForm: View {

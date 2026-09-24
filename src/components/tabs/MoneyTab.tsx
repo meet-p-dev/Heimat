@@ -3,7 +3,7 @@ import { Wallet, Pencil, ArrowUpDown, Globe, MapPin, ArrowRightLeft } from 'luci
 import type { Theme, Runway, ModalId } from '../../lib/types'
 import type { RunwayCalc } from '../../lib/derive'
 import { Ring, Card, Btn, Group, Item, EmptyState, SectionLabel, IconBtn, TINT } from '../ui'
-import { fixDe, money, numVal, relDay } from '../../lib/format'
+import { fixDe, rateDe, money, amountVal, relDay } from '../../lib/format'
 import { haptic } from '../../lib/haptic'
 
 export default function MoneyTab({ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt, setModal, inFlat, openSettings }: {
@@ -19,8 +19,8 @@ export default function MoneyTab({ T, runway, runwayCalc, fH, fHome, hostCur, ho
   const onTrack = runwayCalc ? runwayCalc.elapsed + runwayCalc.monthsLeft >= target : true
   const short = runwayCalc ? Math.max(target - (runwayCalc.elapsed + runwayCalc.monthsLeft), 0) : 0
   const diff = homeCur !== hostCur
-  const v = numVal(amt)
   const [from, to] = flip ? [homeCur, hostCur] : [hostCur, homeCur]
+  const v = amountVal(amt, from)
   const converted = rate > 0 ? (flip ? v / rate : v * rate) : 0
 
   return (
@@ -82,7 +82,7 @@ export default function MoneyTab({ T, runway, runwayCalc, fH, fHome, hostCur, ho
       <Group T={T} title="Your currencies" footer="Your runway stays on this device only. Amounts in your home currency use a reference rate.">
         <Item T={T} icon={Globe} tint={TINT.teal} label="Home currency" value={homeCur} onClick={openSettings} chevron={false} />
         <Item T={T} icon={MapPin} tint={TINT.indigo} label="Local currency" value={hostCur} onClick={openSettings} chevron={false} />
-        {diff && <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label={`1 ${hostCur}`} sub={rateAt ? `Updated ${relDay(rateAt).toLowerCase()}` : 'Set by hand'} value={`${fixDe(rate, 2)} ${homeCur}`} onClick={openSettings} />}
+        {diff && <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label={`1 ${hostCur}`} sub={rateAt ? `Updated ${relDay(rateAt).toLowerCase()}` : 'Set by hand'} value={`${rateDe(rate)} ${homeCur}`} onClick={openSettings} />}
       </Group>
     </>
   )

@@ -156,12 +156,18 @@ struct FlatView: View {
             HeimatCard(radius: 24, padding: 0) {
                 VStack(spacing: 0) {
                     let rows = m.balanceRoster
+                    // what you owe each person, from the same books — "Pay them back" pays that, not their whole balance
+                    let mine = m.uid.map { Ledger.pairwise(m.book.owes, for: $0) } ?? [:]
                     ForEach(Array(rows.enumerated()), id: \.element.id) { i, mem in
-                        let net = m.balances[mem.userId] ?? 0
-                        let pairs = Calc.pairwise(mine: mem.userId, expenses: m.expenses, settles: m.settles)
-                            .sorted { abs($0.value) > abs($1.value) }
-                        let owes = pairs.filter { $0.value < -0.005 }
-                        let gets = pairs.filter { $0.value > 0.005 }
+                        // whole cents from the ledger: zero is settled, anything else is a real debt
+                        let netMinor = m.book.netMinor[mem.userId] ?? 0
+                        let net = Money.toMajor(netMinor, m.book.currency)
+                        let pairs = Ledger.pairwise(m.book.owes, for: mem.userId)
+                            .map { (key: $0.key, value: Money.toMajor($0.value, m.book.currency)) }
+                            .sorted { abs($0.value) != abs($1.value) ? abs($0.value) > abs($1.value) : Ledger.less($0.key, $1.key) }
+                        let owes = pairs.filter { $0.value < 0 }
+                        let gets = pairs.filter { $0.value > 0 }
+                        let iOweThem = -(mine[mem.userId] ?? 0)
                         HStack(alignment: .top, spacing: 13) {
                             AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
                             VStack(alignment: .leading, spacing: 2) {
@@ -189,22 +195,23 @@ struct FlatView: View {
                                 }
                             }
                             Spacer(minLength: 8)
-                            Text(net > 0.5 ? "+\(m.fH(net))" : net < -0.5 ? "−\(m.fH(-net))" : "—")
+                            Text(netMinor > 0 ? "+\(m.fH(net))" : netMinor < 0 ? "−\(m.fH(-net))" : "—")
                                 .font(.system(size: 15, weight: .bold)).monospacedDigit()
-                                .foregroundStyle(net > 0.5 ? Color.hGreen : net < -0.5 ? Color.hRed : Color.secondary)
+                                .foregroundStyle(netMinor > 0 ? Color.hGreen : netMinor < 0 ? Color.hRed : Color.secondary)
                         }
                         .padding(.horizontal, 16).padding(.vertical, 12)
                         .contentShape(Rectangle())
                         .contextMenu {
                             if mem.userId != m.uid && !mem.hasLeft {
-                                if net < -0.5 {
+                                // the server only sends a reminder over 0,50 € (see nudge()); offering it below that would just fail
+                                if netMinor < -Ledger.nudgeMinimum {
                                     Button { Task { await m.nudge(mem) } } label: {
                                         Label("Remind them about \(m.fH(-net))", systemImage: "bell.badge")
                                     }
                                 }
-                                if net > 0.5 {
-                                    Button { m.sheet = .settle(Calc.Suggestion(from: m.uid ?? "", to: mem.userId, amount: net)) } label: {
-                                        Label("Pay them back", systemImage: "arrow.left.arrow.right")
+                                if iOweThem > 0 {
+                                    Button { m.sheet = .settle(Calc.Suggestion(from: m.uid ?? "", to: mem.userId, amount: Money.toMajor(iOweThem, m.book.currency))) } label: {
+                                        Label("Pay them back \(m.fH(Money.toMajor(iOweThem, m.book.currency)))", systemImage: "arrow.left.arrow.right")
                                     }
                                 }
                                 Button(role: .destructive) { removing = mem } label: {
@@ -515,7 +522,7 @@ struct AnalyticsView: View {
                     .font(.system(size: 36, weight: .heavy)).monospacedDigit()
                     .contentTransition(.numericText(value: total))
                     .lineLimit(1).minimumScaleFactor(0.6)
-                Text("group spend · your share \(m.fH(Calc.myShare(scoped, uid: m.uid)))")
+                Text("group spend · your share \(m.fH(Money.toMajor(Ledger.myShareMinor(scoped, uid: m.uid), m.book.currency)))")
                     .font(.system(size: 13.5)).foregroundStyle(.secondary)
             }
         }

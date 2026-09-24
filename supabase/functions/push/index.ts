@@ -20,6 +20,8 @@ type Payload = {
   paid_by?: string        // who put the money down, who may not be in the split
   title?: string          // list item title / broadcast heading
   amount?: number
+  /* expense_added: user id → share in cents, from expense_shares() */
+  shares?: Record<string, number>
   description?: string    // expense description
   split_among?: string[]  // expense split, to work out each person's share
   message?: string        // broadcast body
@@ -70,7 +72,11 @@ Deno.serve(async (req) => {
     } else if (body.event === 'expense_added' && body.flat_id && body.actor) {
       const who = await nameOf(body.actor, body.flat_id)
       const parts = body.split_among || []
-      const share = parts.length ? Number(body.amount || 0) / parts.length : 0
+      // each person's share in cents, split by the database exactly as the apps
+      // split it (expense_shares: 10 € between three is 3,34 + 3,33 + 3,33);
+      // an even division is only the fallback for a payload from before that
+      const shareOf = (uid: string) =>
+        body.shares && body.shares[uid] != null ? body.shares[uid] / 100 : parts.length ? Number(body.amount || 0) / parts.length : 0
       // Only the people the expense is actually about: whoever it is split
       // between, plus whoever paid — they may not be in the split, and it is
       // still their money. An empty split means the payer alone, which is the
@@ -83,7 +89,7 @@ Deno.serve(async (req) => {
       // each of them sees their own share of it
       bodyFor = (uid) =>
         `${who} added ${euro(Number(body.amount || 0))}` +
-        (parts.includes(uid) ? ` · you owe ${euro(share)}` : uid === body.paid_by ? ' · you paid' : '')
+        (parts.includes(uid) ? ` · you owe ${euro(shareOf(uid))}` : uid === body.paid_by ? ' · you paid' : '')
     } else if (body.event === 'settlement' && body.to_user && body.actor && body.flat_id) {
       if (body.to_user === body.actor) return Response.json({ sent: 0, skipped: 'self' })
       const who = await nameOf(body.actor, body.flat_id)

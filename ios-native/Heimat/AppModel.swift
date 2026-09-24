@@ -21,7 +21,7 @@ final class AppModel {
     var shifts: [Shift] { didSet { save(shifts, "shifts") } }
 
     // account
-    var uid: String?
+    var uid: String? { didSet { if uid != oldValue { rebuildOverview() } } }
     var isAnon = true
     var email: String?
     var pendingEmail: String?
@@ -35,10 +35,19 @@ final class AppModel {
     /// the same three tables across every flat you belong to, for Home
     var activity: [Activity] = []
     var allMembers: [Member] = []
-    var allExpenses: [Expense] = []
-    var allSettles: [Settlement] = []
-    var expenses: [Expense] = []
-    var settles: [Settlement] = []
+    var allExpenses: [Expense] = [] { didSet { rebuildOverview() } }
+    var allSettles: [Settlement] = [] { didSet { rebuildOverview() } }
+    var expenses: [Expense] = [] { didSet { rebuildBook() } }
+    var settles: [Settlement] = [] { didSet { rebuildBook() } }
+    /// The open flat's books (see Ledger), rebuilt when its expenses or
+    /// settlements change — not on every read, which is what SwiftUI does to a
+    /// computed property: the Flat tab used to recompute the whole flat once
+    /// per balance row, on every toast and sheet.
+    private(set) var book = Ledger.Book.empty
+    /// what you and each person owe each other across every flat and group,
+    /// in minor units; positive: they owe you. Rebuilt with the overview.
+    private(set) var myPairs: [String: Int] = [:]
+    private(set) var overviewCurrency = "EUR"
     var items: [ListItem] = []
     var flatCats: [FlatCategory] = []
 
@@ -72,18 +81,37 @@ final class AppModel {
     /// because the balance maths and every past expense still need their name.
     var roster: [Member] { members.filter { !$0.hasLeft } }
     /// the roster, plus anyone who left still carrying a balance
-    var balanceRoster: [Member] {
-        let b = balances
-        return members.filter { !$0.hasLeft || abs(b[$0.userId] ?? 0) > 0.005 }
+    var balanceRoster: [Member] { members.filter { !$0.hasLeft || (book.netMinor[$0.userId] ?? 0) != 0 } }
+    /// everyone's balance in the open flat, in major units: whole cents, summing to exactly zero
+    var balances: [String: Double] { book.net }
+    var myNet: Double { uid.flatMap { book.net[$0] } ?? 0 }
+
+    private func rebuildBook() { book = Ledger.build(expenses, settles, fallback: hostCur) }
+
+    /// Each flat keeps its own books — a split is allocated within its flat —
+    /// and only then are the pairs added up. Flats whose money is in another
+    /// currency than most of yours are left out of the total rather than added
+    /// to it as bare numbers.
+    private func rebuildOverview() {
+        guard let uid else { myPairs = [:]; return }
+        let exp = Dictionary(grouping: allExpenses, by: \.flatId), set = Dictionary(grouping: allSettles, by: \.flatId)
+        let books = Set(exp.keys).union(set.keys).sorted().map { Ledger.build(exp[$0] ?? [], set[$0] ?? [], fallback: hostCur) }
+        var count: [String: Int] = [:]
+        for b in books where !b.owes.isEmpty { count[b.currency, default: 0] += 1 }
+        let cur = count.max { $0.value != $1.value ? $0.value < $1.value : Ledger.less($1.key, $0.key) }?.key ?? hostCur
+        var pairs: [String: Int] = [:]
+        for b in books where b.currency == cur {
+            for (other, v) in Ledger.pairwise(b.owes, for: uid) { pairs[other, default: 0] += v }
+        }
+        overviewCurrency = cur
+        myPairs = pairs.filter { $0.value != 0 }
     }
-    var balances: [String: Double] { Calc.balances(members: members, expenses: expenses, settles: settles) }
-    var myNet: Double { uid.flatMap { balances[$0] } ?? 0 }
 
     // MARK: everything, not just the flat you happen to be looking at
     //
     // Home answers "where do I stand", which spans every flat and group at
     // once — so these are loaded across all of them, and the per-person
-    // figures are pairwise (see Calc.pairwise) rather than per-flat nets,
+    // figures are pairwise (see Ledger.pairwise) rather than per-flat nets,
     // which cannot be added together.
 
     struct Standing: Identifiable {
@@ -94,21 +122,20 @@ final class AppModel {
     }
 
     var standings: [Standing] {
-        guard let uid else { return [] }
-        let net = Calc.pairwise(mine: uid, expenses: allExpenses, settles: allSettles)
-        return net.compactMap { id, amount -> Standing? in
+        myPairs.compactMap { id, minor -> Standing? in
             guard let person = allMembers.first(where: { $0.userId == id }) else { return nil }
             let names = allMembers
                 .filter { $0.userId == id }
                 .compactMap { mem in flats.first { $0.id == mem.flatId }?.name }
-            return Standing(person: person, amount: amount, flats: names.sorted())
+            return Standing(person: person, amount: Money.toMajor(minor, overviewCurrency), flats: names.sorted())
         }
-        .sorted { abs($0.amount) > abs($1.amount) }
+        .sorted { abs($0.amount) != abs($1.amount) ? abs($0.amount) > abs($1.amount) : Ledger.less($0.person.userId, $1.person.userId) }
     }
 
-    var owedToMe: Double { standings.filter { $0.amount > 0 }.reduce(0) { $0 + $1.amount } }
-    var iOwe: Double { standings.filter { $0.amount < 0 }.reduce(0) { $0 - $1.amount } }
-    var overallNet: Double { owedToMe - iOwe }
+    // summed from the pairs themselves, so someone without a member row still counts
+    var owedToMe: Double { Money.toMajor(myPairs.values.filter { $0 > 0 }.reduce(0, +), overviewCurrency) }
+    var iOwe: Double { Money.toMajor(-myPairs.values.filter { $0 < 0 }.reduce(0, +), overviewCurrency) }
+    var overallNet: Double { Money.toMajor(myPairs.values.reduce(0, +), overviewCurrency) }
 
     /// the people in one flat, from the overview rather than the open flat
     func members(of flatId: String) -> [Member] { allMembers.filter { $0.flatId == flatId && !$0.hasLeft } }
@@ -119,7 +146,7 @@ final class AppModel {
     var firstName: String { String(profile.name.split(separator: " ").first ?? "") }
     var openItems: Int { items.filter { !$0.bought }.count }
     var earnedTotal: Double { shifts.reduce(0) { $0 + Calc.shift($1).pay } }
-    var spentTotal: Double { Calc.myShare(expenses, uid: uid) }
+    var spentTotal: Double { Money.toMajor(Ledger.myShareMinor(expenses, uid: uid), book.currency) }
     private var displayName: String { profile.name.isEmpty ? "Me" : profile.name }
 
     /// expenses arrive newest first, so each month is one contiguous run
@@ -302,7 +329,7 @@ final class AppModel {
     private func announce(_ e: Expense) {
         guard e.createdBy != uid, let who = e.createdBy else { return }
         let mine = uid.map { e.parts.contains($0) } ?? false
-        show("\(nameOf(who)) added \(Fmt.money(e.amount, e.currency))" + (mine ? " · you owe \(Fmt.money(e.share, e.currency))" : ""))
+        show("\(nameOf(who)) added \(Fmt.money(e.amount, e.currency))" + (mine ? " · you owe \(Fmt.money(e.share(of: uid), e.currency))" : ""))
         Haptic.tap()
     }
 
@@ -443,6 +470,8 @@ final class AppModel {
     // MARK: expenses & settling
 
     private struct NewExpense: Encodable {
+        /// made on the phone, so the split shown before saving is the split saved (see Ledger.allocate)
+        let id: String?
         let flat_id: String, description: String, amount: Double, currency: String, paid_by: String
         let split_among: [String], category: String, created_by: String?, spent_on: String
     }
@@ -454,7 +483,7 @@ final class AppModel {
         // the draft carries its own flat: Home can add to any of them
         guard let id = d.flatId ?? flatId else { return }
         await run("Expense added") {
-            try await self.client.from("expenses").insert(NewExpense(flat_id: id, description: d.desc, amount: d.amount, currency: self.hostCur, paid_by: d.paidBy,
+            try await self.client.from("expenses").insert(NewExpense(id: d.id, flat_id: id, description: d.desc, amount: d.amount, currency: self.hostCur, paid_by: d.paidBy,
                                                                      split_among: d.among, category: d.category, created_by: self.uid, spent_on: d.spentOn)).execute()
         }
     }

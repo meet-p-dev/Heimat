@@ -1,57 +1,38 @@
-import type { Member, Expense, Settlement, Shift, Runway } from './types'
+import type { Expense, Shift, Runway } from './types'
 import { deriveShift } from './shift'
 import { tod } from './format'
+import { settlePlan, sharesOf, toMajor } from './ledger'
 
-export function computeBalances(members: Member[], expenses: Expense[], settles: Settlement[]): Record<string, number> {
-  const net: Record<string, number> = {}
-  members.forEach((m) => (net[m.user_id] = 0))
-  expenses.forEach((e) => {
-    if (net[e.paid_by] == null) return
-    net[e.paid_by] += e.amount
-    const parts = e.split_among && e.split_among.length ? e.split_among : [e.paid_by]
-    const share = e.amount / parts.length
-    parts.forEach((u) => { if (net[u] != null) net[u] -= share })
-  })
-  settles.forEach((s) => {
-    if (net[s.from_user] != null) net[s.from_user] += s.amount
-    if (net[s.to_user] != null) net[s.to_user] -= s.amount
-  })
-  return net
-}
+/* Balances, who owes whom and the settle-up plan all come from the ledger
+   (./ledger.ts), in whole cents. What is left here is the per-person
+   planning maths built on top of it. */
 
 export interface SettleSuggestion { from: string; to: string; amount: number }
 
-/* greedy debt simplification: largest debtor pays largest creditor until everyone is within ±0.50 */
-export function settleSuggestions(balances: Record<string, number>): SettleSuggestion[] {
-  const debtors = Object.keys(balances).filter((u) => balances[u] < -0.5).map((u) => ({ u, v: -balances[u] })).sort((a, b) => b.v - a.v)
-  const creditors = Object.keys(balances).filter((u) => balances[u] > 0.5).map((u) => ({ u, v: balances[u] })).sort((a, b) => b.v - a.v)
-  const out: SettleSuggestion[] = []
-  let i = 0, j = 0
-  while (i < debtors.length && j < creditors.length) {
-    const pay = Math.min(debtors[i].v, creditors[j].v)
-    if (pay > 0.5) out.push({ from: debtors[i].u, to: creditors[j].u, amount: pay })
-    debtors[i].v -= pay
-    creditors[j].v -= pay
-    if (debtors[i].v <= 0.5) i++
-    if (creditors[j].v <= 0.5) j++
-  }
-  return out
+/* the fewest payments that square everyone up — see settlePlan */
+export function settleSuggestions(netMinor: Map<string, number>, cur?: string): SettleSuggestion[] {
+  return settlePlan(netMinor, cur).map(({ from, to, amount }) => ({ from, to, amount }))
 }
 
 export interface RunwayCalc { left: number; monthsLeft: number; burn: number; spentSince: number; elapsed: number }
 
-export function computeRunway(runway: Runway | null, expenses: Expense[], uid: string | null): RunwayCalc | null {
+/* whole days between two YYYY-MM-DD dates, read as calendar dates — not as
+   UTC instants, which put the same runway a month apart in Berlin and New York */
+const dayNo = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000
+const AVG_MONTH_DAYS = 365.2425 / 12
+
+export function computeRunway(runway: Runway | null, expenses: Expense[], uid: string | null, today = tod()): RunwayCalc | null {
   if (!runway || !runway.total) return null
-  const spentSince = expenses
-    .filter((e) => e.spent_on >= runway.start)
-    .reduce((s, e) => {
-      const parts = e.split_among && e.split_among.length ? e.split_among : [e.paid_by]
-      return s + (uid && parts.includes(uid) ? e.amount / parts.length : 0)
-    }, 0)
+  let spentMinor = 0
+  for (const e of expenses) {
+    if (!uid || e.spent_on < runway.start) continue
+    const mine = sharesOf(e).find((x) => x.uid === uid)
+    if (mine) spentMinor += mine.minor
+  }
+  const spentSince = toMajor(spentMinor)
   const left = Math.max(runway.total - spentSince, 0)
-  const start = new Date(runway.start)
-  const now = new Date()
-  const monthsElapsed = Math.max((now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + now.getDate() / 30, 0.1)
+  const days = Math.max(dayNo(today) - dayNo(runway.start), 0)
+  const monthsElapsed = Math.max(days / AVG_MONTH_DAYS, 0.1)
   const burn = Math.max(spentSince / monthsElapsed, runway.monthly || 0, 1)
   return { left, monthsLeft: left / burn, burn, spentSince, elapsed: monthsElapsed }
 }

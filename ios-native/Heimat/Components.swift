@@ -102,12 +102,14 @@ struct ExpenseRowView: View {
 
     private var note: (String, Color) {
         guard let uid = m.uid else { return ("", .secondary) }
-        let inSplit = e.parts.contains(uid)
+        let shares = Ledger.shares(e)
         if e.paidBy == uid {
-            let lent = e.amount - (inSplit ? e.share : 0)
-            return lent > 0.005 ? ("you lent \(m.fH(lent))", .hGreen) : ("just you", .secondary)
+            // what everyone else owes you for it, to the cent
+            let lent = shares.reduce(0) { $0 + ($1.uid == uid ? 0 : $1.minor) }
+            return lent > 0 ? ("you lent \(Fmt.money(Money.toMajor(lent, e.currency), e.currency))", .hGreen) : ("just you", .secondary)
         }
-        return inSplit ? ("you owe \(m.fH(e.share))", .hRed) : ("not involved", .secondary)
+        guard let mine = shares.first(where: { $0.uid == uid }) else { return ("not involved", .secondary) }
+        return ("you owe \(Fmt.money(Money.toMajor(mine.minor, e.currency), e.currency))", .hRed)
     }
 }
 
