@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { Sparkles } from 'lucide-react'
 import type { Theme, Runway } from '../../lib/types'
 import { tod, numVal } from '../../lib/format'
-import { Sheet, Field, inpStyle } from '../ui'
+import { Sheet, Field, Btn, Stepper } from '../ui'
 
 export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur, showToast }: {
   open: boolean; onClose: () => void; T: Theme; runway: Runway | null
@@ -10,19 +11,30 @@ export default function RunwayModal({ open, onClose, T, runway, sRunway, hostCur
   const [total, setTotal] = useState('')
   const [start, setStart] = useState(tod())
   const [monthly, setMonthly] = useState('')
-  const [target, setTarget] = useState('12')
+  const [target, setTarget] = useState(12)
   useEffect(() => {
-    if (open && runway) { setTotal(String(runway.total || '')); setStart(runway.start || tod()); setMonthly(String(runway.monthly || '')); setTarget(String(runway.targetMonths || 12)) }
-    else if (open) { setTotal(''); setStart(tod()); setMonthly(''); setTarget('12') }
+    if (open && runway) { setTotal(String(runway.total || '').replace('.', ',')); setStart(runway.start || tod()); setMonthly(runway.monthly ? String(runway.monthly).replace('.', ',') : ''); setTarget(runway.targetMonths || 12) }
+    else if (open) { setTotal(''); setStart(tod()); setMonthly(''); setTarget(12) }
   }, [open])
+  const t = numVal(total)
+  const save = () => { if (!t) return; sRunway({ total: t, start, monthly: numVal(monthly), targetMonths: target }); showToast('Runway saved'); onClose() }
   return (
-    <Sheet open={open} onClose={onClose} title="Funds runway" T={T}>
-      <Field label={`Total funds available (${hostCur})`} T={T}><input value={total} onChange={(e) => setTotal(e.target.value)} type="text" inputMode="decimal" placeholder="e.g. 11904" style={{ ...inpStyle(T), fontSize: 20, fontWeight: 700 }} /></Field>
-      <Field label="Counting from" T={T}><input value={start} onChange={(e) => setStart(e.target.value)} type="date" style={inpStyle(T)} /></Field>
-      <Field label="Must last (months)" T={T}><input value={target} onChange={(e) => setTarget(e.target.value)} type="number" inputMode="numeric" style={inpStyle(T)} /></Field>
-      <Field label={`Planned monthly minimum (${hostCur}, optional)`} T={T}><input value={monthly} onChange={(e) => setMonthly(e.target.value)} type="text" inputMode="decimal" placeholder="e.g. 992" style={inpStyle(T)} /></Field>
-      <button onClick={() => { const t = numVal(total); if (!t) return; sRunway({ total: t, start, monthly: numVal(monthly), targetMonths: parseInt(target) || 12 }); showToast('Runway saved'); onClose() }} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginBottom: 8 }}>Save runway</button>
-      <div style={{ fontSize: 12, color: T.txt3, textAlign: 'center', lineHeight: 1.5 }}>For a German blocked account this is usually ~€11,904 that must last 12 months (~€992/mo).</div>
+    <Sheet open={open} onClose={onClose} title="Funds runway" T={T} footer={<Btn full disabled={!t} onClick={save}>Save runway</Btn>}>
+      {hostCur === 'EUR' && (
+        <button type="button" className="h-well" onClick={() => { setTotal('11904'); setMonthly('992'); setTarget(12) }} style={{ width: '100%', display: 'flex', gap: 10, alignItems: 'center', padding: '12px 14px', marginBottom: 16, cursor: 'pointer', color: T.txt, textAlign: 'left' }}>
+          <Sparkles size={18} color={T.acc} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13.5, lineHeight: 1.45 }}><b>German blocked account?</b> Tap to fill in the standard €11,904 over 12 months (€992 a month).</span>
+        </button>
+      )}
+      <Field T={T} label={`Total funds available (${hostCur})`} htmlFor="rw-total"><input id="rw-total" className="fld fld-big" value={total} onChange={(e) => setTotal(e.target.value)} inputMode="decimal" placeholder="11.904" /></Field>
+      <Field T={T} label="Counting from" htmlFor="rw-start"><input id="rw-start" className="fld" value={start} onChange={(e) => setStart(e.target.value)} type="date" /></Field>
+      <div className="h-well" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', marginBottom: 16 }}>
+        <span style={{ fontWeight: 600 }}>Must last</span>
+        <Stepper label="months" value={target} onChange={setTarget} min={1} max={60} format={(n) => `${n} mo`} />
+      </div>
+      <Field T={T} label={`Planned monthly minimum (${hostCur}, optional)`} htmlFor="rw-mo" hint="Used when you've spent less than this so far, so the runway isn't too optimistic early on." style={{ marginBottom: 4 }}>
+        <input id="rw-mo" className="fld" value={monthly} onChange={(e) => setMonthly(e.target.value)} inputMode="decimal" placeholder="e.g. 992" />
+      </Field>
     </Sheet>
   )
 }

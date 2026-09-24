@@ -38,7 +38,7 @@ export function settleSuggestions(balances: Record<string, number>): SettleSugge
   return out
 }
 
-export interface RunwayCalc { left: number; monthsLeft: number; burn: number; spentSince: number }
+export interface RunwayCalc { left: number; monthsLeft: number; burn: number; spentSince: number; elapsed: number }
 
 export function computeRunway(runway: Runway | null, expenses: Expense[], uid: string | null): RunwayCalc | null {
   if (!runway || !runway.total) return null
@@ -53,17 +53,19 @@ export function computeRunway(runway: Runway | null, expenses: Expense[], uid: s
   const now = new Date()
   const monthsElapsed = Math.max((now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth()) + now.getDate() / 30, 0.1)
   const burn = Math.max(spentSince / monthsElapsed, runway.monthly || 0, 1)
-  return { left, monthsLeft: left / burn, burn, spentSince }
+  return { left, monthsLeft: left / burn, burn, spentSince, elapsed: monthsElapsed }
 }
 
+export interface WorkLimits { weekCap: number; yearDays: number }
 export interface EmployerStat { name: string; pay: number; hours: number; count: number; wage: number }
 export interface WorkStats {
-  daysUsed: number; budget: number; weekH: number; count: number
+  daysUsed: number; budget: number; weekCap: number; weekH: number; count: number
   earnMonth: number; earnYear: number; earnAll: number; avgRate: number
   byEmployer: EmployerStat[]; tone: 'red' | 'amber' | 'green'
 }
 
-export function computeWorkStats(shifts: Shift[]): WorkStats {
+/* limits default to Germany's: ~120 full days a year, 20 h a week in term */
+export function computeWorkStats(shifts: Shift[], limits: WorkLimits = { weekCap: 20, yearDays: 120 }): WorkStats {
   const yr = tod().slice(0, 4)
   const mo = tod().slice(0, 7)
   const now = new Date()
@@ -96,7 +98,8 @@ export function computeWorkStats(shifts: Shift[]): WorkStats {
   const byEmployer: EmployerStat[] = Object.keys(byEmp)
     .map((name) => ({ name, ...byEmp[name], wage: byEmp[name].hours > 0 ? byEmp[name].pay / byEmp[name].hours : 0 }))
     .sort((a, b) => b.pay - a.pay)
-  const dayPct = daysUsed / 120, weekPct = weekH / 20
+  const budget = Math.max(limits.yearDays, 1), weekCap = Math.max(limits.weekCap, 1)
+  const dayPct = daysUsed / budget, weekPct = weekH / weekCap
   const tone: 'red' | 'amber' | 'green' = dayPct >= 1 || weekPct >= 1 ? 'red' : dayPct >= 0.8 || weekPct >= 0.8 ? 'amber' : 'green'
-  return { daysUsed, budget: 120, weekH, count, earnMonth, earnYear, earnAll, avgRate: yearPaidH > 0 ? earnYear / yearPaidH : 0, byEmployer, tone }
+  return { daysUsed, budget, weekCap, weekH, count, earnMonth, earnYear, earnAll, avgRate: yearPaidH > 0 ? earnYear / yearPaidH : 0, byEmployer, tone }
 }

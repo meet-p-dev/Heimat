@@ -31,6 +31,20 @@ export async function touchAppUser(displayName?: string) {
   } catch {}
 }
 
+/* The name this account last used in Heimat — prefills the profile when someone
+   signs in on a new device. */
+export async function appUserName(): Promise<string | null> {
+  if (!sb) return null
+  try {
+    const { data } = await sb.auth.getUser()
+    if (!data.user) return null
+    const { data: row } = await sb.from('app_users').select('display_name').eq('user_id', data.user.id).eq('app', APP).maybeSingle()
+    return (row as { display_name?: string | null } | null)?.display_name || null
+  } catch {
+    return null
+  }
+}
+
 /* Whether the signed-in account has ever used Heimat. Used by the reset page to
    tell a Heimat user apart from a MoneyTrack one who followed the wrong link. */
 export async function isAppMember(): Promise<boolean> {

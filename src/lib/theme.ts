@@ -1,7 +1,9 @@
 import type { Theme, Cat } from './types'
 
-export const DK: Theme = { bg: '#0c1110', card: '#141b19', cardH: '#1d2623', border: '#2a3531', txt: '#eef3f1', txt2: '#a3b1ab', txt3: '#7e8e87', acc: '#14a978', accSoft: '#16352a', green: '#3ddc97', red: '#fb7185', amber: '#f5b84e', inp: '#19211e' }
-export const LT: Theme = { bg: '#f3f6f2', card: '#ffffff', cardH: '#f6f9f5', border: '#e4e8e1', txt: '#10201a', txt2: '#54635d', txt3: '#6b7973', acc: '#057d54', accSoft: '#dff2e8', green: '#08864f', red: '#c8362e', amber: '#9a6a12', inp: '#edf0eb' }
+/* Mirrors the tokens in index.css. The surface colours are translucent: the
+   app sits on an ambient gradient and its cards are glass over it. */
+export const DK: Theme = { bg: '#070b0a', card: 'rgba(255,255,255,.06)', cardH: 'rgba(255,255,255,.09)', border: 'rgba(255,255,255,.11)', txt: '#f1f6f4', txt2: '#a9b8b1', txt3: '#80918a', acc: '#2fd39a', onAcc: '#03140d', accSoft: 'rgba(47,211,154,.15)', green: '#3ddc97', red: '#ff7a8a', amber: '#f5b84e', inp: 'rgba(255,255,255,.06)' }
+export const LT: Theme = { bg: '#eef2f0', card: 'rgba(255,255,255,.62)', cardH: 'rgba(255,255,255,.78)', border: 'rgba(13,26,21,.10)', txt: '#0d1a15', txt2: '#4b5a54', txt3: '#687670', acc: '#057d54', onAcc: '#ffffff', accSoft: 'rgba(5,125,84,.10)', green: '#08864f', red: '#c8362e', amber: '#9a6a12', inp: 'rgba(255,255,255,.66)' }
 export const WORK = '#16c784'
 export const GOLD = '#c8a24a'
 

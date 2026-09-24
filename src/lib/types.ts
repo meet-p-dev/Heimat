@@ -1,7 +1,7 @@
 export type Theme = {
   bg: string; card: string; cardH: string; border: string
   txt: string; txt2: string; txt3: string
-  acc: string; accSoft: string; green: string; red: string; amber: string; inp: string
+  acc: string; onAcc: string; accSoft: string; green: string; red: string; amber: string; inp: string
 }
 
 export interface Country { n: string; c: string; iso: string }
@@ -16,6 +16,7 @@ export interface FlatCategory {
 
 export interface Profile {
   name?: string
+  avatar?: string // avatar colour
   homeCountry?: string; homeCur?: string; homeIso?: string
   hostCountry?: string; hostCur?: string; hostIso?: string
   rate?: number
@@ -50,5 +51,7 @@ export interface Runway { total: number; start: string; monthly: number; targetM
 
 export interface Derived { paidHours: number; legalHours: number; pay: number; wage: number; overnight: boolean }
 
-export type TabId = 'home' | 'flat' | 'money' | 'work' | 'me'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats' | 'saveacct' | 'signin'
+export type TabId = 'home' | 'flat' | 'money' | 'work'
+export type PageId = 'profile' | 'settings'
+export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats'

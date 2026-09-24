@@ -47,3 +47,16 @@ export function authErrorText(e: { message?: string; status?: number } | null | 
   if (!m || m === '{}' || (e?.status ?? 0) >= 500) return fallback
   return m
 }
+
+/* The handful of auth errors people actually hit, reworded to say what to do next. */
+export function friendlyAuthError(e: { message?: string; status?: number; code?: string } | null | undefined, fallback: string): string {
+  const m = `${e?.code || ''} ${e?.message || ''}`.toLowerCase()
+  if (/invalid.login|invalid_credentials/.test(m)) return "That email and password don't match. Check for typos, or reset your password."
+  if (/already.*registered|already exists|email_exists|user_already_exists/.test(m)) return 'An account with this email already exists — sign in instead.'
+  if (/not confirmed|email_not_confirmed/.test(m)) return 'Confirm your email first — open the link we sent you, then sign in.'
+  if (/same_password|different from the old/.test(m)) return 'That is your current password — choose a new one.'
+  if (/weak_password|password should|at least \d+ char/.test(m)) return 'Choose a stronger password — at least 8 characters, ideally with a number or symbol.'
+  if (/email_address_invalid|unable to validate email|invalid format/.test(m)) return "That email address doesn't look right."
+  if (/failed to fetch|network/.test(m)) return "Can't reach the server — check your connection and try again."
+  return authErrorText(e, fallback)
+}

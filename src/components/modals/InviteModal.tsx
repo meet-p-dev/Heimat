@@ -1,5 +1,6 @@
+import { Share2, Copy } from 'lucide-react'
 import type { Theme, Flat } from '../../lib/types'
-import { Sheet } from '../ui'
+import { Sheet, Btn } from '../ui'
 import { webOrigin, shareText, copyText } from '../../lib/native'
 
 export default function InviteModal({ open, onClose, T, flat, showToast }: {
@@ -17,13 +18,15 @@ export default function InviteModal({ open, onClose, T, flat, showToast }: {
   const copyCode = async () => { if (await copyText(flat.join_code)) showToast('Code copied') }
   return (
     <Sheet open={open} onClose={onClose} title="Invite flatmates" T={T}>
-      <div style={{ textAlign: 'center', padding: '8px 0 4px' }}>
-        <div style={{ fontSize: 12, color: T.txt2, fontWeight: 600 }}>Your flat code</div>
-        <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: 4, color: T.acc, margin: '6px 0 4px' }}>{flat.join_code}</div>
-        <div style={{ fontSize: 13, color: T.txt3, marginBottom: 18 }}>They open Heimat → Join with a code → type this.</div>
+      <div className="h-well" style={{ textAlign: 'center', padding: '20px 12px 18px', borderRadius: 24, marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: T.txt2, fontWeight: 600 }}>Code for {flat.name}</div>
+        <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: 6, color: T.acc, margin: '6px 0 4px', fontVariantNumeric: 'tabular-nums' }}>{flat.join_code}</div>
+        <div style={{ fontSize: 13.5, color: T.txt3, lineHeight: 1.5 }}>They open Heimat → Join with a code → type this.</div>
       </div>
-      <button onClick={share} className="h-press" style={{ width: '100%', background: T.acc, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: 'pointer', marginBottom: 10 }}>Share invite</button>
-      <button onClick={copyCode} className="h-press" style={{ width: '100%', background: T.card, color: T.txt, border: `1px solid ${T.border}`, borderRadius: 16, padding: '14px', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>Copy code only</button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Btn full icon={Share2} onClick={share}>Share invite</Btn>
+        <Btn full kind="secondary" icon={Copy} onClick={copyCode}>Copy code only</Btn>
+      </div>
     </Sheet>
   )
 }

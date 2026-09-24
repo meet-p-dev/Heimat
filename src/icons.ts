@@ -29,5 +29,5 @@ export const iconOf = (c: Cat): LucideIcon =>
   (c.icon && ICON_CHOICES[c.icon]) || CAT_ICON[c.id] || CAT_ICON.other
 
 export const NAV_ICON: Record<TabId, LucideIcon> = {
-  home: Home, flat: Users, money: Wallet, work: Clock, me: User,
+  home: Home, flat: Users, money: Wallet, work: Clock,
 }

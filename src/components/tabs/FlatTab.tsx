@@ -1,114 +1,109 @@
-import { X, LineChart, ChevronRight, ShoppingCart } from 'lucide-react'
+import { useMemo } from 'react'
+import type { CSSProperties } from 'react'
+import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, KeyRound } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ListItem, Cat, ModalId } from '../../lib/types'
-import { catOf } from '../../lib/data'
-import { iconOf } from '../../icons'
 import { haptic } from '../../lib/haptic'
 import { settleSuggestions } from '../../lib/derive'
 import type { SettleSuggestion } from '../../lib/derive'
+import { monthLabel } from '../../lib/format'
+import { copyText } from '../../lib/native'
+import { Card, Btn, Chip, Avatar, SectionLabel, Group, Item, EmptyState, TINT } from '../ui'
+import ExpenseRow from '../ExpenseRow'
 
-export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, deleteExpense, onEditExpense, onViewExpense, openSettle, items, openList, cats, myFlats, flatId, switchFlat, startAddExpense, openAnalytics }: {
+export default function FlatTab({ T, flat, members, balances, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, myFlats, flatId, switchFlat, startAddExpense, openAnalytics, showToast }: {
   T: Theme; flat: Flat; members: Member[]; balances: Record<string, number>; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
-  leaveFlat: () => void; expenses: Expense[]; deleteExpense: (id: string) => void; onEditExpense: (e: Expense) => void
-  onViewExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
+  leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
   items: ListItem[]; openList: () => void; cats: Cat[]
   myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void; openAnalytics: () => void
+  showToast: (m: string) => void
 }) {
   const suggestions = settleSuggestions(balances)
-  const open = items.filter((i) => !i.bought)
-  const bought = items.filter((i) => i.bought)
+  const open = items.filter((i) => !i.bought).length
+  // expenses arrive newest first, so each month is one contiguous run
+  const months = useMemo(() => {
+    const out: { key: string; label: string; total: number; list: Expense[] }[] = []
+    expenses.forEach((e) => {
+      const k = e.spent_on.slice(0, 7)
+      let g = out[out.length - 1]
+      if (!g || g.key !== k) { g = { key: k, label: monthLabel(e.spent_on), total: 0, list: [] }; out.push(g) }
+      g.list.push(e)
+      g.total += e.amount
+    })
+    return out
+  }, [expenses])
+  const copyCode = async () => { if (await copyText(flat.join_code)) { haptic(10); showToast('Flat code copied') } }
+
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 12, paddingBottom: 2 }}>
-        {(myFlats || []).map((f) => <button key={f.id} onClick={() => { haptic(8); switchFlat(f.id) }} className="h-press" style={{ flexShrink: 0, padding: '8px 14px', borderRadius: 99, border: 'none', background: f.id === flatId ? T.acc : T.card, color: f.id === flatId ? '#fff' : T.txt2, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>{f.name}</button>)}
-        <button onClick={() => setModal('create')} className="h-press" style={{ flexShrink: 0, padding: '8px 13px', borderRadius: 99, border: `1px solid ${T.border}`, background: 'none', color: T.acc, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>+ New</button>
-        <button onClick={() => setModal('join')} className="h-press" style={{ flexShrink: 0, padding: '8px 13px', borderRadius: 99, border: `1px solid ${T.border}`, background: 'none', color: T.acc, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Join</button>
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px 14px', padding: '2px 16px' }}>
+        {myFlats.length > 1 && myFlats.map((f) => <Chip key={f.id} T={T} on={f.id === flatId} onClick={() => switchFlat(f.id)}>{f.name}</Chip>)}
+        <Chip T={T} dashed icon={Plus} onClick={() => setModal('create')}>New flat</Chip>
+        <Chip T={T} dashed icon={KeyRound} onClick={() => setModal('join')}>Join with code</Chip>
       </div>
-      <div style={{ background: T.card, borderRadius: 20, padding: '16px', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div><div style={{ fontWeight: 800, fontSize: 18 }}>{flat.name}</div><div style={{ fontSize: 12, color: T.txt2, marginTop: 2 }}>Code <span style={{ fontWeight: 700, color: T.acc, letterSpacing: 1 }}>{flat.join_code}</span></div></div>
-        <button onClick={() => setModal('invite')} className="h-press" style={{ background: T.acc, color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Invite</button>
-      </div>
-      <span className="h-lbl" style={{ color: T.txt3 }}>Flatmates · {members.length}</span>
-      <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
-        {members.map((m, i) => {
+
+      <Card T={T} grad style={{ padding: 18, borderRadius: 28, marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{flat.name}</div>
+            <button type="button" onClick={copyCode} className="h-pill" aria-label={`Copy flat code ${flat.join_code}`} style={{ background: T.accSoft, color: T.acc, border: 'none', marginTop: 7, cursor: 'pointer', letterSpacing: 0.6 }}><Copy size={12} /> {flat.join_code}</button>
+          </div>
+          <Btn size="sm" icon={UserPlus} onClick={() => setModal('invite')}>Invite</Btn>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
+          {members.slice(0, 6).map((m, i) => <span key={m.user_id} style={{ marginLeft: i ? -9 : 0, borderRadius: 99, boxShadow: '0 0 0 2.5px var(--bg)', display: 'flex' }}><Avatar name={m.display_name} seed={m.user_id} size={30} /></span>)}
+          <span style={{ marginLeft: 10, fontSize: 13.5, color: T.txt2 }}>{members.length} {members.length === 1 ? 'person — invite your flatmates' : 'flatmates'}</span>
+        </div>
+      </Card>
+
+      <SectionLabel T={T}>Balances</SectionLabel>
+      <div className="glass" style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 12 }}>
+        {members.map((m) => {
           const net = balances[m.user_id] || 0
           const owes = suggestions.filter((s) => s.from === m.user_id)
           const gets = suggestions.filter((s) => s.to === m.user_id)
-          const settled = owes.length === 0 && gets.length === 0
           return (
-            <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 99, background: T.acc, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, flexShrink: 0 }}>{(m.display_name || '?')[0].toUpperCase()}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 15 }}>{m.display_name}{m.user_id === uid ? ' (you)' : ''}</div>
-                {settled ? (
-                  <div style={{ fontSize: 12, color: T.txt2, marginTop: 1 }}>settled up</div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 3 }}>
-                    {owes.map((s) => (
-                      <div key={`o${s.to}`} style={{ fontSize: 12, color: T.red }}>
-                        owes <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> to {nameOf(s.to)}
-                      </div>
-                    ))}
-                    {gets.map((s) => (
-                      <div key={`g${s.from}`} style={{ fontSize: 12, color: T.green }}>
-                        gets <b style={{ fontWeight: 700 }}>{fH(s.amount)}</b> back from {nameOf(s.from)}
-                      </div>
-                    ))}
-                  </div>
-                )}
+            <div key={m.user_id} className="h-item" style={{ '--inset': '69px', alignItems: 'flex-start' } as CSSProperties}>
+              <Avatar name={m.display_name} seed={m.user_id} size={40} />
+              <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 15.5 }}>{m.display_name}{m.user_id === uid ? ' (you)' : ''}</div>
+                {owes.length === 0 && gets.length === 0 && <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 2 }}>settled up</div>}
+                {owes.map((s) => <div key={`o${s.to}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>owes <b style={{ color: T.red }}>{fH(s.amount)}</b> to {nameOf(s.to)}</div>)}
+                {gets.map((s) => <div key={`g${s.from}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>gets <b style={{ color: T.green }}>{fH(s.amount)}</b> from {nameOf(s.from)}</div>)}
+              </div>
+              <div style={{ fontWeight: 750, fontSize: 15, fontVariantNumeric: 'tabular-nums', color: net > 0.5 ? T.green : net < -0.5 ? T.red : T.txt3, paddingTop: 1 }}>
+                {net > 0.5 ? `+${fH(net)}` : net < -0.5 ? `−${fH(-net)}` : '—'}
               </div>
             </div>
           )
         })}
       </div>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-        <button onClick={() => openSettle(null)} className="h-press" style={{ flex: 1, background: T.card, color: T.acc, border: `1px solid ${T.border}`, borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Settle up</button>
-        <button onClick={startAddExpense} className="h-press" style={{ flex: 1, background: T.acc, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>+ Add expense</button>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 22 }}>
+        <Btn size="md" kind="secondary" icon={ArrowRightLeft} onClick={() => openSettle(null)} style={{ flex: 1 }}>Settle up</Btn>
+        <Btn size="md" icon={Plus} onClick={startAddExpense} style={{ flex: 1 }}>Add expense</Btn>
       </div>
 
-      {/* shared shopping / to-do list — opens as its own page */}
-      <div onClick={() => { haptic(8); openList() }} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 13, background: T.card, border: `1px solid ${T.border}`, borderRadius: 18, padding: '14px 16px', marginBottom: 14, cursor: 'pointer' }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: T.inp, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.acc, position: 'relative' }}>
-          <ShoppingCart size={20} />
-          {open.length > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 19, height: 19, padding: '0 5px', borderRadius: 99, background: T.acc, color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{open.length}</span>}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>Shopping list</div>
-          <div style={{ fontSize: 12, color: T.txt2 }}>{open.length ? `${open.length} to buy` : 'nothing to buy'}{bought.length ? ` · ${bought.length} bought` : ''}</div>
-        </div>
-        <ChevronRight size={18} color={T.txt3} />
-      </div>
+      <Group T={T}>
+        <Item T={T} icon={ShoppingCart} tint={TINT.pink} label="Shopping list" sub={open ? `${open} to buy` : 'Nothing to buy'} onClick={() => { haptic(8); openList() }} />
+        <Item T={T} icon={LineChart} tint={TINT.blue} label="Analytics" sub="Spend trend, categories and who paid" onClick={openAnalytics} />
+      </Group>
 
-      <div onClick={openAnalytics} className="h-press" style={{ display: 'flex', alignItems: 'center', gap: 13, background: `linear-gradient(135deg, ${T.accSoft}, ${T.card})`, border: `1px solid ${T.border}`, borderRadius: 18, padding: '14px 16px', marginBottom: 14, cursor: 'pointer' }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: T.card, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.acc }}><LineChart size={20} /></div>
-        <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 15 }}>Analytics</div><div style={{ fontSize: 12, color: T.txt2 }}>Spend trend, categories & who paid</div></div>
-        <ChevronRight size={18} color={T.txt3} />
-      </div>
-      <span className="h-lbl" style={{ color: T.txt3 }}>All shared expenses</span>
-      <div style={{ background: T.card, borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
-        {expenses.length === 0 ? (
-          <div style={{ padding: '16px', color: T.txt3, fontSize: 14 }}>Nothing yet.</div>
-        ) : (
-          expenses.map((e, i) => {
-            const c = catOf(cats, e.category)
-            const CIcon = iconOf(c)
-            // you can edit/delete an expense you added, or one someone else logged but you paid for
-            const mine = e.created_by === uid || e.paid_by === uid
-            return (
-              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 15px', borderTop: i > 0 ? `1px solid ${T.border}` : 'none' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 11, background: T.cardH, display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.txt2 }}><CIcon size={17} /></div>
-                <div onClick={() => { haptic(6); mine ? onEditExpense(e) : onViewExpense(e) }} style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{e.description || c.label}</div>
-                  <div style={{ fontSize: 11, color: T.txt2 }}>{nameOf(e.paid_by)} paid · split {(e.split_among || []).length} · {e.spent_on}{mine ? ' · tap to edit' : ' · tap for details'}</div>
-                </div>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{fH(e.amount)}</div>
-                {mine && <button onClick={() => deleteExpense(e.id)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 4 }}><X size={15} /></button>}
-              </div>
-            )
-          })
-        )}
-      </div>
-      <button onClick={leaveFlat} className="h-press" style={{ width: '100%', background: 'none', color: T.red, border: `1px solid ${T.border}`, borderRadius: 14, padding: '12px', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Leave this flat</button>
+      {months.length === 0 ? (
+        <Card T={T} style={{ borderRadius: 26, marginBottom: 22 }}>
+          <EmptyState T={T} icon={Receipt} title="No shared expenses yet" body="Add rent, groceries or the internet bill — Heimat splits it and keeps score for everyone.">
+            <Btn icon={Plus} onClick={startAddExpense}>Add the first expense</Btn>
+          </EmptyState>
+        </Card>
+      ) : months.map((g) => (
+        <section key={g.key}>
+          <SectionLabel T={T} right={<span style={{ fontSize: 13, color: T.txt3, fontVariantNumeric: 'tabular-nums' }}>{fH(g.total)}</span>}>{g.label}</SectionLabel>
+          <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>
+            {g.list.map((e) => <ExpenseRow key={e.id} {...{ T, e, cats, uid, nameOf, fH }} onClick={() => onOpenExpense(e)} />)}
+          </div>
+        </section>
+      ))}
+
+      <div style={{ marginTop: 26 }}><Btn full kind="danger" size="md" icon={LogOut} onClick={leaveFlat}>Leave “{flat.name}”</Btn></div>
     </>
   )
 }

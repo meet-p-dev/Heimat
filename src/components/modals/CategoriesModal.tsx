@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { Lock, Trash2, Check } from 'lucide-react'
 import type { Theme, FlatCategory } from '../../lib/types'
 import { CATS, slug } from '../../lib/data'
 import { CAT_ICON, ICON_CHOICES, COLOR_CHOICES } from '../../icons'
 import { catColor } from '../../lib/theme'
-import { Sheet, Field, inpStyle } from '../ui'
+import { Sheet, Field, Btn } from '../ui'
 import { haptic } from '../../lib/haptic'
 
 export default function CategoriesModal({ open, onClose, T, custom, addCategory, deleteCategory }: {
@@ -21,53 +22,56 @@ export default function CategoriesModal({ open, onClose, T, custom, addCategory,
   const taken = !!key && (CATS.some((c) => c.id === key) || custom.some((c) => c.key === key))
   const valid = key.length > 0 && !taken
   const submit = () => { if (!valid) return; addCategory(label.trim(), icon, color); setLabel('') }
+  const Preview = ICON_CHOICES[icon] || ICON_CHOICES.tag
 
   return (
     <Sheet open={open} onClose={onClose} title="Categories" T={T}>
-      <div style={{ fontSize: 12, color: T.txt2, marginBottom: 14, marginTop: -4 }}>Shared with your flat — used for both list items and expenses.</div>
+      <div style={{ fontSize: 13.5, color: T.txt2, marginBottom: 16, marginTop: -4 }}>Shared with your flat — used for both list items and expenses.</div>
 
-      <Field label="New category" T={T}>
-        <input value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit() }} placeholder="e.g. Shopping" style={inpStyle(T)} />
-        {taken && <div style={{ fontSize: 12, color: T.amber, marginTop: 6 }}>“{label.trim()}” already exists.</div>}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 10 }}>
+      <Field T={T} label="New category" htmlFor="cat-name" error={taken ? `“${label.trim()}” already exists.` : undefined}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <span className="h-item-ic" style={{ width: 50, height: 50, borderRadius: 15, background: color }}><Preview size={22} /></span>
+          <input id="cat-name" className="fld" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit() }} placeholder="e.g. Shopping" />
+        </div>
+      </Field>
+      <div className="h-well" style={{ padding: 12, marginBottom: 12 }}>
+        <div role="radiogroup" aria-label="Icon" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(40px,1fr))', gap: 7 }}>
           {Object.keys(ICON_CHOICES).map((k) => {
             const KI = ICON_CHOICES[k]
             const on = icon === k
-            return <button key={k} onClick={() => { haptic(5); setIcon(k) }} style={{ width: 38, height: 38, borderRadius: 11, background: on ? color : T.inp, color: on ? '#fff' : T.txt2, border: `1px solid ${on ? color : T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }} aria-label={k}><KI size={17} /></button>
+            return <button key={k} type="button" role="radio" aria-checked={on} aria-label={k} onClick={() => { haptic(5); setIcon(k) }} style={{ height: 40, borderRadius: 12, background: on ? color : 'transparent', color: on ? '#fff' : T.txt2, border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background .2s' }}><KI size={18} /></button>
           })}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+        <div role="radiogroup" aria-label="Colour" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           {COLOR_CHOICES.map((c) => (
-            <button key={c} onClick={() => { haptic(5); setColor(c) }} style={{ width: 28, height: 28, borderRadius: 99, background: c, border: color === c ? `2px solid ${T.txt}` : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label={c}>{color === c && <Check size={14} color="#fff" />}</button>
+            <button key={c} type="button" role="radio" aria-checked={color === c} onClick={() => { haptic(5); setColor(c) }} style={{ width: 28, height: 28, borderRadius: 99, background: c, border: 'none', boxShadow: color === c ? `0 0 0 2px var(--bg), 0 0 0 4px ${c}` : 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label={c}>{color === c && <Check size={14} color="#fff" strokeWidth={3} />}</button>
           ))}
         </div>
-        <button onClick={submit} disabled={!valid} className="h-press" style={{ width: '100%', marginTop: 12, background: valid ? T.acc : T.border, color: '#fff', border: 'none', borderRadius: 14, padding: '13px', fontWeight: 700, fontSize: 15, cursor: valid ? 'pointer' : 'default' }}>Add category</button>
-      </Field>
+      </div>
+      <Btn full size="md" disabled={!valid} onClick={submit}>Add category</Btn>
 
       {custom.length > 0 && (
-        <Field label={`Your categories (${custom.length})`} T={T}>
-          {custom.map((c) => {
-            const CI = ICON_CHOICES[c.icon] || ICON_CHOICES.tag
-            return (
-              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '10px 13px', background: T.inp, borderRadius: 12, marginBottom: 7, border: `1px solid ${T.border}` }}>
-                <div style={{ width: 32, height: 32, borderRadius: 9, background: c.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', flexShrink: 0 }}><CI size={16} /></div>
-                <span style={{ flex: 1, fontWeight: 600, fontSize: 15 }}>{c.label}</span>
-                <button onClick={() => deleteCategory(c)} style={{ background: 'none', border: 'none', color: T.txt3, cursor: 'pointer', display: 'flex', padding: 5 }} aria-label={`Delete ${c.label}`}><Trash2 size={16} /></button>
-              </div>
-            )
-          })}
+        <Field T={T} label={`Your flat's categories · ${custom.length}`} style={{ marginTop: 20 }}>
+          <div className="h-well">
+            {custom.map((c) => {
+              const CI = ICON_CHOICES[c.icon] || ICON_CHOICES.tag
+              return (
+                <div key={c.id} className="h-item" style={{ '--inset': '61px' } as CSSProperties}>
+                  <span className="h-item-ic" style={{ background: c.color }}><CI size={16} /></span>
+                  <span style={{ flex: 1, fontWeight: 600, fontSize: 15 }}>{c.label}</span>
+                  <button type="button" onClick={() => deleteCategory(c)} className="h-icbtn" style={{ width: 36, height: 36, background: 'none', color: T.txt3 }} aria-label={`Delete ${c.label}`}><Trash2 size={17} /></button>
+                </div>
+              )
+            })}
+          </div>
         </Field>
       )}
 
-      <Field label="Built-in" T={T}>
+      <Field T={T} label="Built in" style={{ marginTop: custom.length ? 0 : 20, marginBottom: 4 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
           {CATS.map((c) => {
             const CI = CAT_ICON[c.id]
-            return (
-              <span key={c.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: T.inp, color: T.txt2, border: `1px solid ${T.border}`, borderRadius: 99, padding: '7px 11px', fontSize: 13, fontWeight: 600 }}>
-                <CI size={13} color={catColor(c.id)} /> {c.label} <Lock size={11} color={T.txt3} />
-              </span>
-            )
+            return <span key={c.id} className="chip" style={{ cursor: 'default' }}><CI size={13} color={catColor(c.id)} /> {c.label} <Lock size={11} color={T.txt3} /></span>
           })}
         </div>
       </Field>

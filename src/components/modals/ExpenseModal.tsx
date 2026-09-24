@@ -1,31 +1,20 @@
 import { useState, useEffect } from 'react'
-import { Settings2 } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { Settings2, Trash2 } from 'lucide-react'
 import type { Theme, Member, Expense, Cat } from '../../lib/types'
 import { iconOf } from '../../icons'
-import { money, numVal, tod } from '../../lib/format'
-import { Sheet, Field, inpStyle } from '../ui'
+import { money, numVal, tod, relDay } from '../../lib/format'
+import { Sheet, Field, Btn, Chip, Avatar, CheckCircle } from '../ui'
 
 type ExpenseInput = { desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
 
-/* spell out a non-today date — native date inputs render differently per locale */
-const dateHint = (d: string) => {
-  const day = new Date(d + 'T00:00:00')
-  if (isNaN(day.getTime())) return ''
-  const diff = Math.round((new Date(tod() + 'T00:00:00').getTime() - day.getTime()) / 86400000)
-  const pretty = day.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
-  if (diff === 1) return `Yesterday · ${pretty}`
-  if (diff > 1) return `${diff} days ago · ${pretty}`
-  if (diff < 0) return `In the future · ${pretty}`
-  return pretty
-}
-
-export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName, cats, openCategories }: {
+export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName, cats, openCategories, onDelete }: {
   open: boolean; onClose: () => void; T: Theme; members: Member[]; uid: string | null
   addExpense: (x: ExpenseInput) => void
   updateExpense: (id: string, x: ExpenseInput) => void
   editing: Expense | null; prefill: { desc: string; category: string } | null
   hostCur: string; homeCur: string; rate: number; flatName?: string
-  cats: Cat[]; openCategories: () => void
+  cats: Cat[]; openCategories: () => void; onDelete?: () => void
 }) {
   const [desc, setDesc] = useState('')
   const [amt, setAmt] = useState('')
@@ -44,32 +33,61 @@ export default function ExpenseModal({ open, onClose, T, members, uid, addExpens
   const valid = !!v && among.length > 0 && !!payer && /^\d{4}-\d{2}-\d{2}$/.test(date)
   const toggle = (id: string) => setAmong((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]))
   const nm = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || '?')
+  const everyone = among.length === members.length
+  const save = () => { if (!valid) return; const x = { desc: desc.trim(), amount: v, paidBy: payer, among, category: c, spentOn: date }; if (editing) updateExpense(editing.id, x); else addExpense(x); onClose() }
+
   return (
-    <Sheet open={open} onClose={onClose} title={editing ? 'Edit expense' : 'Shared expense'} T={T}>
-      {flatName && <div style={{ fontSize: 12, color: T.txt2, marginBottom: 12, marginTop: -4 }}>{editing ? 'Editing in' : 'Adding to'} <span style={{ fontWeight: 700, color: T.acc }}>{flatName}</span></div>}
-      <Field label="What for?" T={T}><input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" style={inpStyle(T)} /></Field>
-      <Field label={`Amount (${hostCur})`} T={T}><input value={amt} onChange={(e) => setAmt(e.target.value)} type="text" inputMode="decimal" placeholder="0,00" style={{ ...inpStyle(T), fontSize: 22, fontWeight: 700 }} />{homeCur !== hostCur && v > 0 && <div style={{ fontSize: 12, color: T.txt3, marginTop: 6 }}>≈ {money(v * rate, homeCur)} in your currency</div>}</Field>
-      <Field label="Date" T={T}>
-        <input value={date} onChange={(e) => setDate(e.target.value)} type="date" style={inpStyle(T)} />
-        {date && date !== tod() && <div style={{ fontSize: 12, color: T.txt3, marginTop: 6 }}>{dateHint(date)}</div>}
-      </Field>
-      <Field label="Paid by" T={T}><select value={payer} onChange={(e) => setPayer(e.target.value)} style={inpStyle(T)}>{members.map((m) => <option key={m.user_id} value={m.user_id}>{nm(m.user_id)}</option>)}</select></Field>
-      <Field label="Category" T={T}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {cats.map((x) => {
-            const XI = iconOf(x)
-            const on = c === x.id
-            const tint = x.color || T.acc
-            return <button key={x.id} onClick={() => setC(x.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: on ? tint : T.inp, color: on ? '#fff' : T.txt2, border: `1px solid ${on ? tint : T.border}`, borderRadius: 99, padding: '7px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}><XI size={14} /> {x.label}</button>
-          })}
-          <button onClick={openCategories} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', color: T.acc, border: `1px dashed ${T.border}`, borderRadius: 99, padding: '7px 12px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}><Settings2 size={14} /> Categories</button>
+    <Sheet open={open} onClose={onClose} title={editing ? 'Edit expense' : 'New shared expense'} T={T}
+      footer={<>
+        <Btn full disabled={!valid} onClick={save}>{editing ? 'Save changes' : v ? `Add ${money(v, hostCur)}` : 'Add expense'}</Btn>
+        {editing && onDelete && <Btn full kind="danger" size="md" icon={Trash2} onClick={onDelete} style={{ marginTop: 4 }}>Delete expense</Btn>}
+      </>}>
+      {flatName && <div style={{ fontSize: 13.5, color: T.txt2, marginBottom: 14, marginTop: -4 }}>{editing ? 'In' : 'Adding to'} <b style={{ color: T.acc }}>{flatName}</b></div>}
+      <Field T={T} label="How much?" htmlFor="ex-amt" hint={homeCur !== hostCur && v > 0 ? `≈ ${money(v * rate, homeCur)} in your home currency` : undefined}>
+        <div style={{ position: 'relative' }}>
+          <input id="ex-amt" className="fld fld-big" value={amt} onChange={(e) => setAmt(e.target.value)} inputMode="decimal" placeholder="0,00" style={{ paddingRight: 64 }} />
+          <span style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: T.txt3 }}>{hostCur}</span>
         </div>
       </Field>
-      <Field label={`Split between (${among.length})`} T={T}>{members.map((m) => {
-        const on = among.includes(m.user_id)
-        return <div key={m.user_id} onClick={() => toggle(m.user_id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: T.inp, borderRadius: 12, marginBottom: 7, cursor: 'pointer', border: `1px solid ${on ? T.acc : T.border}` }}><span style={{ fontWeight: 500 }}>{nm(m.user_id)}</span><span style={{ color: on ? T.acc : T.txt3, fontWeight: 700 }}>{on ? `${money(v / Math.max(among.length, 1), hostCur)} ✓` : '—'}</span></div>
-      })}</Field>
-      <button onClick={() => { if (!valid) return; const x = { desc: desc.trim(), amount: v, paidBy: payer, among, category: c, spentOn: date }; if (editing) updateExpense(editing.id, x); else addExpense(x); onClose() }} disabled={!valid} className="h-press" style={{ width: '100%', background: valid ? T.acc : T.border, color: '#fff', border: 'none', borderRadius: 16, padding: '16px', fontWeight: 700, fontSize: 16, cursor: valid ? 'pointer' : 'default', marginBottom: 8 }}>{editing ? 'Save changes' : 'Add expense'}</button>
+      <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
+      <Field T={T} label="Category">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {cats.map((x) => <Chip key={x.id} T={T} on={c === x.id} tint={x.color} icon={iconOf(x)} onClick={() => setC(x.id)}>{x.label}</Chip>)}
+          <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
+        </div>
+      </Field>
+      <Field T={T} label="Paid by">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {members.map((m) => (
+            <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
+              <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
+            </Chip>
+          ))}
+        </div>
+      </Field>
+      <Field T={T} label={
+        <span style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span>Split between · {among.length}</span>
+          <button type="button" className="h-link" style={{ fontSize: 13 }} onClick={() => setAmong(everyone && uid ? [uid] : members.map((m) => m.user_id))}>{everyone ? 'Just me' : 'Everyone'}</button>
+        </span>
+      }>
+        <div className="h-well">
+          {members.map((m) => {
+            const on = among.includes(m.user_id)
+            return (
+              <button key={m.user_id} type="button" className="h-item" aria-pressed={on} onClick={() => toggle(m.user_id)} style={{ '--inset': '58px', minHeight: 52 } as CSSProperties}>
+                <Avatar name={m.display_name} seed={m.user_id} size={30} />
+                <span style={{ flex: 1, fontWeight: 500 }}>{nm(m.user_id)}</span>
+                <span style={{ fontSize: 14, fontWeight: 650, color: on ? T.txt : T.txt3, fontVariantNumeric: 'tabular-nums' }}>{on ? money(v / Math.max(among.length, 1), hostCur) : 'not in'}</span>
+                <CheckCircle on={on} />
+              </button>
+            )
+          })}
+        </div>
+      </Field>
+      <Field T={T} label="Date" htmlFor="ex-date" hint={date && date !== tod() ? relDay(date) : undefined} style={{ marginBottom: 4 }}>
+        <input id="ex-date" className="fld" value={date} onChange={(e) => setDate(e.target.value)} type="date" />
+      </Field>
     </Sheet>
   )
 }
