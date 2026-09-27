@@ -12,9 +12,9 @@ import Donut from '../charts/Donut'
 const MEMCOL = [WORK, '#c8a24a', '#6ba8e0', '#b89ce0', '#fb7185', '#5ec7a8']
 const RANGES: [Range, string][] = [['month', 'Month'], ['6m', '6 Months'], ['year', 'Year']]
 
-export default function AnalyticsModal({ open, onClose, T, expenses, members, uid, fH, nameOf, cats }: {
+export default function AnalyticsModal({ open, onClose, T, expenses, members, uid, fH, nameOf, cats, currency }: {
   open: boolean; onClose: () => void; T: Theme; expenses: Expense[]; members: Member[]; uid: string | null
-  fH: (v: number) => string; nameOf: (u: string) => string; cats: Cat[]
+  fH: (v: number) => string; nameOf: (u: string) => string; cats: Cat[]; currency?: string
 }) {
   const [range, setRange] = useState<Range>('6m')
   const today = tod()
@@ -24,7 +24,7 @@ export default function AnalyticsModal({ open, onClose, T, expenses, members, ui
   const slices = useMemo(() => byCategory(scoped), [scoped])
   const mem = useMemo(() => byMember(scoped, members), [scoped, members])
   const totalSpend = total(scoped)
-  const myShare = myShareTotal(scoped, uid)
+  const myShare = myShareTotal(scoped, uid, currency)
   const ymNow = today.slice(0, 7)
   // by month number: setMonth(-1) on 31 May lands on "31 April" = 1 May, comparing May with itself
   const ymPrev = ymOf(monthNo(today) - 1)

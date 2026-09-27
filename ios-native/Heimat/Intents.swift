@@ -85,10 +85,11 @@ struct AddExpenseIntent: AppIntent {
             return .result(dialog: "Open Heimat and sign in first.")
         }
 
-        // split with everyone in the flat, which is what the app does by default
+        // split with everyone in the flat, which is what the app does by default —
+        // not people who have left (the server won't book money to them)
         struct MemberRow: Decodable { let user_id: String }
         let members: [MemberRow] = (try? await client.from("flat_members")
-            .select("user_id").eq("flat_id", value: flatId).execute().value) ?? []
+            .select("user_id").eq("flat_id", value: flatId).is("left_at", value: nil).execute().value) ?? []
         let among = members.map(\.user_id)
         guard !among.isEmpty else {
             return .result(dialog: "Couldn't read your flat. Open Heimat once and try again.")

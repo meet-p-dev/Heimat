@@ -259,7 +259,8 @@ export default function App() {
   }
   const removeExpense = async (id: string) => {
     if (!sb || !confirm('Delete this expense for everyone in the flat?')) return
-    const { error } = await sb.from('expenses').delete().eq('id', id)
+    // kept, hidden and restorable (engine v2, delete_expense), rather than gone for good
+    const { error } = await sb.rpc('delete_expense', { p_id: id })
     if (error) { showToast(error.message); return }
     haptic(10); setModal(null); setEditExpense(null); showToast('Expense deleted'); loadFlat()
   }
@@ -433,7 +434,8 @@ export default function App() {
   }
   const settleUp = async (from: string, to: string, amount: number) => {
     if (!sb) return
-    const { error } = await sb.from('settlements').insert({ flat_id: flatId, from_user: from, to_user: to, amount, created_by: uid, settled_on: tod() })
+    // in the flat's own currency, so a payment always lands in the right balance
+    const { error } = await sb.from('settlements').insert({ flat_id: flatId, from_user: from, to_user: to, amount, currency: ledger.currency, created_by: uid, settled_on: tod() })
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Payment recorded'); loadFlat()
   }
@@ -465,7 +467,7 @@ export default function App() {
   const closeModal = () => { setModal(null); setEditExpense(null); setExpensePrefill(null); setViewExpense(null); setSettleInit(null); setEditShift(null); setShiftDate(null) }
 
   const earnedTotal = useMemo(() => shifts.reduce((s, x) => s + deriveShift(x).pay, 0), [shifts])
-  const spentTotal = useMemo(() => myShareTotal(expenses, uid), [expenses, uid])
+  const spentTotal = useMemo(() => myShareTotal(expenses, uid, ledger.currency), [expenses, uid, ledger.currency])
 
   // live exchange rate — refresh at most once/day when currencies differ
   useEffect(() => {
@@ -597,7 +599,7 @@ export default function App() {
       <RunwayModal {...{ open: modal === 'runway', onClose: closeModal, T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: closeModal, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />
       <ProfileModal {...{ open: modal === 'profile', onClose: closeModal, T, profile, uid, onSave: (p: Profile) => { saveProfile(p); showToast('Profile saved') } }} />
-      <AnalyticsModal {...{ open: modal === 'analytics', onClose: closeModal, T, expenses, members, uid, fH, nameOf, cats }} />
+      <AnalyticsModal {...{ open: modal === 'analytics', onClose: closeModal, T, expenses, members, uid, fH, nameOf, cats, currency: ledger.currency }} />
       {showList && inFlat && <ListPage {...{ T, onClose: () => setShowList(false), items, nameOf, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought: () => { setShowList(false); expenseFromBought() }, cats, openCategories: () => setModal('cats') }} />}
       {showIntro && <Intro T={T} onClose={() => setShowIntro(false)} />}
       {notifPrompt && !showIntro && <NotifPrompt {...{ T, mode: notifPrompt, busy: notifBusy, onEnable: enableNotif, onDismiss: dismissNotifPrompt }} />}

@@ -24,7 +24,7 @@ export interface Profile {
   onboarded: boolean
 }
 
-export interface Flat { id: string; name: string; join_code: string }
+export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean }
 export interface Member {
   user_id: string; flat_id: string; display_name: string
   /* set when they left or were removed; the row stays so past expenses still add up */
@@ -35,14 +35,46 @@ export interface Member {
 export const hasLeft = (m: Member) => !!m.left_at
 export const isPending = (m: Member) => !!m.invite_email && !m.claimed_at
 
+export type SplitType = 'equal' | 'exact' | 'percent' | 'shares' | 'adjust' | 'itemized'
+
+/* the inputs of a split, as the database stores them in expenses.split (see lib/ledger.ts):
+   exact — minor units per person; percent — basis points per person (10000 = 100 %);
+   shares — a weight per person (up to two decimals); adjust — ± minor units per person on
+   top of an equal split of the rest; itemized — receipt lines plus tax, tip and discount */
+export interface SplitItem { label?: string; minor: number; among: string[] }
+export interface SplitData {
+  values?: Record<string, number>
+  items?: SplitItem[]; tax?: number; tip?: number; discount?: number
+}
+
 export interface Expense {
   id: string; flat_id: string; description: string; amount: number; currency: string
   paid_by: string; split_among: string[]; category: string; created_by: string; spent_on: string
+  /* engine v2 — all optional, so rows written before it and by older apps still read */
+  split_type?: SplitType | null
+  split?: SplitData | null
+  /* who paid how much, in minor units, when more than one person did; null: paid_by paid it all */
+  payers?: Record<string, number> | null
+  /* what each person owes for it, in minor units, worked out by the database from the split — authoritative */
+  shares?: Record<string, number> | null
+  recurring_id?: string | null
+  deleted_at?: string | null
 }
 
 export interface Settlement {
   id: string; flat_id: string; from_user: string; to_user: string
   amount: number; created_by: string; settled_on: string
+  /* null on rows from before currencies were recorded: the flat's own currency */
+  currency?: string | null
+}
+
+export type Cadence = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
+
+export interface RecurringExpense {
+  id: string; flat_id: string; created_by: string; description: string; amount: number; currency: string
+  paid_by: string; payers?: Record<string, number> | null; split_among: string[]
+  split_type: SplitType; split?: SplitData | null; category: string
+  cadence: Cadence; anchor_on: string; next_n: number; until_on?: string | null; active: boolean
 }
 
 export interface ListItem {

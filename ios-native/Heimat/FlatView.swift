@@ -522,7 +522,7 @@ struct AnalyticsView: View {
                     .font(.system(size: 36, weight: .heavy)).monospacedDigit()
                     .contentTransition(.numericText(value: total))
                     .lineLimit(1).minimumScaleFactor(0.6)
-                Text("group spend · your share \(m.fH(Money.toMajor(Ledger.myShareMinor(scoped, uid: m.uid), m.book.currency)))")
+                Text("group spend · your share \(m.fH(Money.toMajor(Ledger.myShareMinor(scoped, uid: m.uid, currency: m.book.currency), m.book.currency)))")
                     .font(.system(size: 13.5)).foregroundStyle(.secondary)
             }
         }

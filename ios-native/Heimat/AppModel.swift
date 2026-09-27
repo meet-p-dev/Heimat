@@ -146,7 +146,7 @@ final class AppModel {
     var firstName: String { String(profile.name.split(separator: " ").first ?? "") }
     var openItems: Int { items.filter { !$0.bought }.count }
     var earnedTotal: Double { shifts.reduce(0) { $0 + Calc.shift($1).pay } }
-    var spentTotal: Double { Money.toMajor(Ledger.myShareMinor(expenses, uid: uid), book.currency) }
+    var spentTotal: Double { Money.toMajor(Ledger.myShareMinor(expenses, uid: uid, currency: book.currency), book.currency) }
     private var displayName: String { profile.name.isEmpty ? "Me" : profile.name }
 
     /// expenses arrive newest first, so each month is one contiguous run
@@ -496,14 +496,18 @@ final class AppModel {
     }
 
     func deleteExpense(_ id: String) async {
-        await run("Expense deleted") { try await self.client.from("expenses").delete().eq("id", value: id).execute() }
+        // kept, hidden and restorable (engine v2, delete_expense), rather than gone for good
+        struct P: Encodable { let p_id: String }
+        await run("Expense deleted") { try await self.client.rpc("delete_expense", params: P(p_id: id)).execute() }
     }
 
     func settleUp(from: String, to: String, amount: Double) async {
         guard let id = flatId else { return }
-        struct Row: Encodable { let flat_id, from_user, to_user: String; let amount: Double; let created_by: String?; let settled_on: String }
+        // in the flat's own currency, so a payment always lands in the right balance
+        struct Row: Encodable { let flat_id, from_user, to_user: String; let amount: Double; let currency: String; let created_by: String?; let settled_on: String }
+        let currency = book.currency
         await run("Payment recorded") {
-            try await self.client.from("settlements").insert(Row(flat_id: id, from_user: from, to_user: to, amount: amount, created_by: self.uid, settled_on: Fmt.today())).execute()
+            try await self.client.from("settlements").insert(Row(flat_id: id, from_user: from, to_user: to, amount: amount, currency: currency, created_by: self.uid, settled_on: Fmt.today())).execute()
         }
     }
 

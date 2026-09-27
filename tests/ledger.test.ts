@@ -329,3 +329,214 @@ test('toMinor survives what the database and the network send', () => {
   assert.ok(Number.isNaN(toMinor('x')))
   assert.equal(Object.is(toMinor(-0.001), 0), true)
 })
+
+// ============================================================ engine v2
+import {
+  allocateWeighted, computeShares, computePaid, postingsOf, debtsOf, convertNet, occurrence, dueOccurrences, MAX_MINOR,
+} from '../src/lib/ledger.ts'
+import type { SplitSpec } from '../src/lib/ledger.ts'
+
+const P8 = ['ana', 'ben', 'cara', 'dev', 'eli', 'fin', 'gus', 'hal']
+const pickSome = (r: () => number, min = 1) => { const s = P8.filter(() => r() < 0.6); return s.length >= min ? s : P8.slice(0, min) }
+
+test('v2 allocateWeighted: exact sum, every part within one unit of its exact quota, order-independent', () => {
+  const r = rng(21)
+  for (let t = 0; t < 20000; t++) {
+    const who = pickSome(r)
+    const w = who.map((u) => [u, 1 + Math.floor(r() * 10000)] as [string, number])
+    const total = Math.floor(r() * 5_000_000) * (r() < 0.1 ? -1 : 1)
+    const m = allocateWeighted(total, w, 's' + t)
+    const W = w.reduce((a, [, x]) => a + x, 0)
+    assert.equal(sum(m.values()), total)
+    for (const [u, x] of w) assert.ok(Math.abs(m.get(u)! - (total * x) / W) < 1, `${u}`)
+    assert.deepEqual([...allocateWeighted(total, [...w].reverse(), 's' + t)].sort(), [...m].sort())
+  }
+})
+
+test('v2 allocateWeighted with equal weights is exactly the v1 equal split', () => {
+  const r = rng(22)
+  for (let t = 0; t < 5000; t++) {
+    const who = pickSome(r), total = Math.floor(r() * 100000)
+    assert.deepEqual([...allocateWeighted(total, who.map((u) => [u, 1] as [string, number]), 'x' + t)].sort(), [...allocate(total, who, 'x' + t)].sort())
+  }
+})
+
+function randomSpec(r: () => number, total: number): SplitSpec {
+  const who = pickSome(r)
+  const k = Math.floor(r() * 6)
+  if (k === 0) return { type: 'equal', among: who }
+  if (k === 1) { // exact, made to add up
+    const parts = allocateWeighted(total, who.map((u) => [u, 1 + Math.floor(r() * 9)] as [string, number]), 'e')
+    return { type: 'exact', values: Object.fromEntries(parts) }
+  }
+  if (k === 2) { // percent, made to add up to 100 %
+    const bp = allocateWeighted(10000, who.map((u) => [u, 1 + Math.floor(r() * 9)] as [string, number]), 'p')
+    return { type: 'percent', values: Object.fromEntries(bp) }
+  }
+  if (k === 3) return { type: 'shares', values: Object.fromEntries(who.map((u) => [u, (1 + Math.floor(r() * 400)) / 100])) }
+  if (k === 4) { // adjust, small adjustments that never exceed the bill
+    const adj = Object.fromEntries(who.filter(() => r() < 0.5).map((u) => [u, Math.floor(r() * Math.max(1, Math.abs(total) / (who.length * 2))) * (total < 0 ? -1 : 1)]))
+    return { type: 'adjust', among: who, values: adj }
+  }
+  const items = Array.from({ length: 1 + Math.floor(r() * 4) }, () => ({ minor: 0, among: pickSome(r) }))
+  const tax = Math.floor(r() * 300), tip = Math.floor(r() * 300)
+  const lines = Math.abs(total) - tax - tip
+  if (lines < 0) return { type: 'equal', among: who }
+  allocateWeighted(lines, items.map((_, i) => ['i' + i, 1 + i] as [string, number]), 'it').forEach((v, key) => (items[+key.slice(1)].minor = v))
+  return { type: 'itemized', items, tax, tip }
+}
+
+test('v2 computeShares: every split type adds up to exactly the bill', () => {
+  const r = rng(23)
+  let byType: Record<string, number> = {}
+  for (let t = 0; t < 20000; t++) {
+    const total = (1 + Math.floor(r() * 200000)) * (r() < 0.05 ? -1 : 1)
+    const spec = randomSpec(r, total)
+    const res = computeShares(total, spec, 'seed-' + t)
+    assert.ok(res.ok, `${spec.type} ${JSON.stringify(res)}`)
+    if (res.ok) {
+      assert.equal(sum(res.shares.values()), total, spec.type)
+      for (const v of res.shares.values()) assert.ok(Number.isSafeInteger(v) && v * Math.sign(total) >= 0)
+    }
+    byType[spec.type] = (byType[spec.type] || 0) + 1
+  }
+  for (const k of ['equal', 'exact', 'percent', 'shares', 'adjust', 'itemized']) assert.ok(byType[k] > 1000, `${k} under-sampled`)
+})
+
+test('v2 computeShares: splits land where their definitions say', () => {
+  // percent: 100 € at 33.33 / 33.33 / 33.34 %
+  const p = computeShares(10000, { type: 'percent', values: { ana: 3333, ben: 3333, cara: 3334 } }, 's')
+  assert.ok(p.ok); if (p.ok) assert.deepEqual(Object.fromEntries(p.shares), { ana: 3333, ben: 3333, cara: 3334 })
+  // shares 2 : 1 : 1 of 10 €
+  const s = computeShares(1000, { type: 'shares', values: { ana: 2, ben: 1, cara: 1 } }, 's')
+  assert.ok(s.ok); if (s.ok) assert.deepEqual(Object.fromEntries(s.shares), { ana: 500, ben: 250, cara: 250 })
+  // shares 1.5 : 1 of 5 €
+  const h = computeShares(500, { type: 'shares', values: { ana: 1.5, ben: 1 } }, 's')
+  assert.ok(h.ok); if (h.ok) assert.deepEqual(Object.fromEntries(h.shares), { ana: 300, ben: 200 })
+  // adjust: 30 € between three, Ana +6 € for the extra drink → 14 / 8 / 8
+  const a = computeShares(3000, { type: 'adjust', among: ['ana', 'ben', 'cara'], values: { ana: 600 } }, 's')
+  assert.ok(a.ok); if (a.ok) assert.deepEqual(Object.fromEntries(a.shares), { ana: 1400, ben: 800, cara: 800 })
+  // itemized: pizza 12 € (ana, ben), salad 8 € (cara), tax 2 € spread 12:8 → ana 6+0.60, ben 6+0.60, cara 8+0.80
+  const i = computeShares(2200, { type: 'itemized', items: [{ minor: 1200, among: ['ana', 'ben'] }, { minor: 800, among: ['cara'] }], tax: 200 }, 's')
+  assert.ok(i.ok); if (i.ok) assert.deepEqual(Object.fromEntries([...i.shares].sort()), { ana: 660, ben: 660, cara: 880 })
+  // a discount comes off in proportion too
+  const d = computeShares(1800, { type: 'itemized', items: [{ minor: 1000, among: ['ana'] }, { minor: 1000, among: ['ben'] }], discount: 200 }, 's')
+  assert.ok(d.ok); if (d.ok) assert.deepEqual(Object.fromEntries([...d.shares].sort()), { ana: 900, ben: 900 })
+})
+
+test('v2 computeShares: says exactly what is wrong, instead of guessing', () => {
+  const e = (spec: SplitSpec, total = 1000) => { const r = computeShares(total, spec, 's'); return r.ok ? null : r.error }
+  assert.deepEqual(e({ type: 'exact', values: { ana: 500, ben: 400 } }), { code: 'sum_mismatch', diff: -100 })
+  assert.deepEqual(e({ type: 'exact', values: { ana: 600, ben: 500 } }), { code: 'sum_mismatch', diff: 100 })
+  assert.deepEqual(e({ type: 'percent', values: { ana: 5000, ben: 4000 } }), { code: 'percent_total', diff: -1000 })
+  assert.deepEqual(e({ type: 'shares', values: { ana: 1.234 } }), { code: 'bad_value', who: 'ana' })
+  assert.deepEqual(e({ type: 'shares', values: { ana: 0 } }), { code: 'empty' })
+  assert.deepEqual(e({ type: 'adjust', among: ['ana', 'ben'], values: { ana: 1500 } }), { code: 'remainder_negative', diff: 500 })
+  assert.deepEqual(e({ type: 'adjust', among: ['ana'], values: { ben: 100 } }), { code: 'not_in_split', who: 'ben' })
+  assert.deepEqual(e({ type: 'itemized', items: [{ minor: 900, among: ['ana'] }] }), { code: 'sum_mismatch', diff: -100 })
+  assert.deepEqual(e({ type: 'equal', among: [] }), { code: 'empty' })
+  assert.deepEqual(e({ type: 'equal', among: ['ana'] }, MAX_MINOR + 1), { code: 'too_large' })
+  assert.deepEqual(e({ type: 'bogus' as any }), { code: 'unknown_type' })
+})
+
+test('v2 payers: several people can pay one bill, and they must cover it exactly', () => {
+  const ok = computePaid(10000, { ana: 6000, ben: 4000 }, 'ana')
+  assert.ok(ok.ok)
+  assert.deepEqual(computePaid(10000, { ana: 6000, ben: 3000 }, 'ana'), { ok: false, error: { code: 'sum_mismatch', diff: -1000 } })
+  const one = computePaid(10000, null, 'ana')
+  assert.ok(one.ok); if (one.ok) assert.deepEqual([...one.shares], [['ana', 10000]])
+})
+
+test('v2 debts: with several payers, who-owes-whom still adds up to every balance exactly', () => {
+  const r = rng(24)
+  for (let t = 0; t < 5000; t++) {
+    const total = 1 + Math.floor(r() * 100000)
+    const owedR = computeShares(total, randomSpec(r, total), 'o' + t)
+    if (!owedR.ok) continue
+    const payers = pickSome(r)
+    const paid = allocateWeighted(total, payers.map((u) => [u, 1 + Math.floor(r() * 5)] as [string, number]), 'p' + t)
+    const p = { currency: 'EUR', total, paid, owed: owedR.shares }
+    const debts = debtsOf(p, 'd' + t)
+    const net = new Map<string, number>()
+    for (const [u, v] of paid) net.set(u, (net.get(u) || 0) + v)
+    for (const [u, v] of owedR.shares) net.set(u, (net.get(u) || 0) - v)
+    const fromDebts = new Map<string, number>()
+    for (const d of debts) {
+      assert.ok(d.minor > 0 && d.from !== d.to)
+      fromDebts.set(d.to, (fromDebts.get(d.to) || 0) + d.minor)
+      fromDebts.set(d.from, (fromDebts.get(d.from) || 0) - d.minor)
+    }
+    for (const [u, v] of net) assert.equal(fromDebts.get(u) || 0, v, `case ${t} ${u}`)
+  }
+})
+
+test('v2 debts: with one payer, everyone simply owes the payer their share', () => {
+  const p = postingsOf({ id: 'x', amount: 30, currency: 'EUR', paid_by: 'ana', split_among: ['ana', 'ben', 'cara'], split_type: 'shares', split: { values: { ana: 1, ben: 1, cara: 1 } } })!
+  assert.deepEqual(debtsOf(p, 'x').sort((a, b) => a.from.localeCompare(b.from)), [{ from: 'ben', to: 'ana', minor: 1000 }, { from: 'cara', to: 'ana', minor: 1000 }])
+})
+
+test('v2 postings: the database\'s stored shares win, but only when they add up', () => {
+  const base = { id: 'x', amount: 10, currency: 'EUR', paid_by: 'ana', split_among: ['ana', 'ben'] }
+  assert.deepEqual(Object.fromEntries(postingsOf({ ...base, shares: { ana: 700, ben: 300 } })!.owed), { ana: 700, ben: 300 })
+  assert.deepEqual(Object.fromEntries(postingsOf({ ...base, shares: { ana: 700, ben: 200 } })!.owed), { ana: 500, ben: 500 }) // does not add up: ignored
+  assert.equal(postingsOf({ ...base, payers: { ana: 500, ben: 400 } }), null) // payers that do not cover it: unreadable
+})
+
+test('v2 ledger: each currency keeps its own book, and each book sums to zero', () => {
+  const base = { flat_id: 'f', description: '', category: 'x', created_by: '', spent_on: '2026-09-01' }
+  const L = buildLedger([
+    { ...base, id: '1', amount: 90, currency: 'EUR', paid_by: 'ana', split_among: ['ana', 'ben', 'cara'] },
+    { ...base, id: '2', amount: 60, currency: 'EUR', paid_by: 'ben', split_among: ['ana', 'ben'] },
+    { ...base, id: '3', amount: 300, currency: 'SEK', paid_by: 'cara', split_among: ['ana', 'cara'], split_type: 'percent', split: { values: { ana: 7000, cara: 3000 } } },
+    { ...base, id: '4', amount: 50, currency: 'EUR', paid_by: 'ana', split_among: ['ana', 'ben'], deleted_at: '2026-09-02' },
+  ], [{ id: 's', flat_id: 'f', from_user: 'ana', to_user: 'cara', amount: 100, currency: 'SEK', created_by: '', settled_on: '' }])
+  assert.equal(L.currency, 'EUR')
+  assert.deepEqual([...L.books.keys()], ['EUR', 'SEK'])
+  for (const b of L.books.values()) assert.equal(sum(b.netMinor.values()), 0)
+  assert.deepEqual(Object.fromEntries(L.books.get('SEK')!.netMinor), { cara: 11000, ana: -11000 }) // 300 kr, ana 70 % = 210, paid back 100
+  assert.equal(L.excluded.length, 1)
+  assert.equal(L.netMinor.get('ana'), 6000 - 3000) // the deleted 50 € is not counted
+})
+
+test('v2 convertNet: balances in several currencies become one figure that still sums to zero', () => {
+  const r = rng(25)
+  for (let t = 0; t < 3000; t++) {
+    const mk = (c: string) => { const who = pickSome(r, 2); const m = allocateWeighted(Math.floor(r() * 90000), who.map((u) => [u, 1 + Math.floor(r() * 5)] as [string, number]), c + t); const n = new Map<string, number>(); let first = true; for (const [u, v] of m) { n.set(u, first ? -(sum(m.values()) - v) : v); first = false } ; return { currency: c, netMinor: n, net: {}, owes: [] } }
+    const books = [mk('EUR'), mk('SEK'), mk('JPY')]
+    for (const b of books) assert.equal(sum(b.netMinor.values()), 0)
+    const rates = { SEK: '0.0873', JPY: '0.00617' }
+    const { net, missing } = convertNet(books, 'EUR', rates)
+    assert.equal(missing.length, 0)
+    assert.equal(sum(net.values()), 0)
+    for (const [u, v] of net) {
+      const exact = (books[0].netMinor.get(u) || 0) + (books[1].netMinor.get(u) || 0) * 0.0873 + (books[2].netMinor.get(u) || 0) * 0.00617 * 100
+      assert.ok(Math.abs(v - exact) < 1 + 1e-6, `${u}: ${v} vs ${exact}`)
+    }
+  }
+  assert.deepEqual(convertNet([{ currency: 'CHF', netMinor: new Map([['a', 1]]), net: {}, owes: [] }], 'EUR', {}).missing, ['CHF'])
+})
+
+test('v2 recurring: never skips, never doubles, and the 31st stays the 31st', () => {
+  assert.deepEqual([0, 1, 2, 3].map((n) => occurrence('2027-01-31', 'monthly', n)), ['2027-01-31', '2027-02-28', '2027-03-31', '2027-04-30'])
+  assert.equal(occurrence('2028-01-31', 'monthly', 1), '2028-02-29')
+  assert.deepEqual([0, 1, 4].map((n) => occurrence('2028-02-29', 'yearly', n)), ['2028-02-29', '2029-02-28', '2032-02-29'])
+  assert.deepEqual([1, 2].map((n) => occurrence('2026-11-30', 'quarterly', n)), ['2027-02-28', '2027-05-30'])
+  assert.equal(occurrence('2026-12-24', 'biweekly', 1), '2027-01-07')
+  for (const cad of ['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'] as const) {
+    for (const a of ['2026-01-31', '2026-02-28', '2028-02-29', '2026-12-31', '2026-03-15']) {
+      let prev = ''
+      for (let n = 0; n < 60; n++) { const d = occurrence(a, cad, n); assert.ok(d > prev, `${cad} ${a} ${n}`); prev = d }
+    }
+  }
+  // monthly: exactly one occurrence in every calendar month, for five years
+  const months = new Set(Array.from({ length: 60 }, (_, n) => occurrence('2026-01-31', 'monthly', n).slice(0, 7)))
+  assert.equal(months.size, 60)
+  assert.deepEqual(dueOccurrences('2026-09-30', 'monthly', 0, '2026-12-01'), [{ n: 0, date: '2026-09-30' }, { n: 1, date: '2026-10-30' }, { n: 2, date: '2026-11-30' }])
+  assert.deepEqual(dueOccurrences('2026-09-30', 'monthly', 2, '2026-12-31', '2026-12-15'), [{ n: 2, date: '2026-11-30' }])
+})
+
+test('v2 share weights are exact decimals, read the way Postgres reads them', () => {
+  assert.ok(computeShares(1000, { type: 'shares', values: { ana: 0.3, ben: 1.25, cara: 2 } }, 's').ok)
+  assert.deepEqual(computeShares(1000, { type: 'shares', values: { ana: 0.1 + 0.2 } }, 's'), { ok: false, error: { code: 'bad_value', who: 'ana' } })
+  assert.deepEqual(computeShares(1000, { type: 'shares', values: { ana: 1e-7 } }, 's'), { ok: false, error: { code: 'bad_value', who: 'ana' } })
+})

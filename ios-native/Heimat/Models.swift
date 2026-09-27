@@ -10,9 +10,11 @@ struct Flat: Codable, Identifiable, Hashable {
     var joinCode: String
     /// "flat" for the place you live, "group" for people you split with
     var kind: String?
+    /// engine v2: show the fewest payments rather than who owes whom, as a flat setting
+    var simplifyDebts: Bool?
     var isGroup: Bool { kind == "group" }
     var noun: String { isGroup ? "group" : "flat" }
-    enum CodingKeys: String, CodingKey { case id, name, kind, joinCode = "join_code" }
+    enum CodingKeys: String, CodingKey { case id, name, kind, joinCode = "join_code", simplifyDebts = "simplify_debts" }
 }
 
 struct Member: Codable, Identifiable, Hashable {
@@ -56,10 +58,21 @@ struct Expense: Codable, Identifiable, Hashable {
     var category: String?
     var spentOn: String
     var createdBy: String?
+    // engine v2 — absent on rows from before it, and on databases without its migration
+    var splitType: String?
+    var split: SplitData?
+    /// minor units each person paid, when more than one did
+    var payers: [String: Double]?
+    /// minor units each person owes, worked out and stored by the database — the record
+    var shares: [String: Double]?
+    var recurringId: String?
+    var deletedAt: String?
     enum CodingKeys: String, CodingKey {
-        case id, description, amount, currency, category
+        case id, description, amount, currency, category, split, payers, shares
         case flatId = "flat_id", paidBy = "paid_by", splitAmong = "split_among", spentOn = "spent_on", createdBy = "created_by"
+        case splitType = "split_type", recurringId = "recurring_id", deletedAt = "deleted_at"
     }
+    var storedShares: [String: Double]? { shares }
     /// everyone the bill is split between (each once); an empty split means the payer alone
     var parts: [String] { Ledger.participants(self) }
     /// what `uid` is charged for it: whole cents that add up to the total with
@@ -76,7 +89,9 @@ struct Settlement: Codable, Identifiable, Hashable {
     var toUser: String
     var amount: Double
     var settledOn: String
-    enum CodingKeys: String, CodingKey { case id, amount, flatId = "flat_id", fromUser = "from_user", toUser = "to_user", settledOn = "settled_on" }
+    /// nil on rows from before currencies were recorded: the flat's own currency
+    var currency: String?
+    enum CodingKeys: String, CodingKey { case id, amount, currency, flatId = "flat_id", fromUser = "from_user", toUser = "to_user", settledOn = "settled_on" }
 }
 
 extension Settlement: LedgerSettlement {}

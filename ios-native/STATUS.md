@@ -1,6 +1,6 @@
 # Heimat for iOS — where things stand
 
-Last updated: 2026-09-24
+Last updated: 2026-09-26
 
 ## Two apps share this repo
 
@@ -124,8 +124,12 @@ it; a category opens to the expenses behind it.
 
 TestFlight, via Xcode Organizer → Distribute App → TestFlight & App Store.
 
-**Build 7 is live with external testers** — everything below is in their
-hands, not just the simulator.
+**Build 8 is live with testers** (uploaded 24 Sep 2026) — the whole-cent
+ledger (`docs/money-engine.md`). Everything below is in their hands, not just
+the simulator. Engine v2 (Splitwise's split types, several payers, currencies,
+recurring, restore) is in the code and the database but has **no screens yet**;
+a Build 8 phone shows a percentage or itemised expense as an equal split, so
+testers need the build that ships those screens.
 
 **The build number must increase every upload** — bump
 `CURRENT_PROJECT_VERSION` in `project.yml`. Xcode's distribute flow
@@ -250,5 +254,16 @@ the compiled metadata is correct.
 - Invites are email only. SMS would mean Twilio and a per-message cost.
 - The web app can create and see flats but not groups.
 - Headless quick-add from the widget, using `Button(intent:)`.
-- Expense amounts are split evenly and nothing else. Uneven shares, shares by
-  percentage and itemised bills are all Splitwise features this does not have.
+- **Engine v2 needs its screens** — the maths, the database and the tests are
+  done (`docs/money-engine.md`): exact / percent / shares / adjust / itemised
+  splits, several payers, per-currency balances and conversion, recurring
+  expenses, restore deleted, simplify-debts switch, default split per flat.
+  None is reachable from the UI yet. The owner wants a proper UI/UX redesign
+  conversation before building them — the current screens feel cluttered.
+  When building them: every expense UPDATE must send `split_type`, `split` and
+  `payers` (all three, even unchanged) — that is how the server tells a new app
+  from Build 8 and skips the "update Heimat to edit this expense" guard; only
+  the granted columns may be written (see `docs/money-engine.md`, Server-side
+  rules); a server refusal comes back as `split: <code>` with JSON in DETAIL
+  (`not_in_flat`, `sum_mismatch`, `percent_total`, `update_required`, …) and
+  should become a readable message on the field it names.

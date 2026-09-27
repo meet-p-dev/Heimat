@@ -8,11 +8,60 @@ import Foundation
 
 struct E: LedgerExpense, Decodable {
     let id: String; let amount: Double; let currency: String; let paidBy: String; let splitAmong: [String]
-    enum CodingKeys: String, CodingKey { case id, amount, currency, paidBy = "paid_by", splitAmong = "split_among" }
+    var splitType: String? = nil
+    var split: SplitData? = nil
+    var payers: [String: Double]? = nil
+    var storedShares: [String: Double]? = nil
+    var deletedAt: String? = nil
+    enum CodingKeys: String, CodingKey {
+        case id, amount, currency, split, payers, paidBy = "paid_by", splitAmong = "split_among"
+        case splitType = "split_type", storedShares = "shares", deletedAt = "deleted_at"
+    }
 }
 struct S: LedgerSettlement, Decodable {
     let id: String; let amount: Double; let fromUser: String; let toUser: String
-    enum CodingKeys: String, CodingKey { case id, amount, fromUser = "from_user", toUser = "to_user" }
+    var currency: String? = nil
+    enum CodingKeys: String, CodingKey { case id, amount, currency, fromUser = "from_user", toUser = "to_user" }
+}
+struct SpecJ: Decodable {
+    let type: String; var among: [String]?; var values: [String: Double]?; var items: [SplitData.Item]?
+    var tax: Double?, tip: Double?, discount: Double?
+    var spec: Ledger.SplitSpec { Ledger.SplitSpec(type: type, among: among ?? [], values: values ?? [:], items: items ?? [], tax: tax, tip: tip, discount: discount) }
+}
+struct ErrJ: Decodable, Equatable { let code: String; var diff: Int?; var who: String? }
+struct ResJ: Decodable { let ok: Bool; var shares: [String: Int]?; var error: ErrJ? }
+func errJ(_ e: Ledger.SplitError) -> ErrJ {
+    switch e {
+    case .empty: return ErrJ(code: "empty")
+    case .tooLarge: return ErrJ(code: "too_large")
+    case .unknownType: return ErrJ(code: "unknown_type")
+    case .badValue(let who): return ErrJ(code: "bad_value", who: who)
+    case .sumMismatch(let d): return ErrJ(code: "sum_mismatch", diff: d)
+    case .percentTotal(let d): return ErrJ(code: "percent_total", diff: d)
+    case .remainderNegative(let d): return ErrJ(code: "remainder_negative", diff: d)
+    case .notInSplit(let who): return ErrJ(code: "not_in_split", who: who)
+    }
+}
+func matches(_ got: Ledger.SplitResult, _ want: ResJ) -> Bool {
+    switch got {
+    case .ok(let m): return want.ok && m == (want.shares ?? [:])
+    case .failed(let e): return !want.ok && errJ(e) == want.error
+    }
+}
+struct V2: Decodable {
+    struct Weighted: Decodable { let total: Int; let weights: [[WeightEntry]]; let seed: String; let out: [String: Int] }
+    enum WeightEntry: Decodable {
+        case uid(String), w(Int)
+        init(from d: Decoder) throws { let c = try d.singleValueContainer(); if let i = try? c.decode(Int.self) { self = .w(i) } else { self = .uid(try c.decode(String.self)) } }
+    }
+    struct Split: Decodable { let total: Int; let spec: SpecJ; let seed: String; let result: ResJ }
+    struct Paid: Decodable { let total: Int; let payers: [String: Double]?; let paidBy: String; let result: ResJ }
+    struct BookJ: Decodable { let currency: String; let net: [String: Int]; let owes: [T]; let plan: [T] }
+    struct Ledger2: Decodable { let expenses: [E]; let settles: [S]; let currency: String; let excluded: [String]; let invalid: Int; let books: [BookJ] }
+    struct Conv: Decodable { struct B: Decodable { let currency: String; let net: [String: Int] }; let books: [B]; let target: String; let rates: [String: String]; let net: [String: Int]; let missing: [String] }
+    struct Dates: Decodable { let anchor: String; let cadence: String; let dates: [String] }
+    struct Due: Decodable { struct O: Decodable { let n: Int; let date: String }; let anchor: String; let cadence: String; let fromN: Int; let today: String; let until: String?; let out: [O] }
+    let weighted: [Weighted]; let splits: [Split]; let paid: [Paid]; let ledgers2: [Ledger2]; let convert: [Conv]; let dates: [Dates]; let due: [Due]
 }
 struct T: Decodable, Equatable { let from: String; let to: String; let minor: Int }
 struct Vectors: Decodable {
@@ -79,6 +128,45 @@ struct LedgerTests {
             var net: [String: Int] = [:]
             for pair in p.net { if case .uid(let u) = pair[0], case .minor(let m) = pair[1] { net[u] = m } }
             expect(Ledger.plan(net, "EUR").map { T(from: $0.from, to: $0.to, minor: $0.minor) } == p.plan, "plan \(i) differs")
+        }
+        // engine v2
+        let v2 = try JSONDecoder().decode(V2.self, from: Data(contentsOf: root))
+        for (i, c) in v2.weighted.enumerated() {
+            let w: [(String, Int)] = c.weights.compactMap { e in
+                guard e.count == 2, case .uid(let u) = e[0], case .w(let x) = e[1] else { return nil }
+                return (u, x)
+            }
+            expect(Ledger.allocateWeighted(c.total, w, seed: c.seed) == c.out, "weighted \(i)")
+        }
+        for (i, c) in v2.splits.enumerated() {
+            let got = Ledger.computeShares(c.total, c.spec.spec, seed: c.seed)
+            expect(matches(got, c.result), "split \(i) (\(c.spec.type)): got \(got)")
+        }
+        for (i, c) in v2.paid.enumerated() { expect(matches(Ledger.computePaid(c.total, c.payers, paidBy: c.paidBy), c.result), "payers \(i)") }
+        for (i, l) in v2.ledgers2.enumerated() {
+            let b = Ledger.build(l.expenses, l.settles)
+            expect(b.currency == l.currency, "ledger2 \(i): currency")
+            expect(b.excluded == l.excluded, "ledger2 \(i): excluded")
+            expect(b.invalid == l.invalid, "ledger2 \(i): invalid")
+            expect(b.books.map(\.currency) == l.books.map(\.currency), "ledger2 \(i): books \(b.books.map(\.currency)) vs \(l.books.map(\.currency))")
+            for (got, want) in zip(b.books, l.books) {
+                expect(got.netMinor.filter { $0.value != 0 } == want.net.filter { $0.value != 0 }, "ledger2 \(i) \(want.currency): net")
+                expect(got.owes.map { T(from: $0.from, to: $0.to, minor: $0.minor) } == want.owes, "ledger2 \(i) \(want.currency): owes")
+                expect(Ledger.plan(got.netMinor, got.currency).map { T(from: $0.from, to: $0.to, minor: $0.minor) } == want.plan, "ledger2 \(i) \(want.currency): plan")
+            }
+        }
+        for (i, c) in v2.convert.enumerated() {
+            let books = c.books.map { Ledger.CurrencyBook(currency: $0.currency, netMinor: $0.net, net: [:], owes: []) }
+            let got = Ledger.convert(books, to: c.target, rates: c.rates)
+            expect(got.net == c.net && got.missing == c.missing, "convert \(i): \(got.net) vs \(c.net)")
+        }
+        for c in v2.dates {
+            let got = (0..<c.dates.count).map { Ledger.occurrence(c.anchor, c.cadence, $0) }
+            expect(got == c.dates, "dates \(c.cadence) from \(c.anchor): \(zip(got, c.dates).first { $0 != $1 }.map { "\($0) vs \($1)" } ?? "")")
+        }
+        for c in v2.due {
+            let got = Ledger.dueOccurrences(c.anchor, c.cadence, from: c.fromN, today: c.today, until: c.until)
+            expect(got.map(\.n) == c.out.map(\.n) && got.map(\.date) == c.out.map(\.date), "due \(c.anchor)")
         }
         let vectorChecks = checks
 

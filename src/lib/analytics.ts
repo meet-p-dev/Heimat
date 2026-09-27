@@ -60,8 +60,8 @@ export function byMember(expenses: Expense[], members: Member[]): { uid: string;
 
 /* your personal share = the sum of your slice of each expense you're split into,
    as the ledger allocates it (so 10 € between three is 3,34 for one of you) */
-export function myShareTotal(expenses: Expense[], uid: string | null): number {
-  return toMajor(myShareMinor(expenses, uid))
+export function myShareTotal(expenses: Expense[], uid: string | null, currency?: string): number {
+  return toMajor(myShareMinor(expenses, uid, currency), currency)
 }
 
 export function total(expenses: Expense[]): number {
