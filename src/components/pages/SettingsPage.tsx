@@ -9,7 +9,7 @@ import { DEFAULT_PREFS } from '../../lib/prefs'
 import { fixDe, rateDe, numVal, relDay, tod } from '../../lib/format'
 import { fetchRate } from '../../lib/rates'
 import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } from '../../lib/push'
-import { isNative, openExternal, webOrigin, copyText } from '../../lib/native'
+import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, TINT } from '../ui'
 import { LifeSettingsItem } from '../Life'
@@ -110,7 +110,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       <Group T={T} title="Your Splitlife" footer="Only the parts that fit you are shown. Hiding one never deletes anything.">
         <LifeSettingsItem T={T} profile={profile} sProfile={sProfile} />
       </Group>
-      <Group T={T} title="Appearance" footer="Reduce transparency swaps the glass for solid surfaces — easier to read in bright light, and lighter on the battery.">
+      <Group T={T} title="Appearance" footer={isNativeAndroid ? undefined : "Reduce transparency swaps the glass for solid surfaces — easier to read in bright light, and lighter on the battery."}>
         <div className="h-item" style={{ display: 'block', paddingTop: 13, paddingBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 12 }}>
             <span className="h-item-ic" style={{ background: TINT.indigo }}><Palette size={17} /></span>
@@ -118,7 +118,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
           </div>
           <SegmentedControl T={T} label="Theme" options={THEMES} value={prefs.theme} onChange={(v) => set('theme', v)} />
         </div>
-        <Item T={T} icon={Droplets} tint={TINT.teal} label="Reduce transparency" right={<Toggle label="Reduce transparency" on={prefs.reduceGlass} onChange={(v) => set('reduceGlass', v)} />} />
+{!isNativeAndroid && <Item T={T} icon={Droplets} tint={TINT.teal} label="Reduce transparency" right={<Toggle label="Reduce transparency" on={prefs.reduceGlass} onChange={(v) => set('reduceGlass', v)} />} />}
       </Group>
 
       <Group T={T} title="Notifications">

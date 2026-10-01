@@ -7,6 +7,8 @@ import type { CSSProperties, ReactNode } from 'react'
 export const canRefract: boolean = (() => {
   try {
     const ua = navigator.userAgent
+    // the Android app wears Material's solid surfaces instead (index.css, data-os=android)
+    if ((window as any).Capacitor?.getPlatform?.() === 'android') return false
     if (/iPhone|iPad|iPod/.test(ua) || !/Chrome\/|Chromium\//.test(ua)) return false
     return CSS.supports('backdrop-filter', 'url(#a)')
   } catch {

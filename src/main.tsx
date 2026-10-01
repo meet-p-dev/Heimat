@@ -3,11 +3,13 @@ import { registerSW } from 'virtual:pwa-register'
 import 'flag-icons/css/flag-icons.min.css'
 import './index.css'
 import App from './App'
-import { initNative } from './lib/native'
+import { initNative, isNativeAndroid } from './lib/native'
 import { loadPrefs, resolveDark, applyThemeToDocument } from './lib/prefs'
 
 // theme and status bar before the first paint, so neither the page nor the
 // native shell flashes the wrong colour on launch
+// the Android app wears a quiet Material look instead of the iPhone's glass (index.css)
+if (isNativeAndroid) document.documentElement.dataset.os = 'android'
 const prefs = loadPrefs()
 const dark = resolveDark(prefs)
 applyThemeToDocument(dark, prefs.reduceGlass)

@@ -27,7 +27,7 @@ export function ChoresSection({ c, flatId }: { c: ChoresCtx; flatId: string }) {
     <div style={{ marginBottom: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px' }}>Chores</div>
       {asks.map((s) => <SwapAsk key={s.id} c={c} s={s} />)}
-      <div className="h-group">
+      <div className="glass h-group">
         {list.map((x) => <ChoreRowView key={x.id} c={c} chore={x} act={() => setActing(x)} />)}
         {top.length > 0 && (
           <div className="h-item" style={{ '--inset': '58px', fontSize: 13.5, fontWeight: 550 } as React.CSSProperties}>
@@ -95,7 +95,7 @@ function ChoreActions({ c, chore, onClose }: { c: ChoresCtx; chore: Chore | null
       {mine && t.now && (
         <>
           <div style={{ fontSize: 13.5, color: T.txt2, margin: '0 4px 12px', lineHeight: 1.5 }}>Skip passes it on and your turn comes back next time. A swap changes only when they say yes.</div>
-          <div className="h-group" style={{ marginBottom: 16 }}>
+          <div className="glass h-group" style={{ marginBottom: 16 }}>
             {t.next?.assignee && t.next.assignee !== c.uid && (
               <button type="button" className="h-item" onClick={() => go('chore_skip', { p_chore: chore!.id, p_n: t.now!.n }, 'Skipped — it comes back to you next time')}>Skip this turn</button>
             )}

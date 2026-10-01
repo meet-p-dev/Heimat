@@ -25,7 +25,7 @@ export function BillsSection({ b, flatId }: { b: BillsCtx; flatId: string | null
   return (
     <div style={{ marginBottom: 22 }}>
       <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px' }}>Bills</div>
-      <div className="h-group">
+      <div className="glass h-group">
         {list.map((x) => <BillRowView key={x.id} b={b} bill={x} />)}
         <button type="button" className="h-item" disabled={!b.uid} onClick={() => { haptic(8); b.edit(null, flatId) }} style={{ color: T.acc, fontWeight: 650 }}>
           <PlusCircle size={20} />
@@ -172,7 +172,7 @@ export function BillModal({ b, open, onClose, editing, flatId, save, remove }: {
           </select>
         </Field>
       )}
-      <div className="h-group" style={{ marginBottom: 8 }}>
+      <div className="glass h-group" style={{ marginBottom: 8 }}>
         <div className="h-item"><span style={{ flex: 1 }}>It's a contract that renews itself</span><Toggle label="Contract" on={contract} onChange={setContract} /></div>
       </div>
       <div style={{ fontSize: 12.5, color: T.txt3, margin: '0 4px 16px' }}>{contract ? 'We remind you four weeks and one week before the last day to cancel.' : 'Internet, phone or gym contracts often renew unless you cancel in time.'}</div>

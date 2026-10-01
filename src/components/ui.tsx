@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { X, Globe, ChevronRight, ChevronLeft, Eye, EyeOff, Minus, Plus } from 'lucide-react'
+import { isNativeAndroid } from '../lib/native'
+import { X, Globe, ChevronRight, ChevronLeft, ArrowLeft, Eye, EyeOff, Minus, Plus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Theme } from '../lib/types'
 import { haptic } from '../lib/haptic'
@@ -274,7 +275,7 @@ export function Page({ T, title, onBack, right, top, children, z = 200, close }:
   return (
     <div className="h-page h-aurora" style={{ zIndex: z, color: T.txt }}>
       <div className="h-pagehdr">
-        <IconBtn label={close ? 'Close' : 'Back'} onClick={onBack}>{close ? <X size={20} /> : <ChevronLeft size={23} />}</IconBtn>
+        <IconBtn label={close ? 'Close' : 'Back'} onClick={onBack}>{close ? <X size={20} /> : isNativeAndroid ? <ArrowLeft size={22} /> : <ChevronLeft size={23} />}</IconBtn>
         <div className="h-pagehdr-t">{title}</div>
         <div style={{ minWidth: 42, display: 'flex', justifyContent: 'flex-end' }}>{right}</div>
       </div>
