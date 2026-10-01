@@ -64,18 +64,28 @@ type Preview = {
   open: boolean
 }
 
+// An expense between friends (kind 'direct') has no flat or group to name: its
+// "name" is just the people in it, so the page talks about the expense instead.
+const isDirect = (p: Preview) => p.flat_kind === 'direct'
+// where it all is, for the sentences that end "…will be there"
+const place = (p: Preview) => (isDirect(p) ? 'everything they split with you' : esc(p.flat_name || 'the group'))
+
 /* ── 1. the question ── */
 function ask(p: Preview) {
   const noun = p.flat_kind === 'flat' ? 'flat' : 'group'
   shell(
-    `${esc(p.inviter || 'Someone')} wants to split with you`,
-    `<p style="${pStyle}">They've added you to the ${noun} <strong style="color:${T.txt}">${esc(p.flat_name || 'a group')}</strong> on Heimat, where a few people keep track of what they've paid for and who owes what.</p>
-     <p style="${pStyle}">Your share of anything they've already added is counted from now. Join to see it.</p>
+    isDirect(p) ? `${esc(p.inviter || 'Someone')} added an expense with you` : `${esc(p.inviter || 'Someone')} wants to split with you`,
+    (isDirect(p)
+      ? `<p style="${pStyle}">They're using Heimat to keep track of what you share — who paid for what, and who owes whom.</p>
+     <p style="${pStyle}">Your share is already counted. Join to see it.</p>`
+      : `<p style="${pStyle}">They've added you to the ${noun} <strong style="color:${T.txt}">${esc(p.flat_name || 'a group')}</strong> on Heimat, where a few people keep track of what they've paid for and who owes what.</p>
+     <p style="${pStyle}">Your share of anything they've already added is counted from now. Join to see it.</p>`) +
+    `
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <button id="yes" style="${btnStyle(true)}">Accept and join</button>
      <button id="no" style="${ghostStyle}">No thanks</button>
      <a href="heimat://invite/${encodeURIComponent(token)}" style="${linkStyle}">Already have the Heimat app? Open it there</a>
-     <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">Saying no removes you from the ${noun} and from anything you were split into. Nobody is told.</p>`,
+     <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">${isDirect(p) ? 'Saying no takes you out of what they split with you.' : `Saying no removes you from the ${noun} and from anything you were split into.`} Nobody is told.</p>`,
   )
   const err = document.getElementById('err') as HTMLDivElement
   document.getElementById('yes')!.onclick = () => signUp(p)
@@ -93,7 +103,9 @@ function ask(p: Preview) {
     }
     shell(
       'That’s done',
-      `<p style="${pStyle}">You've been taken out of ${esc(p.flat_name || 'the group')}, along with anything you were split into. You can close this page.</p>`,
+      isDirect(p)
+        ? `<p style="${pStyle}">You've been taken out of what they split with you. You can close this page.</p>`
+        : `<p style="${pStyle}">You've been taken out of ${esc(p.flat_name || 'the group')}, along with anything you were split into. You can close this page.</p>`,
     )
   }
 }
@@ -103,7 +115,7 @@ function signUp(p: Preview) {
   const noun = p.flat_kind === 'flat' ? 'flat' : 'group'
   shell(
     'Set up your account',
-    `<p style="${pStyle}">One account, and ${esc(p.flat_name || 'the ' + noun)} is yours on any device you sign in on.</p>
+    `<p style="${pStyle}">One account, and ${isDirect(p) ? 'everything they split with you' : esc(p.flat_name || 'the ' + noun)} is yours on any device you sign in on.</p>
      <input id="nm" type="text" autocomplete="name" placeholder="Your name" value="${esc(p.invited_name || '')}" style="${inputStyle}"/>
      <input id="em" type="email" autocomplete="email" inputmode="email" placeholder="Email" value="${esc(p.invited_email || '')}" style="${inputStyle}"/>
      <input id="pw" type="password" autocomplete="new-password" placeholder="Password, at least 8 characters" style="${inputStyle}"/>
@@ -157,7 +169,7 @@ function signUp(p: Preview) {
 function confirmFirst(email: string, p: Preview) {
   shell(
     'Check your inbox',
-    `<p style="${pStyle}">We've sent a link to <strong style="color:${T.txt}">${esc(email)}</strong>. Open it to confirm your account, and ${esc(p.flat_name || 'the group')} will be there when you sign in.</p>
+    `<p style="${pStyle}">We've sent a link to <strong style="color:${T.txt}">${esc(email)}</strong>. Open it to confirm your account, and ${place(p)} will be there when you sign in.</p>
      <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Heimat</a>`,
   )
   homeScreen()
@@ -166,7 +178,7 @@ function confirmFirst(email: string, p: Preview) {
 /* ── 3. keeping it ── */
 function installed(p: Preview) {
   shell(
-    `You’re in ${esc(p.flat_name || 'the group')}`,
+    isDirect(p) ? 'You’re all set' : `You’re in ${esc(p.flat_name || 'the group')}`,
     `<p style="${pStyle}">Everything they've split with you is there now.</p>
      <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Heimat</a>`,
   )
