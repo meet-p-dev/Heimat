@@ -1,12 +1,14 @@
-/* Draws the Heimat mark (the same one as public/favicon.svg) at store sizes.
-   No image libraries: the mark is a rounded rect plus three round-capped
-   strokes, so it is drawn from signed distance fields and written out as PNG.
+/* Draws the Splitlife mark (the same one as public/favicon.svg) at store sizes:
+   an S made of two separate arcs, green over mint — two people, one split.
+   No image libraries: each arc is a ring with a quarter cut away, so it is
+   drawn from signed distance fields and written out as PNG.
    Run with `npm run assets:source`, then `npx @capacitor/assets generate`. */
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync, existsSync } from 'node:fs'
 
 const BG = [0x0c, 0x11, 0x10]      // #0c1110 — the app's dark ground
-const ACC = [0x3d, 0xdc, 0x97]     // #3ddc97 — Heimat green
+const ACC = [0x3d, 0xdc, 0x97]     // #3ddc97 — Splitlife green
+const MINT = [0xd9, 0xfb, 0xec]    // #d9fbec — the other half
 
 /* ---- tiny PNG writer ---- */
 const crcTable = Array.from({ length: 256 }, (_, n) => {
@@ -74,16 +76,16 @@ const paint = (buf, w, h, color, sd) => {
   }
 }
 
-/* the mark, in the favicon's own 64-unit coordinate space, centred on the canvas */
-const drawMark = (buf, w, h, size, color = ACC, cx = w / 2, cy = h / 2) => {
-  const u = size / 64 // one favicon unit in pixels
-  const X = (v) => cx + (v - 32) * u
-  const Y = (v) => cy + (v - 32) * u
-  const r = 3 * u    // stroke-width 6, round caps
-  const strokes = [[21, 17, 21, 47], [43, 17, 43, 47], [21, 32, 43, 32]]
-  for (const [ax, ay, bx, by] of strokes) {
-    paint(buf, w, h, color, (px, py) => sdCapsule(px, py, X(ax), Y(ay), X(bx), Y(by), r))
-  }
+/* the mark, in the favicon's own 64-unit coordinate space, centred on the canvas:
+   two rings of radius 9.6 and width 5.76, 2.56 apart; the top one misses its
+   bottom-right quarter, the bottom one its top-left (favicon.svg draws the same) */
+const drawMark = (buf, w, h, size, color = ACC, cx = w / 2, cy = h / 2, color2 = color === ACC ? MINT : color) => {
+  const u = size / 64
+  const r = 9.6 * u, half = 2.88 * u
+  const ring = (px, py) => Math.abs(Math.hypot(px, py) - r) - half
+  const topY = cy + (21.12 - 32) * u, botY = cy + (42.88 - 32) * u
+  paint(buf, w, h, color, (x, y) => { const px = x - cx, py = y - topY; return Math.max(ring(px, py), Math.min(px, py)) })
+  paint(buf, w, h, color2, (x, y) => { const px = x - cx, py = y - botY; return Math.max(ring(px, py), Math.min(-px, -py)) })
 }
 
 mkdirSync('assets', { recursive: true })

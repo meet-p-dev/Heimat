@@ -16,11 +16,11 @@ const FEATURES = [
   { Icon: Clock, tint: TINT.orange, title: 'Shifts and your work limit', body: "Log shifts, see your pay and stay under a student visa's hours." },
 ]
 
-/* the "H" mark from the app icon, as a glass tile */
+/* the Splitlife "S" from the app icon, as a glass tile */
 export function AppMark({ T, size = 76 }: { T: Theme; size?: number }) {
   return (
     <div className="glass" style={{ width: size, height: size, borderRadius: size * 0.3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 64 64" aria-hidden="true"><path d="M17 12v40M47 12v40M17 32h30" stroke={T.acc} strokeWidth="8" strokeLinecap="round" fill="none" /></svg>
+      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 64 64" aria-hidden="true"><g fill="none" strokeWidth="5.76"><path d="M41.6 21.12A9.6 9.6 0 1 0 32 30.72" stroke={T.acc} /><path d="M32 33.28A9.6 9.6 0 1 1 22.4 42.88" stroke={T.acc} strokeOpacity={0.45} /></g></svg>
     </div>
   )
 }
