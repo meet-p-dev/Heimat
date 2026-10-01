@@ -469,30 +469,43 @@ final class AppModel {
 
     // MARK: expenses & settling
 
-    private struct NewExpense: Encodable {
-        /// made on the phone, so the split shown before saving is the split saved (see Ledger.allocate)
-        let id: String?
-        let flat_id: String, description: String, amount: Double, currency: String, paid_by: String
-        let split_among: [String], category: String, created_by: String?, spent_on: String
-    }
-    private struct ExpenseChange: Encodable {
+    /// An expense as the apps may write it. `split` and `payers` go out even when
+    /// empty (as null): sending split_type, split and payers on every update is how
+    /// the server tells this app from Build 8 and older (docs/money-engine.md).
+    private struct ExpenseRow: Encodable {
+        /// made on the phone, so the split shown before saving is the split saved (see Ledger.allocate); insert only
+        var id: String? = nil
+        var flat_id: String? = nil, currency: String? = nil, created_by: String? = nil
         let description: String, amount: Double, paid_by: String, split_among: [String], category: String, spent_on: String
+        let split_type: String, split: SplitData?, payers: [String: Int]?
+        enum CodingKeys: CodingKey { case id, flat_id, currency, created_by, description, amount, paid_by, split_among, category, spent_on, split_type, split, payers }
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encodeIfPresent(id, forKey: .id); try c.encodeIfPresent(flat_id, forKey: .flat_id)
+            try c.encodeIfPresent(currency, forKey: .currency); try c.encodeIfPresent(created_by, forKey: .created_by)
+            try c.encode(description, forKey: .description); try c.encode(amount, forKey: .amount)
+            try c.encode(paid_by, forKey: .paid_by); try c.encode(split_among, forKey: .split_among)
+            try c.encode(category, forKey: .category); try c.encode(spent_on, forKey: .spent_on)
+            try c.encode(split_type, forKey: .split_type)
+            try c.encode(split, forKey: .split); try c.encode(payers, forKey: .payers)   // null, not left out
+        }
+    }
+    private func row(_ d: ExpenseDraft) -> ExpenseRow {
+        ExpenseRow(description: d.desc, amount: d.amount, paid_by: d.paidBy, split_among: d.among, category: d.category, spent_on: d.spentOn,
+                   split_type: d.splitType, split: d.split, payers: d.payers)
     }
 
     func addExpense(_ d: ExpenseDraft) async {
         // the draft carries its own flat: Home can add to any of them
         guard let id = d.flatId ?? flatId else { return }
-        await run("Expense added") {
-            try await self.client.from("expenses").insert(NewExpense(id: d.id, flat_id: id, description: d.desc, amount: d.amount, currency: self.hostCur, paid_by: d.paidBy,
-                                                                     split_among: d.among, category: d.category, created_by: self.uid, spent_on: d.spentOn)).execute()
-        }
+        var r = row(d)
+        r.id = d.id; r.flat_id = id; r.currency = hostCur; r.created_by = uid
+        await run("Expense added") { try await self.client.from("expenses").insert(r).execute() }
     }
 
     func updateExpense(_ id: String, _ d: ExpenseDraft) async {
-        await run("Expense updated") {
-            try await self.client.from("expenses").update(ExpenseChange(description: d.desc, amount: d.amount, paid_by: d.paidBy, split_among: d.among,
-                                                                        category: d.category, spent_on: d.spentOn)).eq("id", value: id).execute()
-        }
+        let r = row(d)
+        await run("Expense updated") { try await self.client.from("expenses").update(r).eq("id", value: id).execute() }
     }
 
     func deleteExpense(_ id: String) async {

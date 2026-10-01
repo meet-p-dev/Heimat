@@ -131,6 +131,14 @@ recurring, restore) is in the code and the database but has **no screens yet**;
 a Build 8 phone shows a percentage or itemised expense as an equal split, so
 testers need the build that ships those screens.
 
+**Build 10 is archived** (27 Sep 2026, not yet uploaded; Build 9 was archived
+earlier the same day without the split screens and is superseded): the expense
+form splits every way engine v2 can — Equal, Exact, %, Shares, ± and Items — and
+takes several payers (`SplitEditor.swift`); every save sends `split_type`,
+`split` and `payers`; engine v2 parity in `Ledger.swift`; Siri no longer offers
+people who have left. Still without screens: recurring, restore, the simplify
+switch and a flat's default split.
+
 **The build number must increase every upload** — bump
 `CURRENT_PROJECT_VERSION` in `project.yml`. Xcode's distribute flow
 auto-increments on the way out, so the number on App Store Connect can run

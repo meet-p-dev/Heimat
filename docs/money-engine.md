@@ -114,7 +114,7 @@ There is no local Postgres, no `psql`, and the local `supabase` CLI is logged in
 3. Deploy `supabase/functions/push` (it reads the new payload — currency, payers, shares with zeros — and still works with the old one).
 4. Only then push the web and iOS changes to `main` / upload a build.
 
-Status (2026-09-27): reviewed adversarially three times (≈60 confirmed findings, all fixed), rehearsed on production 88/90 (the two misses were mistakes in the test, since fixed and re-checked on the live functions), **applied** (migration `engine_v2`). After applying: every balance unchanged (fingerprint `6009e767…` before and after), all 118 expenses' shares add up, amounts/payers/splits unchanged, function bodies identical to the file (md5 `247a9b55…`), `engine_v2_vectors.sql` 12/12 + 90/90, cron `5 6-21 * * *`. Push function v7 deployed. Next: commit and push the web/iOS changes (steps 1–3 are done).
+Status (2026-09-27): reviewed adversarially three times (≈60 confirmed findings, all fixed), rehearsed on production 88/90 (the two misses were mistakes in the test, since fixed and re-checked on the live functions), **applied** (migration `engine_v2`). After applying: every balance unchanged (fingerprint `6009e767…` before and after), all 118 expenses' shares add up, amounts/payers/splits unchanged, function bodies identical to the file (md5 `247a9b55…`), `engine_v2_vectors.sql` 12/12 + 90/90, cron `5 6-21 * * *`. Push function v7 deployed. Web and iOS changes pushed as `8c39e0f` (web deployed); iOS Build 10 (split types and several payers in the expense form) archived 2026-09-27 for TestFlight.
 
 ## Known follow-ups (for the screens that use v2)
 

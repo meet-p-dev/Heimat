@@ -11,6 +11,11 @@ struct ExpenseDraft {
     var among: [String]
     var category: String
     var spentOn: String
+    /// engine v2: how it is split (equal, exact, percent, shares, adjust, itemized) and the figures for it
+    var splitType = "equal"
+    var split: SplitData? = nil
+    /// minor units each person paid, when more than one did
+    var payers: [String: Int]? = nil
 }
 
 struct ExpenseForm: View {
@@ -21,7 +26,7 @@ struct ExpenseForm: View {
     @State private var amount = ""
     @State private var desc = ""
     @State private var payer = ""
-    @State private var among: Set<String> = []
+    @State private var split = SplitState()
     @State private var cat = "groceries"
     @State private var date = Date()
     @State private var confirmDelete = false
@@ -39,10 +44,15 @@ struct ExpenseForm: View {
     var body: some View {
         let cur = editing?.currency ?? m.hostCur
         let v = Fmt.amount(amount, cur)
+        let total = Money.toMinor(v, cur) ?? 0
+        let seed = editing?.id ?? draftId
         // exactly what each person will be charged: whole cents that add up to the total
-        let shares = Ledger.allocate(Money.toMinor(v, cur) ?? 0, Array(among), seed: editing?.id ?? draftId)
-        let valid = v > 0 && !among.isEmpty && !payer.isEmpty && !target.isEmpty
-        let everyone = among.count == people.count
+        let built = split.build(cur)
+        let result = Ledger.computeShares(total, built.spec, seed: seed)
+        let paid = split.payers(cur)
+        let paidOK = split.severalPaid ? paid.map { !$0.isEmpty && $0.values.reduce(0, +) == total } ?? false : !payer.isEmpty
+        let splitOK = built.unreadable == nil && { if case .ok = result { true } else { false } }()
+        let valid = v > 0 && splitOK && paidOK && !target.isEmpty
         NavigationStack {
             Form {
                 Section {
@@ -69,37 +79,19 @@ struct ExpenseForm: View {
                     }
                     Picker("Category", selection: $cat) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
-                    Picker("Paid by", selection: $payer) { ForEach(people) { Text(m.nameOf($0.userId, in: target)).tag($0.userId) } }
+                    Picker("Paid by", selection: payerChoice) {
+                        ForEach(people) { Text(m.nameOf($0.userId, in: target)).tag($0.userId) }
+                        Divider()
+                        Text("Several people").tag(Self.several)
+                    }
                 } footer: {
                     Button("Edit categories") { m.sheet = .categories }.font(.footnote)
                 }
-                Section {
-                    ForEach(people) { mem in
-                        let on = among.contains(mem.userId)
-                        Button {
-                            Haptic.tap()
-                            if on { among.remove(mem.userId) } else { among.insert(mem.userId) }
-                        } label: {
-                            HStack(spacing: 12) {
-                                AvatarView(name: mem.displayName, seed: mem.userId, size: 30)
-                                Text(m.nameOf(mem.userId, in: target)).foregroundStyle(.primary)
-                                Spacer()
-                                if on { Text(Fmt.money(Money.toMajor(shares[mem.userId] ?? 0, cur), cur)).monospacedDigit().foregroundStyle(.secondary) }
-                                Image(systemName: on ? "checkmark.circle.fill" : "circle")
-                                    .font(.title3).foregroundStyle(on ? Color.accentColor : Color.secondary)
-                            }
-                        }
-                    }
-                } header: {
-                    HStack {
-                        Text("Split between · \(among.count)")
-                        Spacer()
-                        Button(everyone ? "Just me" : "Everyone") {
-                            among = everyone ? Set([m.uid].compactMap { $0 }) : Set(people.map(\.userId))
-                        }
-                        .font(.footnote.weight(.semibold)).textCase(nil)
-                    }
+                if split.severalPaid {
+                    PayersEditor(s: $split, people: people, total: total, cur: cur, name: { m.nameOf($0, in: target) })
                 }
+                SplitEditor(s: $split, people: people, total: total, cur: cur, seed: seed, result: result, unreadable: built.unreadable,
+                            name: { m.nameOf($0, in: target) }, setTotal: { amount = Money.input($0, cur) })
                 if editing != nil {
                     Section { Button("Delete expense", role: .destructive) { confirmDelete = true } }
                 }
@@ -111,8 +103,18 @@ struct ExpenseForm: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(editing == nil ? "Add" : "Save") {
-                        let d = ExpenseDraft(id: editing == nil ? draftId : nil, flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: payer,
-                                             among: Array(among), category: cat, spentOn: Fmt.ymd(date))
+                        guard case .ok(let owed) = result else { return }
+                        // several payers only when it really was several; paid_by is the one who put down most
+                        let payers = split.severalPaid ? paid ?? [:] : [:]
+                        let paidBy = payers.count > 1
+                            ? payers.sorted { $0.value != $1.value ? $0.value > $1.value : Ledger.less($0.key, $1.key) }[0].key
+                            : payers.first?.key ?? payer
+                        // equal and adjusted splits are worked out from who is ticked; the rest from their figures
+                        let among = split.mode == .equal || split.mode == .adjust
+                            ? split.among.sorted(by: Ledger.less) : owed.keys.sorted(by: Ledger.less)
+                        let d = ExpenseDraft(id: editing == nil ? draftId : nil, flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: paidBy,
+                                             among: among, category: cat, spentOn: Fmt.ymd(date), splitType: split.mode.rawValue,
+                                             split: split.data(built.spec), payers: payers.count > 1 ? payers : nil)
                         Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
                         dismiss()
                     }
@@ -126,20 +128,41 @@ struct ExpenseForm: View {
                 if let e = editing {
                     target = e.flatId
                     amount = Money.input(Money.toMinor(e.amount, e.currency) ?? 0, e.currency); desc = e.description ?? ""; payer = e.paidBy
-                    among = Set(e.splitAmong); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
+                    split = SplitState.from(e); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
                 } else {
                     target = m.flatId ?? m.flats.first?.id ?? ""
                     desc = prefill?.desc ?? ""; cat = prefill?.category ?? "groceries"
-                    payer = m.uid ?? ""; among = Set(people.map(\.userId))
+                    payer = m.uid ?? ""; split = SplitState(among: Set(people.map(\.userId)))
                 }
             }
+            // a new way of splitting starts from where the equal split stood
+            .onChange(of: split.mode) { _, mode in split.start(mode, total: total, cur: cur, seed: seed) }
+            .scrollDismissesKeyboard(.interactively)
             // a different flat means different people, so the split starts over
             .onChange(of: target) { _, _ in
                 guard editing == nil else { return }
                 payer = m.uid ?? ""
-                among = Set(people.map(\.userId))
+                split = SplitState(among: Set(people.map(\.userId)))
             }
         }
+    }
+}
+
+extension ExpenseForm {
+    static let several = "\u{0}several"
+
+    /// "Paid by" is one person, or "Several people", which opens a row per person
+    private var payerChoice: Binding<String> {
+        Binding(get: { split.severalPaid ? Self.several : payer }, set: { v in
+            if v == Self.several {
+                // start from what was there: the one payer paid it all
+                if split.payers(editing?.currency ?? m.hostCur)?.isEmpty ?? true { split.paid = payer.isEmpty ? [:] : [payer: amount] }
+                split.severalPaid = true
+            } else {
+                split.severalPaid = false
+                payer = v
+            }
+        })
     }
 }
 
@@ -162,13 +185,20 @@ struct ExpenseDetailView: View {
                 }
                 .listRowBackground(Color.clear)
                 Section {
-                    LabeledContent("Paid by", value: m.nameOf(expense.paidBy))
+                    if let p = Ledger.postings(expense), p.paid.count > 1 {
+                        // several people paid: each of them, most first
+                        ForEach(p.paid.sorted { $0.value != $1.value ? $0.value > $1.value : Ledger.less($0.key, $1.key) }, id: \.key) { u, minor in
+                            LabeledContent("Paid by \(m.nameOf(u))", value: Fmt.money(Money.toMajor(minor, expense.currency), expense.currency))
+                        }
+                    } else {
+                        LabeledContent("Paid by", value: m.nameOf(expense.paidBy))
+                    }
                     LabeledContent("Category", value: c.label)
                     LabeledContent("Date", value: Fmt.relDay(expense.spentOn))
                     LabeledContent("Added by", value: expense.createdBy.map(m.nameOf) ?? "—")
                 } footer: { Text("Only the person who added it or the payer can edit it.") }
                 // whole cents that add up to the total above (10 € between three: 3,34 + 3,33 + 3,33)
-                Section("Split between · \(expense.parts.count)") {
+                Section("Split \((SplitMode(rawValue: expense.splitType ?? "equal") ?? .equal).title) · \(Ledger.shares(expense).count)") {
                     ForEach(Ledger.shares(expense), id: \.uid) { u, minor in
                         HStack(spacing: 12) {
                             AvatarView(name: m.nameOf(u), seed: u, size: 30)
