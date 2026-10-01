@@ -370,8 +370,20 @@ struct SettingsView: View {
         .confirmationDialog("Clear the shifts stored on this phone? Your account, profile and flats aren't affected.", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Clear data", role: .destructive) { m.clearLocal() }
         }
-        .confirmationDialog("Delete your Splitlife account? You leave every flat and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
+        .confirmationDialog("Delete your Splitlife account? You leave every group and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete account", role: .destructive) { Task { if let e = await m.deleteAccount() { m.show(e) } } }
+        } message: {
+            // money still open somewhere: say where, and how it can come back
+            let open = (m.flats + m.circles).compactMap { f -> String? in
+                let b = m.myBalance(in: f.id)
+                guard b.minor != 0 else { return nil }
+                let amt = Fmt.money(Money.toMajor(abs(b.minor), b.currency), b.currency)
+                let place = f.isDirect ? "with friends" : "in \(f.name)"
+                return b.minor > 0 ? "You're still owed \(amt) \(place)." : "You still owe \(amt) \(place)."
+            }
+            if !open.isEmpty {
+                Text(open.joined(separator: "\n") + "\n\nYour expenses stay with the group. To get them back after deleting, someone in it has to invite you back.")
+            }
         }
     }
 

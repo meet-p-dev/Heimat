@@ -14,7 +14,7 @@ export default function CreateJoinModal({ open, mode, onClose, T, createFlat, jo
     <Sheet open={open} onClose={onClose} title={join ? 'Join a group' : 'New group'} T={T}>
       {join ? (
         <form onSubmit={(e) => { e.preventDefault(); if (code.length >= 4) joinFlat(code) }}>
-          <Field T={T} label="Group code" htmlFor="cj-code" hint="Ask someone in the group — it's on the group's page, under its name.">
+          <Field T={T} label="Group code" htmlFor="cj-code" hint="Ask someone in the group — it's on the group's page, under its name. Been in this group before and deleted your account? Ask someone in it to invite you back instead, so your history comes with you.">
             <input id="cj-code" className="fld" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="4B7K9A" autoCapitalize="characters" autoComplete="off" autoCorrect="off" spellCheck={false} maxLength={12} style={{ letterSpacing: 6, fontWeight: 800, textAlign: 'center', fontSize: 28 }} />
           </Field>
           <Btn full type="submit" busy={busy} disabled={code.length < 4}>Join group</Btn>

@@ -461,9 +461,29 @@ export default function App() {
   /* App Store 5.1.1(v): an app that can create an account must be able to delete
      one. The edge function removes the user's memberships and the auth user
      itself; the flat's shared history stays, unattributed. */
+  // someone who deleted their account: their old place as a personal link (invite_back)
+  const inviteBack = async (memberId: string): Promise<{ link: string } | { error: string }> => {
+    if (!sb) return { error: 'Offline' }
+    const { data, error } = await sb.rpc('invite_back', { p_member: memberId })
+    if (error) {
+      const m = error.message || ''
+      return { error: m.startsWith('invite_back: ') ? m.slice(13, 14).toUpperCase() + m.slice(14) : "Couldn't invite them back right now — try again." }
+    }
+    haptic(14); loadFlat()
+    return { link: `${webOrigin()}invite.html?t=${encodeURIComponent(data as string)}` }
+  }
   const deleteAccount = async () => {
     if (!sb) return showToast('Offline')
-    if (!confirm('Delete your Splitlife account?\n\nYou leave every flat you are in, and everything stored about you on the server is removed. Shared expenses stay with the flat, without your name on them. This cannot be undone.')) return
+    // money still open somewhere: say where, and how it can come back
+    const open = [...myFlats, ...circles].map((f) => {
+      const b = books.get(f.id); const minor = (uid && b?.netMinor.get(uid)) || 0
+      if (!minor || !b) return null
+      const amt = money(toMajor(Math.abs(minor), b.currency), b.currency)
+      const place = f.kind === 'direct' ? 'with friends' : `in ${f.name}`
+      return minor > 0 ? `You're still owed ${amt} ${place}.` : `You still owe ${amt} ${place}.`
+    }).filter(Boolean)
+    const warn = open.length ? `\n\n${open.join('\n')}\nTo get them back after deleting, someone in the group has to invite you back.` : ''
+    if (!confirm('Delete your Splitlife account?\n\nYou leave every group you are in, and everything stored about you on the server is removed. Shared expenses stay with the group. This cannot be undone.' + warn)) return
     setBusy(true)
     const { error } = await sb.functions.invoke('delete-account')
     setBusy(false)
@@ -811,7 +831,7 @@ export default function App() {
       <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, ledger, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />
-      <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, members, invite: inviteMember, revoke: revokeInvite, showToast }} />
+      <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, members, invite: inviteMember, revoke: revokeInvite, inviteBack, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: closeModal, T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: closeModal, T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: closeModal, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />

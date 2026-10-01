@@ -7,15 +7,18 @@ import { webOrigin, shareText, copyText } from '../../lib/native'
 
 /* Add people to a group: by email — they don't need Heimat yet, their share counts
    from now and the email tells them where to claim it — or with the group's code. */
-export default function InviteModal({ open, onClose, T, flat, members, invite, revoke, showToast }: {
+export default function InviteModal({ open, onClose, T, flat, members, invite, revoke, inviteBack, showToast }: {
   open: boolean; onClose: () => void; T: Theme; flat: Flat | null; members: Member[]
   invite: (email: string, name: string) => Promise<string | null>; revoke: (memberId: string) => void
+  /* someone who deleted their account: their old place as a personal link, or the reason not */
+  inviteBack: (memberId: string) => Promise<{ link: string } | { error: string }>
   showToast: (m: string) => void
 }) {
   const [name, setName] = useState('')
   const [mail, setMail] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [backing, setBacking] = useState<string | null>(null)
   useEffect(() => { if (open) { setName(''); setMail(''); setErr(null) } }, [open])
   if (!flat) return null
   // inside the app shells location.origin is capacitor://localhost, so links always point at the public web address
@@ -23,6 +26,16 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
   const msg = `Join my group “${flat.name}” on Splitlife\nCode: ${flat.join_code}\nOpen ${url} → tap “Join with code”.`
   const mailOK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim())
   const pending = members.filter((m) => m.flat_id === flat.id && isPending(m) && !m.left_at)
+  const gone = members.filter((m) => m.flat_id === flat.id && !!m.left_at)
+  const back = async (m: Member) => {
+    setBacking(m.id || null)
+    const r = await inviteBack(m.id!)
+    setBacking(null)
+    if ('error' in r) { showToast(r.error); return }
+    const text = `Come back to “${flat.name}” on Splitlife — open this and your history comes with you: ${r.link}`
+    if (await shareText(text)) return
+    if (await copyText(r.link)) showToast(`Link for ${m.display_name} copied`)
+  }
   const send = async () => {
     if (!mailOK) return
     setBusy(true); setErr(null)
@@ -68,6 +81,20 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
                 </div>
               )
             })}
+          </div>
+        </Field>
+      )}
+
+      {gone.length > 0 && (
+        <Field T={T} label="People who left" hint="Invite someone back and their personal link gives them their old place — expenses, payments and balance — on whatever account they open it with. Someone who still has their account can simply join again with the code." style={{ marginTop: 20 }}>
+          <div className="h-well">
+            {gone.map((p) => (
+              <div key={p.id || p.user_id} className="h-item">
+                <Avatar name={p.display_name} seed={p.user_id} size={34} />
+                <span style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{p.display_name}</span>
+                <Btn size="sm" kind="tinted" busy={backing === p.id} disabled={!p.id || !!backing} onClick={() => back(p)}>Invite back</Btn>
+              </div>
+            ))}
           </div>
         </Field>
       )}

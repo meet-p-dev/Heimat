@@ -343,7 +343,7 @@ struct CreateJoinForm: View {
                             .textInputAutocapitalization(.characters).autocorrectionDisabled()
                             .font(.system(size: 28, weight: .bold, design: .monospaced)).multilineTextAlignment(.center)
                             .onChange(of: text) { _, t in text = t.uppercased().replacingOccurrences(of: " ", with: "") }
-                    } header: { Text("Group code") } footer: { Text("Ask someone in the group — it's on the group's page.") }
+                    } header: { Text("Group code") } footer: { Text("Ask someone in the group — it's on the group's page. Been in this group before and deleted your account? Ask someone in it to invite you back instead, so your history comes with you.") }
                 } else if mode == .group {
                     Section {
                         TextField("e.g. WG Hauptstraße, Sicily trip", text: $text)
@@ -387,9 +387,13 @@ struct InviteView: View {
     @State private var mail = ""
     @State private var err: String?
     @State private var revoking: Member?
+    /// people who left, invited back: their personal links
+    @State private var backLinks: [String: URL] = [:]
+    @State private var inviting: String?
 
     private var mailOK: Bool { mail.range(of: #"^[^\s@]+@[^\s@]+\.[^\s@]+$"#, options: .regularExpression) != nil }
     private var pending: [Member] { m.members.filter(\.isPending) }
+    private var gone: [Member] { m.members.filter(\.hasLeft) }
 
     var body: some View {
         NavigationStack {
@@ -447,6 +451,38 @@ struct InviteView: View {
                             }
                         } header: { Text("Waiting to join") } footer: {
                             Text("Swipe to take an invite back. Anything already split with them comes back to the rest of you.")
+                        }
+                    }
+
+                    if !gone.isEmpty {
+                        Section {
+                            ForEach(gone) { p in
+                                HStack(spacing: 12) {
+                                    AvatarView(name: p.displayName, seed: p.userId, size: 34)
+                                    Text(p.displayName).lineLimit(1)
+                                    Spacer()
+                                    if let url = backLinks[p.id] {
+                                        ShareLink(item: url, message: Text("Come back to “\(flat.name)” on Splitlife — open this and your history comes with you: ")) {
+                                            Label("Send link", systemImage: "square.and.arrow.up").font(.system(size: 13, weight: .semibold))
+                                        }
+                                        .buttonStyle(.borderless)
+                                    } else {
+                                        Button {
+                                            inviting = p.id
+                                            Task {
+                                                if let url = await m.inviteBack(p) { backLinks[p.id] = url }
+                                                inviting = nil
+                                            }
+                                        } label: {
+                                            if inviting == p.id { ProgressView() } else { Text("Invite back").font(.system(size: 13, weight: .semibold)) }
+                                        }
+                                        .buttonStyle(.borderless)
+                                        .disabled(inviting != nil)
+                                    }
+                                }
+                            }
+                        } header: { Text("People who left") } footer: {
+                            Text("Invite someone back and their personal link gives them their old place — expenses, payments and balance — on whatever account they open it with. Someone who still has their account can simply join again with the code.")
                         }
                     }
 

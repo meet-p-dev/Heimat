@@ -267,4 +267,26 @@ extension AppModel {
         }
         return friendly(error, fallback)
     }
+
+    /// Someone who deleted their account: turn their old place back into a personal
+    /// link (invite_back), so whoever opens it takes over their history.
+    func inviteBack(_ mem: Member) async -> URL? {
+        struct P: Encodable { let p_member: String }
+        #if DEBUG
+        if Self.fixtureMode { show("Demo mode — nothing is sent"); return nil }
+        #endif
+        do {
+            let token: String = try await client.rpc("invite_back", params: P(p_member: mem.id)).execute().value
+            Haptic.success()
+            await loadFlat()
+            return URL(string: "\(Secrets.publicURL)invite.html?t=\(token)")
+        } catch {
+            let text = String(describing: error)
+            if let r = text.range(of: "invite_back: ") {
+                let msg = text[r.upperBound...].prefix { $0 != "\"" && $0 != "\n" }
+                show(msg.prefix(1).uppercased() + msg.dropFirst())
+            } else { show("Couldn't invite them back right now — try again.") }
+            return nil
+        }
+    }
 }
