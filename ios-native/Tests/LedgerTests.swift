@@ -61,7 +61,13 @@ struct V2: Decodable {
     struct Conv: Decodable { struct B: Decodable { let currency: String; let net: [String: Int] }; let books: [B]; let target: String; let rates: [String: String]; let net: [String: Int]; let missing: [String] }
     struct Dates: Decodable { let anchor: String; let cadence: String; let dates: [String] }
     struct Due: Decodable { struct O: Decodable { let n: Int; let date: String }; let anchor: String; let cadence: String; let fromN: Int; let today: String; let until: String?; let out: [O] }
+    struct Spread: Decodable {
+        struct P: Decodable { let place: String; let owed: Int }
+        struct O: Decodable { let place: String; let minor: Int; let reverse: Bool }
+        let pay: Int; let places: [P]; let fallback: String; let out: [O]
+    }
     let weighted: [Weighted]; let splits: [Split]; let paid: [Paid]; let ledgers2: [Ledger2]; let convert: [Conv]; let dates: [Dates]; let due: [Due]
+    let spreads: [Spread]
 }
 struct T: Decodable, Equatable { let from: String; let to: String; let minor: Int }
 struct Vectors: Decodable {
@@ -167,6 +173,10 @@ struct LedgerTests {
         for c in v2.due {
             let got = Ledger.dueOccurrences(c.anchor, c.cadence, from: c.fromN, today: c.today, until: c.until)
             expect(got.map(\.n) == c.out.map(\.n) && got.map(\.date) == c.out.map(\.date), "due \(c.anchor)")
+        }
+        for (i, c) in v2.spreads.enumerated() {
+            let got = Ledger.spread(c.pay, c.places.map { Ledger.SpreadPlace(place: $0.place, owed: $0.owed) }, fallback: c.fallback)
+            expect(got == c.out.map { Ledger.SpreadPart(place: $0.place, minor: $0.minor, reverse: $0.reverse) }, "spread \(i): \(got) vs \(c.out)")
         }
         let vectorChecks = checks
 

@@ -8,23 +8,23 @@ export default function CreateJoinModal({ open, mode, onClose, T, createFlat, jo
 }) {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  useEffect(() => { if (open) { setName(profile.name ? `${profile.name}'s flat` : 'My flat'); setCode('') } }, [open, mode])
+  useEffect(() => { if (open) { setName(''); setCode('') } }, [open, mode])
   const join = mode === 'join'
   return (
-    <Sheet open={open} onClose={onClose} title={join ? 'Join a flat' : 'Create a flat'} T={T}>
+    <Sheet open={open} onClose={onClose} title={join ? 'Join a group' : 'New group'} T={T}>
       {join ? (
         <form onSubmit={(e) => { e.preventDefault(); if (code.length >= 4) joinFlat(code) }}>
-          <Field T={T} label="Flat code" htmlFor="cj-code" hint="Ask a flatmate — it's on their Flat tab, under the flat's name.">
+          <Field T={T} label="Group code" htmlFor="cj-code" hint="Ask someone in the group — it's on the group's page, under its name.">
             <input id="cj-code" className="fld" value={code} onChange={(e) => setCode(e.target.value.toUpperCase().replace(/\s/g, ''))} placeholder="4B7K9A" autoCapitalize="characters" autoComplete="off" autoCorrect="off" spellCheck={false} maxLength={12} style={{ letterSpacing: 6, fontWeight: 800, textAlign: 'center', fontSize: 28 }} />
           </Field>
-          <Btn full type="submit" busy={busy} disabled={code.length < 4}>Join flat</Btn>
+          <Btn full type="submit" busy={busy} disabled={code.length < 4}>Join group</Btn>
         </form>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) createFlat(name.trim()) }}>
-          <Field T={T} label="Flat name" htmlFor="cj-name" hint="You'll get a code to share with your flatmates.">
-            <input id="cj-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. WG Hauptstraße" />
+          <Field T={T} label="Group name" htmlFor="cj-name" hint="Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Heimat account first.">
+            <input id="cj-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. WG Hauptstraße, Sicily trip" />
           </Field>
-          <Btn full type="submit" busy={busy} disabled={!name.trim()}>Create flat</Btn>
+          <Btn full type="submit" busy={busy} disabled={!name.trim()}>Create group</Btn>
         </form>
       )}
     </Sheet>

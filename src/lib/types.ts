@@ -26,14 +26,18 @@ export interface Profile {
 
 export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean }
 export interface Member {
+  id?: string
   user_id: string; flat_id: string; display_name: string
+  /* a pending invite's link (invite.html?t=…), and whether its email went out */
+  invite_token?: string | null; invite_sent_at?: string | null; invite_error?: string | null
   /* set when they left or were removed; the row stays so past expenses still add up */
   left_at?: string | null
   /* a pending invite has an email and no claim yet */
   claimed_at?: string | null; invite_email?: string | null
 }
 export const hasLeft = (m: Member) => !!m.left_at
-export const isPending = (m: Member) => !!m.invite_email && !m.claimed_at
+/* invited, not on Heimat yet — by email, or by a link sent to them */
+export const isPending = (m: Member) => !m.claimed_at && (!!m.invite_email || !!m.invite_token)
 
 export type SplitType = 'equal' | 'exact' | 'percent' | 'shares' | 'adjust' | 'itemized'
 
@@ -92,6 +96,7 @@ export interface Runway { total: number; start: string; monthly: number; targetM
 export interface Derived { paidHours: number; legalHours: number; pay: number; wage: number; overnight: boolean }
 
 export type TabId = 'home' | 'flat' | 'money' | 'work'
-export type PageId = 'profile' | 'settings'
+/* pushed pages: the personal ones, and inside Groups a group, Non-group expenses or one person */
+export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}`
 export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats' | 'settleperson'

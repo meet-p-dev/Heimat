@@ -642,6 +642,48 @@ enum Ledger {
         return out
     }
 
+    // MARK: settling up with one person
+
+    /// one place (a group, or your non-group expenses) and what the payer owes the
+    /// payee there, in minor units of one currency; negative: the payee owes the payer
+    struct SpreadPlace: Hashable { let place: String; let owed: Int }
+    /// a payment to record in one place; reverse: from the payee to the payer — an
+    /// offset where the payee was the one in debt, so that place ends square too
+    struct SpreadPart: Hashable { let place: String; let minor: Int; let reverse: Bool }
+
+    /// One payment to one person, spread over every place the two of you owe each
+    /// other in, so that each group's own balances stay right (the same rule as
+    /// spread() in ledger.ts):
+    /// - paying at least what you owe overall settles every place exactly — each is
+    ///   paid what it owes, places where they owe you are offset the other way, and
+    ///   anything beyond goes to `fallback` (your non-group expenses with them);
+    /// - paying less goes to the places you owe in, the largest debt first, never
+    ///   more than a place owes; ties by place id;
+    /// - owing nothing overall: all of it goes to `fallback`.
+    /// The parts add up to exactly `pay` (forward minus reverse), largest first.
+    static func spread(_ pay: Int, _ places: [SpreadPlace], fallback: String) -> [SpreadPart] {
+        guard pay > 0 else { return [] }
+        var t: [String: Int] = [:]
+        for p in places where p.owed != 0 { t[p.place] = 0 }
+        let net = places.reduce(0) { $0 + $1.owed }
+        if net > 0 && pay >= net {
+            for p in places where p.owed != 0 { t[p.place, default: 0] += p.owed }
+            if pay > net { t[fallback, default: 0] += pay - net }
+        } else {
+            var left = pay
+            let owing = places.filter { $0.owed > 0 }.sorted { $0.owed != $1.owed ? $0.owed > $1.owed : less($0.place, $1.place) }
+            for p in owing where left > 0 {
+                let v = min(left, p.owed)
+                t[p.place, default: 0] += v
+                left -= v
+            }
+            if left > 0 { t[fallback, default: 0] += left }
+        }
+        return t.filter { $0.value != 0 }
+            .sorted { abs($0.value) != abs($1.value) ? abs($0.value) > abs($1.value) : less($0.key, $1.key) }
+            .map { SpreadPart(place: $0.key, minor: abs($0.value), reverse: $0.value < 0) }
+    }
+
     // MARK: settle up
 
     struct Transfer: Hashable { let from, to: String; let minor: Int; let amount: Double }

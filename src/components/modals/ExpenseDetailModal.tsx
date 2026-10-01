@@ -3,7 +3,7 @@ import type { Theme, Expense, Cat } from '../../lib/types'
 import { catOf } from '../../lib/data'
 import { iconOf } from '../../icons'
 import { colorOf } from '../../lib/theme'
-import { relDay } from '../../lib/format'
+import { relDay, money } from '../../lib/format'
 import { sharesOf, toMajor } from '../../lib/ledger'
 import { Sheet, Avatar, SectionLabel } from '../ui'
 
@@ -13,6 +13,8 @@ export default function ExpenseDetailModal({ open, onClose, T, expense, fH, name
 }) {
   if (!expense) return null
   const e = expense
+  // every amount in the expense's own currency
+  fH = (v: number) => money(v, e.currency)
   const c = catOf(cats, e.category)
   const CIcon = iconOf(c)
   const tint = colorOf(c)

@@ -15,7 +15,9 @@ read from net.http_request_queue before they roll back with the rest.
 import sys, pathlib, hashlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-MIG = (ROOT / 'supabase/migrations/20261001000000_friends.sql').read_text()
+# the friends migration and what came after it, run in order (both are safe to run again)
+MIG = '\n'.join((ROOT / 'supabase/migrations' / f).read_text()
+                for f in ['20261001000000_friends.sql', '20261001010000_friends_by_link.sql'])
 assert '$mig$' not in MIG and '$dry$' not in MIG
 MIGS = '\n'.join(l.strip() for l in MIG.split('\n') if l.strip() and not l.strip().startswith('--'))
 
@@ -223,6 +225,18 @@ fails('rate_limit_new_people', as_user('Z', "    perform friend_circle((select j
 ok('circle_with_someone_gone_is_not_reused', "    update flat_members set left_at = now() where flat_id = c1 and user_id = B;\n" + as_user('A', f"    select id into t from friend_circle({people('B')});"),
    check("t <> c1 and (select kind from flats where id = t) = 'direct'"))
 ok('circles_balance', "", "(select count(*) from flats f where f.kind = 'direct' and f.id in (c1, c2, c3) and (select sum(public.flat_balance_in(f.id, m.user_id, 'EUR')) from flat_members m where m.flat_id = f.id) <> 0)", 0)
+# someone from contacts with no email: a name and a link, nobody emailed
+ok('link_only_new', as_user('A', """    select id into t from friend_circle(jsonb_build_array(jsonb_build_object('name', 'Ola')));
+    select user_id into PL from flat_members where flat_id = t and user_id <> A;"""),
+   "(select count(*) from flat_members where flat_id = t and user_id = PL and claimed_at is null and invite_email is null and invite_token is not null and display_name = 'Ola')", 1)
+ok('link_only_no_email', as_user('A', save('ex', 'e11', 'jsonb_build_array(jsonb_build_object(\'user_id\', PL))', exp(12, 'A', 'array[A, PL]'))),
+   queued("bq ->> 'name' = 'Ola'") + " || ' ' || " + sh('e11', 'PL'), '0 600')
+ok('link_only_known_again', as_user('A', f"    select id into c1 from friend_circle({people('PL', 'N')});"),
+   "(select count(*) from flat_members where flat_id = c1 and user_id = PL and claimed_at is null and invite_token is not null)", 1)
+fails('link_member_cannot_take_it', "    select invite_token into tx from flat_members where flat_id = c1 and user_id = PL;\n" + as_user('N', "    perform claim_invite(tx);"), "You're already in here%")
+ok('link_takes_every_place', "    insert into auth.users (id, aud, role, is_anonymous) values (O, 'authenticated', 'authenticated', true);\n    select invite_token into tx from flat_members where flat_id = t and user_id = PL;\n" + as_user('O', "    perform claim_invite(tx);"),
+   "(select count(*) from flat_members where user_id = O and claimed_at is not null) || ' waiting=' || (select count(*) from flat_members where user_id = PL) || ' ' || " + sh('e11', 'O'), '2 waiting=0 600')
+
 # turning it down from the link: out of the equal split, the circle keeps working
 ok('decline_from_link', as_user('A', f"""    select id into t from friend_circle({people('mail:W/Wes')});
     select user_id into PN from flat_members where flat_id = t and user_id <> A;
@@ -230,14 +244,14 @@ ok('decline_from_link', as_user('A', f"""    select id into t from friend_circle
    f"(select count(*) from flat_members where flat_id = t and user_id = PN) || ' ' || {sh('e10','A')} || ' ' || (select cardinality(split_among) from expenses where id = e10)", '0 1000 1')
 ok('backfill_balances_changed_at_end', "", "(select count(*) from dry_bal b where round(public.flat_balance(b.flat_id, b.user_id), 6) is distinct from round(b.bal, 6))", 0)
 
-vars_uuid = ['A', 'B', 'C', 'U', 'Z', 'N', 'W', 'F', 'G'] + [f'e{i}' for i in range(1, 11)]
+vars_uuid = ['A', 'B', 'C', 'U', 'Z', 'N', 'W', 'O', 'F', 'G'] + [f'e{i}' for i in range(1, 12)]
 declares = "\n".join(f"  {i} uuid := gen_random_uuid();" for i in vars_uuid)
 
 script = f"""do $dry$
 declare
   r jsonb := '{{}}';
 {declares}
-  c1 uuid; c2 uuid; c3 uuid; t uuid; PN uuid; tx text; v jsonb; cnt bigint; q0 bigint;
+  c1 uuid; c2 uuid; c3 uuid; t uuid; PN uuid; PL uuid; tx text; v jsonb; cnt bigint; q0 bigint;
   ex expenses; fm flat_members;
   mig text := $mig${MIGS}$mig$;
 begin

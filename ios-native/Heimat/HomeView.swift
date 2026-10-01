@@ -11,7 +11,7 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    if m.flat != nil { balance() } else { noFlat }
+                    if m.flat != nil || !m.circles.isEmpty { balance() } else { noFlat }
                     quickActions
                     tiles
                     if m.flat != nil && m.isAnon { guest }
@@ -42,7 +42,8 @@ struct HomeView: View {
         let home = net != 0 ? m.fHome(abs(net)).map { " · ≈ \($0)" } ?? "" : ""
         // when money runs both ways the single figure hides half the story
         let both = m.owedToMe > 0 && m.iOwe > 0
-        let scope = m.flats.count > 1 ? "Across \(m.flats.count) flats and groups" : "Your balance"
+        let places = m.flats.count + (m.circles.isEmpty ? 0 : 1)
+        let scope = places > 1 ? "Across \(m.flats.count) \(m.flats.count == 1 ? "group" : "groups")" + (m.circles.isEmpty ? "" : " and friends") : "Your balance"
         return HeimatCard(radius: 28, padding: 18, tinted: true) {
             VStack(alignment: .leading, spacing: 0) {
                 Text(scope)
@@ -72,7 +73,10 @@ struct HomeView: View {
                         Label("Add expense", systemImage: "plus").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glassProminent)
-                    Button { m.sheet = .settle(nil) } label: {
+                    Button {
+                        // with no group open, what there is to settle is with friends
+                        if m.flat != nil { m.sheet = .settle(nil) } else { m.tab = .flat; m.groupsPath = [.nonGroup] }
+                    } label: {
                         Label("Settle up", systemImage: "arrow.left.arrow.right").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glass)
@@ -96,14 +100,14 @@ struct HomeView: View {
                         .frame(width: 46, height: 46)
                         .background(Tint.green.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Share bills with flatmates").font(.system(size: 18, weight: .bold))
-                        Text("Create a flat and invite them with a code — or join theirs. Bills sync live between your phones.")
+                        Text("Share bills with flatmates and friends").font(.system(size: 18, weight: .bold))
+                        Text("Make a group for your flat or a trip and invite people with a code — or split one bill with anyone from Groups.")
                             .font(.system(size: 14)).foregroundStyle(.secondary)
                     }
                 }
                 HStack(spacing: 10) {
-                    Button { m.sheet = .flat(.create) } label: {
-                        Label("Create flat", systemImage: "plus").frame(maxWidth: .infinity)
+                    Button { m.sheet = .flat(.group) } label: {
+                        Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glassProminent)
                     Button { m.sheet = .flat(.join) } label: {

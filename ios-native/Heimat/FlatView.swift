@@ -1,45 +1,28 @@
 import SwiftUI
 import Charts
 
-struct FlatView: View {
+/// One group's page — what the Flat tab used to be — pushed from its card on
+/// the Groups tab: the group's card, who owes whom, expenses month by month.
+struct GroupPage: View {
     @Environment(AppModel.self) private var m
+    let id: String
     @State private var confirmLeave = false
     @State private var deleting: Expense?
     @State private var removing: Member?
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if let flat = m.flat { content(flat) } else { NoFlatView() }
-            }
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top) {
-                HeimatHeader(kicker: Fmt.longToday(), title: m.flat?.name ?? "Flat")
-            }
-            .heimatScreen()
+        Group {
+            if let flat = m.flat, flat.id == id { content(flat) } else { ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity) }
         }
-    }
-
-    private var flatMenu: some View {
-        Menu {
-            if m.flats.count > 1 {
-                Picker("Flat", selection: Binding(get: { m.flatId ?? "" }, set: { m.switchFlat($0) })) {
-                    ForEach(m.flats) { Text($0.name).tag($0.id) }
-                }
-                Divider()
-            }
-            Button { m.sheet = .flat(.create) } label: { Label("New flat", systemImage: "plus") }
-            Button { m.sheet = .flat(.join) } label: { Label("Join with a code", systemImage: "key.fill") }
-        } label: {
-            Image(systemName: "building.2")
-        }
-        .accessibilityLabel("Switch or add flat")
+        .navigationTitle(m.flats.first { $0.id == id }?.name ?? "")
+        .navigationBarTitleDisplayMode(.inline)
+        .heimatScreen()
+        .onAppear { if m.flatId != id { m.switchFlat(id) } }
     }
 
     private func content(_ flat: Flat) -> some View {
         return ScrollView {
             VStack(spacing: 14) {
-                flatPicker
                 header(flat)
                 balances()
                 actions
@@ -52,8 +35,8 @@ struct FlatView: View {
             .padding(.bottom, 24)
         }
         .refreshable { await m.loadFlat() }
-        .confirmationDialog("Leave this flat? You'll stop seeing its shared bills.", isPresented: $confirmLeave, titleVisibility: .visible) {
-            Button("Leave flat", role: .destructive) { Task { await m.leaveFlat() } }
+        .confirmationDialog("Leave this group? You'll stop seeing its shared bills.", isPresented: $confirmLeave, titleVisibility: .visible) {
+            Button("Leave group", role: .destructive) { Task { m.groupsPath = []; await m.leaveFlat() } }
         }
         .confirmationDialog("Delete this expense for everyone in the flat?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
             Button("Delete expense", role: .destructive) { if let e = deleting { Task { await m.deleteExpense(e.id) } } }
@@ -65,26 +48,6 @@ struct FlatView: View {
         ) {
             Button("Remove", role: .destructive) { if let r = removing { Task { await m.remove(r) } } }
         }
-    }
-
-    /// The flats you belong to, plus the two ways to get another one.
-    private var flatPicker: some View {
-        ScrollView(.horizontal) {
-            HStack(spacing: 8) {
-                if m.flats.count > 1 {
-                    ForEach(m.flats) { f in
-                        Chip(text: f.name, symbol: f.isGroup ? "person.2.fill" : nil, on: f.id == m.flatId) { m.switchFlat(f.id) }
-                    }
-                }
-                Chip(text: "New group", symbol: "plus", dashed: true) { m.sheet = .flat(.group) }
-                Chip(text: "New flat", symbol: "plus", dashed: true) { m.sheet = .flat(.create) }
-                Chip(text: "Join with code", symbol: "key.fill", dashed: true) { m.sheet = .flat(.join) }
-            }
-            .padding(.horizontal, 16)
-        }
-        .scrollIndicators(.hidden)
-        .blocksTabSwipe()
-        .padding(.horizontal, -16)
     }
 
     private func header(_ flat: Flat) -> some View {
@@ -138,10 +101,7 @@ struct FlatView: View {
     /// so they are counted, just marked as not here yet.
     private func peopleLine(_ flat: Flat) -> String {
         let waiting = m.roster.filter(\.isPending).count
-        let noun = flat.isGroup ? "people" : "flatmates"
-        let base = m.roster.count == 1
-            ? (flat.isGroup ? "Just you — add the people you split with" : "1 person — invite your flatmates")
-            : "\(m.roster.count) \(noun)"
+        let base = m.roster.count == 1 ? "Just you — invite the people you split with" : "\(m.roster.count) people"
         return waiting > 0 ? "\(base) · \(waiting) invited" : base
     }
 
@@ -168,6 +128,7 @@ struct FlatView: View {
                         let owes = pairs.filter { $0.value < 0 }
                         let gets = pairs.filter { $0.value > 0 }
                         let iOweThem = -(mine[mem.userId] ?? 0)
+                        NavigationLink(value: GroupsRoute.person(mem.userId)) {
                         HStack(alignment: .top, spacing: 13) {
                             AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
                             VStack(alignment: .leading, spacing: 2) {
@@ -201,6 +162,10 @@ struct FlatView: View {
                         }
                         .padding(.horizontal, 16).padding(.vertical, 12)
                         .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PressStyle())
+                        .foregroundStyle(.primary)
+                        .disabled(mem.userId == m.uid)
                         .contextMenu {
                             if mem.userId != m.uid && !mem.hasLeft {
                                 // the server only sends a reminder over 0,50 € (see nudge()); offering it below that would just fail

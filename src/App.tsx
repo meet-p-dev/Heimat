@@ -8,7 +8,7 @@ import { haptic, setHapticsEnabled } from './lib/haptic'
 import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeRunway, computeWorkStats } from './lib/derive'
-import { buildLedger, shareOf } from './lib/ledger'
+import { buildLedger, shareOf, pairwiseFor, toMajor } from './lib/ledger'
 import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId, PageId, AuthMode } from './lib/types'
 import { mergeCats, slug } from './lib/data'
@@ -21,6 +21,13 @@ import FlatTab from './components/tabs/FlatTab'
 import MoneyTab from './components/tabs/MoneyTab'
 import WorkTab from './components/tabs/WorkTab'
 import ExpenseModal from './components/modals/ExpenseModal'
+import type { ExpenseSave, ExpensePrefill } from './components/modals/ExpenseModal'
+import { GroupsTab, NonGroupPage, PersonPage, PersonSettle } from './components/Friends'
+import type { FriendsCtx } from './components/Friends'
+import { Page } from './components/ui'
+import { placeBooks, personName, isDirect } from './lib/places'
+import type { PersonPick, PlaceLine } from './lib/places'
+import { friendCircle, saveFriendExpense, settleWithPerson, remind as remindRpc, friendsMessage } from './lib/friends'
 import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
 import CategoriesModal from './components/modals/CategoriesModal'
 import SettleModal from './components/modals/SettleModal'
@@ -28,7 +35,6 @@ import InviteModal from './components/modals/InviteModal'
 import CreateJoinModal from './components/modals/CreateJoinModal'
 import RunwayModal from './components/modals/RunwayModal'
 import ShiftModal from './components/modals/ShiftModal'
-import PickFlatModal from './components/modals/PickFlatModal'
 import ProfileModal from './components/modals/ProfileModal'
 import AnalyticsModal from './components/modals/AnalyticsModal'
 import AuthPage from './components/pages/AuthPage'
@@ -46,9 +52,7 @@ import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
 import { myShareTotal } from './lib/analytics'
 
-type ExpenseInput = { id?: string; desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
-
-const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Flat'], ['money', 'Money'], ['work', 'Work']]
+const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Groups'], ['money', 'Money'], ['work', 'Work']]
 
 export default function App() {
   const [prefs, setPrefsState] = useState<Prefs>(loadPrefs)
@@ -66,7 +70,8 @@ export default function App() {
   const [shiftDate, setShiftDate] = useState<string | null>(null)
   const [editShift, setEditShift] = useState<Shift | null>(null)
   const [editExpense, setEditExpense] = useState<Expense | null>(null)
-  const [expensePrefill, setExpensePrefill] = useState<{ desc: string; category: string } | null>(null)
+  const [expensePrefill, setExpensePrefill] = useState<ExpensePrefill | null>(null)
+  const [settlePersonId, setSettlePersonId] = useState<string | null>(null)
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
@@ -92,6 +97,12 @@ export default function App() {
   const [flatCats, setFlatCats] = useState<FlatCategory[]>([])
   const [busy, setBusy] = useState(false)
   const [myFlats, setMyFlats] = useState<Flat[]>([])
+  /* the hidden circles behind expenses outside any group, and every place's people,
+     expenses and payments — for Groups, Non-group expenses, people's pages and Home */
+  const [circles, setCircles] = useState<Flat[]>([])
+  const [allMembers, setAllMembers] = useState<Member[]>([])
+  const [allExpenses, setAllExpenses] = useState<Expense[]>([])
+  const [allSettles, setAllSettles] = useState<Settlement[]>([])
 
   function save<Tv>(setter: Dispatch<SetStateAction<Tv>>, key: string) {
     return (v: Tv) => { setter(v); LS.s(key, v) }
@@ -123,14 +134,28 @@ export default function App() {
     if (!sb || !uid) return
     const { data: mem } = await sb.from('flat_members').select('flat_id').eq('user_id', uid)
     const ids = [...new Set((mem || []).map((m: any) => m.flat_id))]
-    if (!ids.length) { setMyFlats([]); setFlatIdP(null); return }
-    // groups (people you split with but don't live with) are the native app's
-    // for now; showing them here would file them under "your flats"
-    const { data: fl } = await sb.from('flats').select('*').in('id', ids).eq('kind', 'flat')
-    const list = (fl as Flat[]) || []
+    if (!ids.length) { setMyFlats([]); setCircles([]); setFlatIdP(null); setAllMembers([]); setAllExpenses([]); setAllSettles([]); return }
+    // a flat is a group; the hidden circles of expenses outside any group are kept apart
+    const { data: fl } = await sb.from('flats').select('*').in('id', ids).order('created_at')
+    const all = (fl as Flat[]) || []
+    const list = all.filter((f) => !isDirect(f))
     setMyFlats(list)
+    setCircles(all.filter(isDirect))
     const cur = LS.g<string>('mt-h-flatid')
     if (!cur || !list.some((f) => f.id === cur)) setFlatIdP(list[0] ? list[0].id : null)
+    loadOverview(all.map((f) => f.id))
+  }
+  /* three queries for every group and circle at once */
+  const loadOverview = async (ids?: string[]) => {
+    if (!sb) return
+    const list = ids || [...myFlats, ...circles].map((f) => f.id)
+    if (!list.length) { setAllMembers([]); setAllExpenses([]); setAllSettles([]); return }
+    const [m, e, st] = await Promise.all([
+      sb.from('flat_members').select('*').in('flat_id', list),
+      sb.from('expenses').select('*').in('flat_id', list).order('spent_on', { ascending: false }),
+      sb.from('settlements').select('*').in('flat_id', list),
+    ])
+    if (!m.error && !e.error && !st.error) { setAllMembers((m.data as Member[]) || []); setAllExpenses((e.data as Expense[]) || []); setAllSettles((st.data as Settlement[]) || []) }
   }
   useEffect(() => { if (uid) loadMyFlats() }, [uid])
 
@@ -139,7 +164,7 @@ export default function App() {
   const rate = profile.rate || 1
   const fH = (v: number) => money(v, hostCur)
   const fHome = (v: number) => (homeCur === hostCur ? null : money(v * rate, homeCur))
-  const nameOf = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || 'Someone')
+  const nameOf = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || personName(allMembers, u))
 
   /* auth */
   const applySession = (session: any) => {
@@ -189,6 +214,7 @@ export default function App() {
         sb.from('flat_items').select('*').eq('flat_id', flatId).order('created_at', { ascending: true }),
         sb.from('flat_categories').select('*').eq('flat_id', flatId).order('created_at', { ascending: true }),
       ])
+      loadOverview()
       if (f.data) { setFlat(f.data as Flat); setMembers((m.data as Member[]) || []); setExpenses((e.data as Expense[]) || []); setSettles((s.data as Settlement[]) || []); setItems((it.data as ListItem[]) || []); setFlatCats((fc.data as FlatCategory[]) || []) }
       else { setFlatIdP(null); setFlat(null) }
     } catch { showToast('Sync error — will retry') }
@@ -226,36 +252,87 @@ export default function App() {
     return () => { try { client.removeChannel(ch) } catch {} }
   }, [uid, flatId, members])
 
+  /* Changes anywhere you can see — another group, a friend adding an expense with
+     you — refresh the overview: realtime only delivers rows your access allows, so
+     one unfiltered channel covers every group and circle. Bursts (a settle-up writes
+     several payments) fold into one reload; a new place reloads the list of places. */
+  const placeIds = [...myFlats, ...circles].map((f) => f.id).sort().join(',')
+  useEffect(() => {
+    if (!sb || !uid) return
+    const client = sb
+    let t: ReturnType<typeof setTimeout> | undefined
+    const changed = () => {
+      clearTimeout(t)
+      t = setTimeout(async () => {
+        const { data } = await client.from('flat_members').select('flat_id').eq('user_id', uid)
+        const now = [...new Set((data || []).map((r: any) => r.flat_id as string))].sort().join(',')
+        if (now !== placeIds) loadMyFlats(); else loadOverview()
+      }, 400)
+    }
+    const ch = client.channel('mine-' + uid)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, changed)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settlements' }, changed)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_members' }, changed)
+      .subscribe()
+    return () => { clearTimeout(t); try { client.removeChannel(ch) } catch {} }
+  }, [uid, placeIds])
+
   /* flat actions */
   const createFlat = async (nm: string) => {
     if (!sb || !uid) return showToast('Still connecting…')
     setBusy(true)
-    const { data, error } = await sb.rpc('create_flat', { p_name: nm, p_display_name: profile.name || 'Me' })
+    const { data, error } = await sb.rpc('create_group', { p_name: nm, p_display_name: profile.name || 'Me' })
     setBusy(false)
     if (error) { showToast(error.message); return }
-    haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); showToast('Flat created — invite your flatmates')
+    haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); setTab('flat'); setPages([`group:${(data as any).id}`]); showToast('Group created — invite the people you split with')
   }
   const joinFlat = async (code: string) => {
     if (!sb || !uid) return showToast('Still connecting…')
     setBusy(true)
     const { data, error } = await sb.rpc('join_flat', { p_code: (code || '').trim().toUpperCase(), p_display_name: profile.name || 'Me' })
     setBusy(false)
-    if (error) { showToast("That code didn't match a flat — check it and try again"); return }
-    haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); showToast('Joined the flat')
+    if (error) { showToast("That code didn't match a group — check it and try again"); return }
+    haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); setTab('flat'); setPages([`group:${(data as any).id}`]); showToast(`Joined ${(data as any).name}`)
   }
-  const addExpense = async (x: ExpenseInput) => {
-    if (!sb || !flatId) return
-    // the id is made here so the split shown before saving — who takes the odd
-    // cent — is the split that gets saved (see allocate in lib/ledger.ts)
-    const { error } = await sb.from('expenses').insert({ ...(x.id ? { id: x.id } : {}), flat_id: flatId, description: x.desc, amount: x.amount, currency: hostCur, paid_by: x.paidBy, split_among: x.among, category: x.category, created_by: uid, spent_on: x.spentOn || tod() })
-    if (error) { showToast(error.message); return }
-    haptic(12); showToast('Expense added'); loadFlat()
+  const saveExpense = async (x: ExpenseSave) => {
+    if (!sb || !uid) return
+    const cols = { description: x.description, amount: x.amount, currency: x.currency, paid_by: x.paid_by, split_among: x.split_among, split_type: x.split_type, split: x.split, payers: x.payers, category: x.category, spent_on: x.spent_on || tod() }
+    let err: string | null = null
+    if (circles.some((c) => c.id === x.place)) {
+      // outside any group: the server finds or makes the circle for these people, and moves it when they change
+      const people = allMembers.filter((m) => m.flat_id === x.place && m.user_id !== uid).map((m) => m.user_id)
+      err = await saveFriendExpense(x.id, people, cols)
+    } else {
+      // the id is made in the form so the split shown before saving is the split saved
+      const { error } = x.editing
+        ? await sb.from('expenses').update(cols).eq('id', x.id)
+        : await sb.from('expenses').insert({ ...cols, id: x.id, flat_id: x.place, created_by: uid })
+      err = error ? friendsMessage(error, "Couldn't save — try again.") : null
+    }
+    if (err) { showToast(err); return }
+    haptic(12); showToast(x.editing ? 'Expense updated' : 'Expense added'); loadFlat(); loadMyFlats()
   }
-  const updateExpense = async (id: string, x: ExpenseInput) => {
+  const resolveCircle = async (picks: PersonPick[]): Promise<string | null> => {
+    const c = await friendCircle(picks)
+    if (typeof c === 'string') { showToast(c); return null }
+    if (!circles.some((x) => x.id === c.id)) setCircles((cs) => [...cs, c])
+    await loadOverview([...myFlats, ...circles, c].map((f) => f.id))
+    return c.id
+  }
+  const inviteMember = async (mail: string, name: string): Promise<string | null> => {
+    if (!sb || !flatId) return 'No group open'
+    const { data, error } = await sb.rpc('invite_member', { p_flat: flatId, p_email: mail, p_name: name })
+    if (error) return friendsMessage(error, "Couldn't add them right now. Please try again in a minute.")
+    haptic(14); loadFlat()
+    const m = data as Member
+    showToast(m && !m.claimed_at ? `Invited ${m.display_name}` : `${m?.display_name || 'They'} are in`)
+    return null
+  }
+  const revokeInvite = async (memberId: string) => {
     if (!sb) return
-    const { error } = await sb.from('expenses').update({ description: x.desc, amount: x.amount, paid_by: x.paidBy, split_among: x.among, category: x.category, spent_on: x.spentOn || tod() }).eq('id', id)
-    if (error) { showToast(error.message); return }
-    haptic(12); showToast('Expense updated'); loadFlat()
+    const { error } = await sb.rpc('revoke_invite', { p_member: memberId })
+    if (error) { showToast(friendsMessage(error, "Couldn't remove that invite")); return }
+    showToast('Invite removed'); loadFlat()
   }
   const removeExpense = async (id: string) => {
     if (!sb || !confirm('Delete this expense for everyone in the flat?')) return
@@ -441,9 +518,10 @@ export default function App() {
   }
   const leaveFlat = async () => {
     if (!sb) return
-    if (!confirm("Leave this flat? You'll stop seeing its shared bills.")) return
-    await sb.from('flat_members').delete().eq('flat_id', flatId).eq('user_id', uid)
-    setFlatIdP(null); await loadMyFlats(); showToast('Left the flat')
+    if (!confirm("Leave this group? You'll stop seeing its shared bills.")) return
+    const { error } = await sb.rpc('leave_flat', { p_flat: flatId })
+    if (error) { showToast(friendsMessage(error, "Couldn't leave right now")); return }
+    setPages([]); setFlatIdP(null); await loadMyFlats(); showToast('Left the group')
   }
 
   /* derived */
@@ -452,11 +530,28 @@ export default function App() {
   const balances = ledger.net
   const myNet = uid ? balances[uid] || 0 : 0
   const runwayCalc = useMemo(() => computeRunway(runway, expenses, uid), [runway, expenses, uid])
+  /* every group's and circle's own books, and where you stand across all of them — in the
+     currency most of them use; places in another currency are left out of the total rather
+     than added to it as bare numbers (the same rule as the iOS app) */
+  const books = useMemo(() => placeBooks(allExpenses, allSettles, hostCur), [allExpenses, allSettles, hostCur])
+  const mainCur = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const l of books.values()) if (l.owes.length) n.set(l.currency, (n.get(l.currency) || 0) + 1)
+    return [...n].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]?.[0] || hostCur
+  }, [books, hostCur])
+  const overallNet = useMemo(() => {
+    if (!uid) return 0
+    let v = 0
+    for (const l of books.values()) if (l.currency === mainCur) for (const x of pairwiseFor(l.owes, uid).values()) v += x
+    return toMajor(v, mainCur)
+  }, [books, uid, mainCur])
   const workStats = useMemo(() => computeWorkStats(shifts, prefs), [shifts, prefs.weekCap, prefs.yearDays])
 
   const openShift = (d: string | null) => { setEditShift(null); setShiftDate(d || null); setModal('shift') }
   const openEditShift = (s: Shift) => { setEditShift(s); setShiftDate(null); setModal('shift') }
-  const startAddExpense = () => { setEditExpense(null); setExpensePrefill(null); if ((myFlats || []).length > 1) setModal('pickflat'); else setModal('exp') }
+  const startAddExpense = () => { setEditExpense(null); setExpensePrefill(null); setModal('exp') }
+  const addWith = (people: PersonPick[] | null) => { setEditExpense(null); setExpensePrefill({ people }); setModal('exp') }
+  const openGroup = (id: string) => { haptic(8); setFlatIdP(id); setTab('flat'); setPages((st) => [...st.filter((x) => x !== `group:${id}`), `group:${id}`]) }
   const openEditExpense = (e: Expense) => { setEditExpense(e); setExpensePrefill(null); setModal('exp') }
   const openViewExpense = (e: Expense) => { setViewExpense(e); setModal('expdetail') }
   // you can edit an expense you added, or one someone else logged but you paid for
@@ -464,7 +559,23 @@ export default function App() {
   const openSettle = (init: SettleSuggestion | null) => { setSettleInit(init); setModal('settle') }
   const openPage = (p: PageId) => { haptic(8); setPages((s) => [...s.filter((x) => x !== p), p]) }
   const closePage = () => setPages((s) => s.slice(0, -1))
-  const closeModal = () => { setModal(null); setEditExpense(null); setExpensePrefill(null); setViewExpense(null); setSettleInit(null); setEditShift(null); setShiftDate(null) }
+  const closeModal = () => { setModal(null); setEditExpense(null); setExpensePrefill(null); setViewExpense(null); setSettleInit(null); setEditShift(null); setShiftDate(null); setSettlePersonId(null) }
+  const recordSettle = async (person: string, lines: PlaceLine[], currency: string, pay: number, iPay: boolean, pair: string | null) => {
+    if (!uid) return
+    const err = await settleWithPerson(uid, person, personName(allMembers, person), lines, currency, pay, iPay, pair)
+    if (err) { showToast(err); return }
+    haptic(12); showToast('Payment recorded'); loadFlat(); loadMyFlats()
+  }
+  const remindPerson = async (person: string) => {
+    const err = await remindRpc(person, linesFor(person), (id) => circles.some((c) => c.id === id), (id) => books.get(id)?.currency || hostCur)
+    showToast(err || `Reminded ${personName(allMembers, person)}`)
+  }
+  const linesFor = (person: string): PlaceLine[] => {
+    const out: PlaceLine[] = []
+    if (!uid) return out
+    for (const [id, l] of books) for (const b of l.books.values()) { const v = pairwiseFor(b.owes, uid).get(person) || 0; if (v) out.push({ place: id, currency: b.currency, minor: v }) }
+    return out
+  }
 
   const earnedTotal = useMemo(() => shifts.reduce((s, x) => s + deriveShift(x).pay, 0), [shifts])
   const spentTotal = useMemo(() => myShareTotal(expenses, uid, ledger.currency), [expenses, uid, ledger.currency])
@@ -537,7 +648,15 @@ export default function App() {
 
   const inFlat = !!flat
   const firstName = (profile.name || '').trim().split(/\s+/)[0]
-  const [kicker, title] = tab === 'home' ? [greeting(), firstName || 'Heimat'] : tab === 'flat' ? [longToday(), flat ? flat.name : 'Flat'] : [longToday(), tab === 'money' ? 'Money' : 'Work']
+  const [kicker, title] = tab === 'home' ? [greeting(), firstName || 'Heimat'] : tab === 'flat' ? [longToday(), 'Groups'] : [longToday(), tab === 'money' ? 'Money' : 'Work']
+  const fc: FriendsCtx = {
+    T, uid, hostCur, main: mainCur, groups: myFlats, circles, members: allMembers, expenses: allExpenses, books, cats,
+    openPage, openGroup, invite: (id) => { setFlatIdP(id); setModal('invite') }, openExpense, addWith,
+    settlePerson: (id) => { setSettlePersonId(id); setModal('settleperson') }, remindPerson,
+    newGroup: () => setModal('create'), join: () => setModal('join'), showToast,
+  }
+  const placesCount = myFlats.length + (circles.length ? 1 : 0)
+  const scope = placesCount > 1 ? `Across ${myFlats.length} ${myFlats.length === 1 ? 'group' : 'groups'}${circles.length ? ' and friends' : ''}` : flat ? `Your balance · ${flat.name}` : 'Your balance'
   const tabIdx = TABS.findIndex(([id]) => id === tab)
   const openSettings = () => openPage('settings')
 
@@ -547,10 +666,8 @@ export default function App() {
 
       <main ref={mainRef} className="h-main">
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, flat, uid, isAnon, myNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle, onOpenExpense: openExpense, onAuth: setAuth }} />}
-          {tab === 'flat' && (inFlat
-            ? <FlatTab {...{ T, flat: flat!, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), myFlats, flatId, switchFlat: setFlatIdP, startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast }} />
-            : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
+          {tab === 'home' && <HomeTab {...{ T, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth }} />}
+          {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings }} />}
         </div>
@@ -586,15 +703,27 @@ export default function App() {
       </nav>
 
       {pages.map((p) => p === 'profile'
-        ? <ProfilePage key="profile" {...{ T, profile, uid, isAnon, email, pendingEmail, myFlats, flatId, earnedTotal, spentTotal, shiftCount: shifts.length, runwayCalc, fH, onBack: closePage, onAuth: setAuth, onSwitchFlat: (id: string) => { setFlatIdP(id); setPages([]); setTab('flat') }, setModal, onOpenSettings: openSettings }} />
-        : <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal }} />)}
+        ? <ProfilePage key="profile" {...{ T, profile, uid, isAnon, email, pendingEmail, myFlats, flatId, earnedTotal, spentTotal, shiftCount: shifts.length, runwayCalc, fH, onBack: closePage, onAuth: setAuth, onSwitchFlat: (id: string) => { setPages([]); openGroup(id) }, setModal, onOpenSettings: openSettings }} />
+        : p === 'settings'
+        ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal }} />
+        : p === 'nongroup'
+        ? <NonGroupPage key={p} c={fc} onBack={closePage} />
+        : p.startsWith('person:')
+        ? <PersonPage key={p} c={fc} person={p.slice(7)} onBack={closePage} />
+        : (
+          <Page key={p} T={T} title={myFlats.find((f) => f.id === p.slice(6))?.name || ''} onBack={closePage}>
+            {flat && flat.id === p.slice(6)
+              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`) }} />
+              : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
+          </Page>
+        ))}
 
-      <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, T, members, uid, addExpense, updateExpense, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, flatName: flat ? flat.name : '', cats, openCategories: () => setModal('cats') }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
-      <PickFlatModal {...{ open: modal === 'pickflat', onClose: closeModal, T, myFlats, flatId, onPick: (id: string) => { setFlatIdP(id); setModal('exp') } }} />
+      <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, c: fc, start: flatId, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, cats, openCategories: () => setModal('cats'), save: saveExpense, resolve: resolveCircle }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
+      <PersonSettle c={fc} open={modal === 'settleperson'} person={settlePersonId} onClose={closeModal} record={recordSettle} />
       <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, ledger, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />
-      <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, showToast }} />
+      <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, members, invite: inviteMember, revoke: revokeInvite, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: closeModal, T, createFlat, joinFlat, busy, profile }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: closeModal, T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: closeModal, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />

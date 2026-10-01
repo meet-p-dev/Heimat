@@ -54,19 +54,19 @@ struct ProfileView: View {
                 LabeledContent("Earned from work", value: m.fH(m.earnedTotal))
                 LabeledContent("Your share of flat bills", value: m.fH(m.spentTotal))
                 LabeledContent("Shifts logged", value: "\(m.shifts.count)")
-                LabeledContent("Flats", value: "\(m.flats.count)")
+                LabeledContent("Groups", value: "\(m.flats.count)")
             }
 
             Section {
                 ForEach(m.flats) { f in
-                    Button { m.switchFlat(f.id); m.tab = .flat; dismiss() } label: {
+                    Button { m.switchFlat(f.id); m.tab = .flat; m.groupsPath = [.group(f.id)]; dismiss() } label: {
                         Label {
                             HStack { Text(f.name).foregroundStyle(.primary); Spacer(); if f.id == m.flatId { Image(systemName: "checkmark").foregroundStyle(.tint) } }
                         } icon: { SettingIcon(symbol: "house.fill", color: .green) }
                     }
                 }
-                if m.flat != nil { Button { sheet = .invite } label: { Label { Text("Invite flatmates") } icon: { SettingIcon(symbol: "person.badge.plus", color: .blue) } } }
-                Button { sheet = .flat(.create) } label: { Label { Text("Create a new flat") } icon: { SettingIcon(symbol: "plus", color: .gray) } }
+                if m.flat != nil { Button { sheet = .invite } label: { Label { Text("Invite people") } icon: { SettingIcon(symbol: "person.badge.plus", color: .blue) } } }
+                Button { sheet = .flat(.group) } label: { Label { Text("New group") } icon: { SettingIcon(symbol: "plus", color: .gray) } }
                 Button { sheet = .flat(.join) } label: { Label { Text("Join with a code") } icon: { SettingIcon(symbol: "key.fill", color: .gray) } }
             } header: { Text("Your flats") } footer: { Text("Flats sync live with your flatmates. Everything else here stays on this phone.") }
             .tint(.primary)

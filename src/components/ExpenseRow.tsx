@@ -3,14 +3,17 @@ import type { Theme, Expense, Cat } from '../lib/types'
 import { catOf } from '../lib/data'
 import { iconOf } from '../icons'
 import { colorOf } from '../lib/theme'
-import { relDay } from '../lib/format'
+import { relDay, money } from '../lib/format'
 import { sharesOf, toMajor } from '../lib/ledger'
 
 /* One shared expense, with what it means for you — "you owe €4,20" — right under
    the amount, the way people actually read a split bill. */
-export default function ExpenseRow({ T, e, cats, uid, nameOf, fH, onClick }: {
-  T: Theme; e: Expense; cats: Cat[]; uid: string | null; nameOf: (u: string) => string; fH: (v: number) => string; onClick: () => void
+export default function ExpenseRow({ T, e, cats, uid, nameOf, onClick }: {
+  T: Theme; e: Expense; cats: Cat[]; uid: string | null; nameOf: (u: string) => string
+  /* no longer used: every amount is shown in the expense's own currency */
+  fH?: (v: number) => string; onClick: () => void
 }) {
+  const fH = (v: number) => money(v, e.currency)
   const c = catOf(cats, e.category)
   const I = iconOf(c)
   const tint = colorOf(c)

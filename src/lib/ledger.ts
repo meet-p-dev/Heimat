@@ -628,6 +628,56 @@ export function pairwiseFor(owes: Owe[], uid: string): Map<string, number> {
   return out
 }
 
+// ------------------------------------------------- settling up with one person
+
+/* one place (a group, or your non-group expenses) and what the payer owes the
+   payee there, in minor units of one currency; negative: the payee owes the payer */
+export interface SpreadPlace { place: string; owed: number }
+/* a payment to record in one place; reverse: from the payee to the payer — an
+   offset where the payee was the one in debt, so that place ends square too */
+export interface SpreadPart { place: string; minor: number; reverse: boolean }
+
+/*
+  One payment to one person, spread over every place the two of you owe each
+  other in, so that each group's own balances stay right.
+
+  - Paying at least what you owe overall (the places netted) settles every
+    place exactly: each is paid what it owes, places where they owe you are
+    offset the other way, and anything beyond the total goes to `fallback`
+    (your non-group expenses with them) as money they now owe you back.
+  - Paying less goes to the places you owe in, the largest debt first, never
+    more than a place owes and never the other way round; ties by place id.
+  - Owing nothing overall: all of it goes to `fallback`.
+
+  The parts always add up to exactly `pay` (forward minus reverse), and come
+  out largest first, ties by place id, so every device records the same rows.
+*/
+export function spread(pay: number, places: SpreadPlace[], fallback: string): SpreadPart[] {
+  if (!Number.isSafeInteger(pay) || pay <= 0) return []
+  const t = new Map<string, number>()
+  for (const p of places) if (p.owed !== 0) t.set(p.place, 0)
+  const add = (place: string, v: number) => t.set(place, (t.get(place) || 0) + v)
+  const net = places.reduce((s, p) => s + p.owed, 0)
+  if (net > 0 && pay >= net) {
+    for (const p of places) if (p.owed !== 0) add(p.place, p.owed)
+    if (pay > net) add(fallback, pay - net)
+  } else {
+    let left = pay
+    const owing = places.filter((p) => p.owed > 0)
+      .sort((a, b) => b.owed - a.owed || cmp(a.place, b.place))
+    for (const p of owing) {
+      if (left === 0) break
+      const v = Math.min(left, p.owed)
+      add(p.place, v)
+      left -= v
+    }
+    if (left > 0) add(fallback, left)
+  }
+  return [...t.entries()].filter(([, v]) => v !== 0)
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]) || cmp(a[0], b[0]))
+    .map(([place, v]) => ({ place, minor: Math.abs(v), reverse: v < 0 }))
+}
+
 // ---------------------------------------------------------------- settle up
 
 export interface Transfer { from: string; to: string; minor: number; amount: number }
@@ -708,6 +758,7 @@ function greedy(entries: [string, number][]): { from: string; to: string; minor:
   return out
 }
 
-const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
+/* ids in UTF-16 code-unit order, the order Swift's Ledger.less and Postgres's collate "C" use for uuids */
+export const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 const byTransfer = (a: { from: string; to: string; minor: number }, b: { from: string; to: string; minor: number }) =>
   b.minor - a.minor || cmp(a.from, b.from) || cmp(a.to, b.to)

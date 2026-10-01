@@ -1,24 +1,25 @@
 import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
-import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, KeyRound } from 'lucide-react'
+import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, ChevronRight } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ListItem, Cat, ModalId } from '../../lib/types'
 import { hasLeft, isPending } from '../../lib/types'
 import { haptic } from '../../lib/haptic'
 import type { SettleSuggestion } from '../../lib/derive'
 import { pairwiseFor, toMajor } from '../../lib/ledger'
 import type { Ledger } from '../../lib/ledger'
-import { monthLabel } from '../../lib/format'
+import { monthLabel, money } from '../../lib/format'
 import { copyText } from '../../lib/native'
-import { Card, Btn, Chip, Avatar, SectionLabel, Group, Item, EmptyState, TINT } from '../ui'
+import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, TINT } from '../ui'
 import ExpenseRow from '../ExpenseRow'
 
-export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, myFlats, flatId, switchFlat, startAddExpense, openAnalytics, showToast }: {
+/* One group's page (a flat is a group), pushed from its card on the Groups tab. */
+export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson }: {
   T: Theme; flat: Flat; members: Member[]; ledger: Ledger; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
   items: ListItem[]; openList: () => void; cats: Cat[]
-  myFlats: Flat[]; flatId: string | null; switchFlat: (id: string) => void; startAddExpense: () => void; openAnalytics: () => void
-  showToast: (m: string) => void
+  startAddExpense: () => void; openAnalytics: () => void
+  showToast: (m: string) => void; onPerson: (id: string) => void
 }) {
   /* Who owes whom, as it actually stands — not the shortest way to square up.
      Those are different numbers: simplifying moves a debt onto whoever makes
@@ -53,34 +54,34 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
     })
     return out
   }, [expenses])
-  const copyCode = async () => { if (await copyText(flat.join_code)) { haptic(10); showToast('Flat code copied') } }
+  const copyCode = async () => { if (await copyText(flat.join_code)) { haptic(10); showToast('Code copied') } }
+  // in the group's own main currency, as its balances are kept
+  const cur = ledger.currency
+  const fm = (minor: number) => money(toMajor(minor, cur), cur)
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', margin: '0 -16px 14px', padding: '2px 16px' }}>
-        {myFlats.length > 1 && myFlats.map((f) => <Chip key={f.id} T={T} on={f.id === flatId} onClick={() => switchFlat(f.id)}>{f.name}</Chip>)}
-        <Chip T={T} dashed icon={Plus} onClick={() => setModal('create')}>New flat</Chip>
-        <Chip T={T} dashed icon={KeyRound} onClick={() => setModal('join')}>Join with code</Chip>
-      </div>
-
       <Card T={T} grad style={{ padding: 18, borderRadius: 28, marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{flat.name}</div>
-            <button type="button" onClick={copyCode} className="h-pill" aria-label={`Copy flat code ${flat.join_code}`} style={{ background: T.accSoft, color: T.acc, border: 'none', marginTop: 7, cursor: 'pointer', letterSpacing: 0.6 }}><Copy size={12} /> {flat.join_code}</button>
+            <button type="button" onClick={copyCode} className="h-pill" aria-label={`Copy group code ${flat.join_code}`} style={{ background: T.accSoft, color: T.acc, border: 'none', marginTop: 7, cursor: 'pointer', letterSpacing: 0.6 }}><Copy size={12} /> {flat.join_code}</button>
           </div>
           <Btn size="sm" icon={UserPlus} onClick={() => setModal('invite')}>Invite</Btn>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
           {members.slice(0, 6).map((m, i) => <span key={m.user_id} style={{ marginLeft: i ? -9 : 0, borderRadius: 99, boxShadow: '0 0 0 2.5px var(--bg)', display: 'flex' }}><Avatar name={m.display_name} seed={m.user_id} size={30} /></span>)}
-          <span style={{ marginLeft: 10, fontSize: 13.5, color: T.txt2 }}>{members.length} {members.length === 1 ? 'person — invite your flatmates' : 'flatmates'}</span>
+          <span style={{ marginLeft: 10, fontSize: 13.5, color: T.txt2 }}>{members.length === 1 ? 'Just you — invite the people you split with' : `${members.length} people`}</span>
         </div>
       </Card>
 
       <SectionLabel T={T}>Balances</SectionLabel>
       <div className="glass" style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 12 }}>
         {rows.map((r) => (
-          <div key={r.id} className="h-item" style={{ '--inset': '69px', alignItems: 'flex-start' } as CSSProperties}>
+          <div key={r.id} className="h-item" role={r.id !== uid ? 'button' : undefined} tabIndex={r.id !== uid ? 0 : undefined}
+            onClick={r.id !== uid ? () => { haptic(6); onPerson(r.id) } : undefined}
+            onKeyDown={r.id !== uid ? (e) => { if (e.key === 'Enter') onPerson(r.id) } : undefined}
+            style={{ '--inset': '69px', alignItems: 'flex-start', cursor: r.id !== uid ? 'pointer' : undefined } as CSSProperties}>
             <Avatar name={r.name || nameOf(r.id)} seed={r.id} size={40} />
             <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
               <div style={{ fontWeight: 600, fontSize: 15.5 }}>
@@ -88,12 +89,13 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
                 {(r.left || r.pending) && <span className="h-pill" style={{ marginLeft: 7, fontSize: 10.5, padding: '2px 7px', background: 'color-mix(in srgb, var(--txt3) 18%, transparent)', color: T.txt2 }}>{r.left ? 'left' : 'invited'}</span>}
               </div>
               {r.owes.length === 0 && r.gets.length === 0 && <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 2 }}>settled up</div>}
-              {r.owes.map(([other, v]) => <div key={`o${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>owes <b style={{ color: T.red }}>{fH(toMajor(-v))}</b> to {nameOf(other)}</div>)}
-              {r.gets.map(([other, v]) => <div key={`g${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>gets <b style={{ color: T.green }}>{fH(toMajor(v))}</b> from {nameOf(other)}</div>)}
+              {r.owes.map(([other, v]) => <div key={`o${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>owes <b style={{ color: T.red }}>{fm(-v)}</b> to {nameOf(other)}</div>)}
+              {r.gets.map(([other, v]) => <div key={`g${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>gets <b style={{ color: T.green }}>{fm(v)}</b> from {nameOf(other)}</div>)}
             </div>
             <div style={{ fontWeight: 750, fontSize: 15, fontVariantNumeric: 'tabular-nums', color: r.net > 0 ? T.green : r.net < 0 ? T.red : T.txt3, paddingTop: 1 }}>
-              {r.net > 0 ? `+${fH(toMajor(r.net))}` : r.net < 0 ? `−${fH(toMajor(-r.net))}` : '—'}
+              {r.net > 0 ? `+${fm(r.net)}` : r.net < 0 ? `−${fm(-r.net)}` : '—'}
             </div>
+            {r.id !== uid && <ChevronRight size={16} color={T.txt3} style={{ marginTop: 3 }} />}
           </div>
         ))}
       </div>

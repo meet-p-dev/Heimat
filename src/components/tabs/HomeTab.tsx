@@ -17,8 +17,11 @@ function QuickAction({ icon: I, tint, label, onClick, badge }: { icon: LucideIco
   )
 }
 
-export default function HomeTab({ T, flat, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth }: {
-  T: Theme; flat: Flat | null; uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
+export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth }: {
+  T: Theme; flat: Flat | null
+  /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
+  scope: string; hasMoney: boolean
+  uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
   fH: (v: number) => string; fHome: (v: number) => string | null
   setModal: (m: ModalId) => void; setTab: (t: TabId) => void
   expenses: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void; cats: Cat[]
@@ -45,9 +48,9 @@ export default function HomeTab({ T, flat, uid, isAnon, myNet, runwayCalc, runwa
 
   return (
     <>
-      {flat ? (
+      {hasMoney ? (
         <Card T={T} grad style={{ padding: '20px 18px 18px', borderRadius: 28, marginBottom: 14 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 600, color: T.txt2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Your balance · {flat.name}</div>
+          <div style={{ fontSize: 13.5, fontWeight: 600, color: T.txt2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scope}</div>
           <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: -1.8, margin: '4px 0 0', lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', color: tone }}>
             {myNet < 0 ? '−' : myNet > 0 ? '+' : ''}<AnimatedNumber value={Math.abs(myNet)} format={fH} />
           </div>
@@ -62,12 +65,12 @@ export default function HomeTab({ T, flat, uid, isAnon, myNet, runwayCalc, runwa
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <span className="h-item-ic" style={{ background: TINT.green, width: 46, height: 46, borderRadius: 15 }}><Users size={23} /></span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 750, fontSize: 18, letterSpacing: -0.3 }}>Share bills with flatmates</div>
-              <div style={{ fontSize: 14, color: T.txt2, marginTop: 4, lineHeight: 1.5 }}>Create a flat and invite them with a code — or join theirs. Bills sync live between your phones.</div>
+              <div style={{ fontWeight: 750, fontSize: 18, letterSpacing: -0.3 }}>Share bills with flatmates and friends</div>
+              <div style={{ fontSize: 14, color: T.txt2, marginTop: 4, lineHeight: 1.5 }}>Make a group for your flat or a trip and invite people with a code — or split one bill with anyone from Groups.</div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-            <Btn size="md" icon={Plus} disabled={!uid} onClick={() => setModal('create')} style={{ flex: 1 }}>Create flat</Btn>
+            <Btn size="md" icon={Plus} disabled={!uid} onClick={() => setModal('create')} style={{ flex: 1 }}>New group</Btn>
             <Btn size="md" kind="secondary" icon={KeyRound} disabled={!uid} onClick={() => setModal('join')} style={{ flex: 1 }}>Join</Btn>
           </div>
           {isAnon && <div style={{ textAlign: 'center', fontSize: 13.5, color: T.txt2, marginTop: 14 }}>Been here before? <button type="button" className="h-link" onClick={() => onAuth('signin')}>Sign in</button></div>}

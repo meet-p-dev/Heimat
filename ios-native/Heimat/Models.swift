@@ -13,7 +13,9 @@ struct Flat: Codable, Identifiable, Hashable {
     /// engine v2: show the fewest payments rather than who owes whom, as a flat setting
     var simplifyDebts: Bool?
     var isGroup: Bool { kind == "group" }
-    var noun: String { isGroup ? "group" : "flat" }
+    /// a hidden circle that holds expenses between friends, outside any group (see docs/friends-screens.md)
+    var isDirect: Bool { kind == "direct" }
+    var noun: String { "group" }
     enum CodingKeys: String, CodingKey { case id, name, kind, joinCode = "join_code", simplifyDebts = "simplify_debts" }
 }
 
@@ -37,8 +39,8 @@ struct Member: Codable, Identifiable, Hashable {
     /// expenses still resolve to a name and the books still balance.
     var leftAt: String?
     var hasLeft: Bool { leftAt != nil }
-    /// invited, but not on Heimat yet
-    var isPending: Bool { inviteEmail != nil && claimedAt == nil }
+    /// invited, but not on Heimat yet (by email, or by a link shared with them)
+    var isPending: Bool { claimedAt == nil && (inviteEmail != nil || inviteToken != nil) }
     var inviteLink: String? { inviteToken.map { "\(Secrets.publicURL)invite.html?t=\($0)" } }
     enum CodingKeys: String, CodingKey {
         case id, flatId = "flat_id", userId = "user_id", displayName = "display_name"
@@ -81,6 +83,28 @@ struct Expense: Codable, Identifiable, Hashable {
 }
 
 extension Expense: LedgerExpense {}
+
+/// Someone picked for an expense outside any group: a person already known
+/// (`userId`), or an email address, or — from contacts with no email — just a
+/// name, who gets a link to share. The server turns these into a circle.
+struct PersonPick: Hashable, Identifiable {
+    var userId: String? = nil
+    var email: String? = nil
+    var name: String
+    var id: String { userId ?? email.map { "mail:" + $0 } ?? "name:" + name }
+    var json: [String: String] {
+        if let userId { return ["user_id": userId] }
+        if let email { return ["email": email, "name": name] }
+        return ["name": name]
+    }
+}
+
+/// Pages pushed inside the Groups tab.
+enum GroupsRoute: Hashable {
+    case group(String)
+    case nonGroup
+    case person(String)
+}
 
 struct Settlement: Codable, Identifiable, Hashable {
     let id: String

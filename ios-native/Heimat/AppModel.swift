@@ -29,7 +29,11 @@ final class AppModel {
     var authError: String?
 
     // the shared flat
+    /// your groups (flats included). The hidden circles behind non-group expenses are kept apart, in `circles`
     var flats: [Flat] = []
+    var circles: [Flat] = []
+    /// pages pushed inside the Groups tab
+    var groupsPath: [GroupsRoute] = []
     var flatId: String? { didSet { UserDefaults.standard.set(flatId, forKey: "flatId") } }
     var members: [Member] = []
     /// the same three tables across every flat you belong to, for Home
@@ -48,12 +52,17 @@ final class AppModel {
     /// in minor units; positive: they owe you. Rebuilt with the overview.
     private(set) var myPairs: [String: Int] = [:]
     private(set) var overviewCurrency = "EUR"
+    /// every group's and circle's own books, by its id — rebuilt with the overview
+    private(set) var placeBooks: [String: Ledger.Book] = [:]
     var items: [ListItem] = []
     var flatCats: [FlatCategory] = []
 
     @ObservationIgnored let client: SupabaseClient
     @ObservationIgnored private var channel: RealtimeChannelV2?
     @ObservationIgnored private var listenTask: Task<Void, Never>?
+    @ObservationIgnored private var everywhere: RealtimeChannelV2?
+    @ObservationIgnored private var everywhereTask: Task<Void, Never>?
+    @ObservationIgnored private var overviewReload: Task<Void, Never>?
     @ObservationIgnored private var authTask: Task<Void, Never>?
     @ObservationIgnored private var legacyTokens: (String, String)?
 
@@ -93,9 +102,13 @@ final class AppModel {
     /// currency than most of yours are left out of the total rather than added
     /// to it as bare numbers.
     private func rebuildOverview() {
-        guard let uid else { myPairs = [:]; return }
+        guard let uid else { myPairs = [:]; placeBooks = [:]; return }
         let exp = Dictionary(grouping: allExpenses, by: \.flatId), set = Dictionary(grouping: allSettles, by: \.flatId)
-        let books = Set(exp.keys).union(set.keys).sorted().map { Ledger.build(exp[$0] ?? [], set[$0] ?? [], fallback: hostCur) }
+        let ids = Set(exp.keys).union(set.keys).sorted()
+        var byPlace: [String: Ledger.Book] = [:]
+        for id in ids { byPlace[id] = Ledger.build(exp[id] ?? [], set[id] ?? [], fallback: hostCur) }
+        placeBooks = byPlace
+        let books = ids.compactMap { byPlace[$0] }
         var count: [String: Int] = [:]
         for b in books where !b.owes.isEmpty { count[b.currency, default: 0] += 1 }
         let cur = count.max { $0.value != $1.value ? $0.value < $1.value : Ledger.less($1.key, $0.key) }?.key ?? hostCur
@@ -163,12 +176,12 @@ final class AppModel {
 
     func fH(_ v: Double) -> String { Fmt.money(v, hostCur) }
     func fHome(_ v: Double) -> String? { homeCur == hostCur ? nil : Fmt.money(v * profile.rate, homeCur) }
-    func nameOf(_ u: String) -> String { u == uid ? "You" : members.first { $0.userId == u }?.displayName ?? "Someone" }
+    func nameOf(_ u: String) -> String { u == uid ? "You" : members.first { $0.userId == u }?.displayName ?? personName(u) }
     /// the same, for a flat other than the one you have open
     func nameOf(_ u: String, in flat: String) -> String {
         if u == uid { return "You" }
         return allMembers.first { $0.flatId == flat && $0.userId == u }?.displayName
-            ?? members.first { $0.userId == u }?.displayName ?? "Someone"
+            ?? members.first { $0.userId == u }?.displayName ?? personName(u)
     }
     /// you can edit an expense you added, or one someone else logged but you paid for
     func canEdit(_ e: Expense) -> Bool { e.createdBy == uid || e.paidBy == uid }
@@ -187,6 +200,9 @@ final class AppModel {
     // MARK: launch
 
     func start() async {
+        #if DEBUG
+        if Self.fixtureMode { loadFixture(); return }
+        #endif
         if let legacy = await LegacyImport.run() { adopt(legacy) }
         do {
             if client.auth.currentSession == nil, let (a, r) = legacyTokens {
@@ -229,23 +245,74 @@ final class AppModel {
     func reload() async { await loadMyFlats() }
 
     func loadMyFlats() async {
+        #if DEBUG
+        if Self.fixtureMode { await loadFlat(); return }
+        #endif
         guard let uid else { return }
         do {
             struct Row: Decodable { let flat_id: String }
             let mem: [Row] = try await client.from("flat_members").select("flat_id").eq("user_id", value: uid).execute().value
             let ids = Array(Set(mem.map(\.flat_id)))
-            guard !ids.isEmpty else { flats = []; flatId = nil; clearFlat(); return }
-            flats = try await client.from("flats").select().in("id", values: ids).execute().value
+            guard !ids.isEmpty else { flats = []; circles = []; flatId = nil; clearFlat(); allMembers = []; allExpenses = []; allSettles = []; return }
+            let all: [Flat] = try await client.from("flats").select().in("id", values: ids).order("created_at").execute().value
+            flats = all.filter { !$0.isDirect }
+            circles = all.filter(\.isDirect)
             if flatId == nil || !flats.contains(where: { $0.id == flatId }) { flatId = flats.first?.id }
             await loadFlat()
             subscribe()
+            subscribeEverywhere()
         } catch {
             show("Sync error — pull down to retry")
         }
     }
 
+    /// Changes anywhere you can see — another group, a friend adding an expense
+    /// with you — refresh the overview. Realtime only delivers rows your access
+    /// allows, so one unfiltered channel covers every group and circle. Bursts
+    /// (a settle-up writes several payments) are folded into one reload.
+    private func subscribeEverywhere() {
+        guard everywhere == nil, let uid else { return }
+        let ch = client.channel("mine-\(uid)")
+        everywhere = ch
+        let streams = ["expenses", "settlements", "flat_members"].map {
+            ch.postgresChange(AnyAction.self, schema: "public", table: $0)
+        }
+        everywhereTask = Task { [weak self] in
+            try? await ch.subscribeWithError()
+            await withTaskGroup(of: Void.self) { g in
+                for s in streams { g.addTask { for await _ in s { await self?.overviewChanged() } } }
+            }
+        }
+    }
+
+    /// whether you now belong to a different set of groups and circles than the app holds
+    private func placesChanged() async -> Bool {
+        guard let uid else { return false }
+        struct Row: Decodable { let flat_id: String }
+        guard let rows: [Row] = try? await client.from("flat_members").select("flat_id").eq("user_id", value: uid).execute().value else { return false }
+        return Set(rows.map(\.flat_id)) != Set(flats.map(\.id) + circles.map(\.id))
+    }
+
+    private func overviewChanged() {
+        overviewReload?.cancel()
+        overviewReload = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, let self else { return }
+            // someone may have added you to a group or a circle you didn't have yet
+            if await self.placesChanged() { await self.loadMyFlats() } else { await self.loadOverview() }
+        }
+    }
+
     func loadFlat() async {
-        guard let id = flatId else { clearFlat(); return }
+        #if DEBUG
+        if Self.fixtureMode {
+            members = allMembers.filter { $0.flatId == flatId }
+            expenses = allExpenses.filter { $0.flatId == flatId }
+            settles = allSettles.filter { $0.flatId == flatId }
+            return
+        }
+        #endif
+        guard let id = flatId else { clearFlat(); await loadOverview(); return }
         do {
             async let m: [Member] = client.from("flat_members").select().eq("flat_id", value: id).execute().value
             async let e: [Expense] = client.from("expenses").select().eq("flat_id", value: id).order("spent_on", ascending: false).execute().value
@@ -265,7 +332,10 @@ final class AppModel {
     /// Home needs the lot; the Flat tab still works off the open flat's own
     /// copies, which realtime keeps fresher.
     func loadOverview() async {
-        let ids = flats.map(\.id)
+        #if DEBUG
+        if Self.fixtureMode { return }
+        #endif
+        let ids = flats.map(\.id) + circles.map(\.id)
         guard !ids.isEmpty else { allMembers = []; allExpenses = []; allSettles = []; return }
         do {
             async let m: [Member] = client.from("flat_members").select().in("flat_id", values: ids).execute().value
@@ -294,7 +364,13 @@ final class AppModel {
         Haptic.tap()
         flatId = id
         clearFlat()
-        Task { await loadFlat(); subscribe() }
+        Task {
+            await loadFlat()
+            #if DEBUG
+            if Self.fixtureMode { return }
+            #endif
+            subscribe()
+        }
     }
 
     /// live updates for the current flat; a flatmate's new expense also shows a toast
@@ -353,6 +429,8 @@ final class AppModel {
             flatId = f.id
             Haptic.success()
             await loadMyFlats()
+            groupsPath = [.group(f.id)]
+            tab = .flat
             show("Joined \(f.name)")
             return true
         } catch {
@@ -367,7 +445,9 @@ final class AppModel {
             flatId = f.id
             Haptic.success()
             await loadMyFlats()
-            show("Group created — add the people you're splitting with")
+            groupsPath = [.group(f.id)]
+            tab = .flat
+            show("Group created — invite the people you split with")
             return true
         } catch {
             show("Couldn't create the group — try again")
@@ -444,10 +524,18 @@ final class AppModel {
         do {
             let f: Flat = try await client.rpc("claim_invite", params: ["p_token": token]).execute().value
             await loadMyFlats()
-            switchFlat(f.id)
             tab = .flat
+            if f.isDirect {
+                // an expense a friend added with you: their page, where it is
+                let other = allMembers.first { $0.flatId == f.id && $0.userId != uid }?.userId
+                groupsPath = other.map { [.person($0)] } ?? [.nonGroup]
+                show("You're in — here's what they split with you")
+            } else {
+                switchFlat(f.id)
+                groupsPath = [.group(f.id)]
+                show("You're in \(f.name)")
+            }
             Haptic.success()
-            show("You're in \(f.name)")
         } catch {
             show("That invite has already been used")
         }
@@ -579,7 +667,10 @@ final class AppModel {
     }
 
     /// one write: run it, reload, report
-    private func run(_ success: String?, _ op: @escaping () async throws -> Void) async {
+    func run(_ success: String?, _ op: @escaping () async throws -> Void) async {
+        #if DEBUG
+        if Self.fixtureMode { show("Demo mode — nothing is saved"); return }
+        #endif
         do {
             try await op()
             if let success { Haptic.success(); show(success) }
@@ -811,7 +902,7 @@ final class AppModel {
     /// The database raises these on purpose and writes them for a person to
     /// read — "Settle up with them first", "You already reminded them today".
     /// Passing them through beats replacing them with something vaguer.
-    private func raised(_ error: Error) -> String? {
+    func raised(_ error: Error) -> String? {
         guard let e = error as? PostgrestError else { return nil }
         let m = e.message.trimmingCharacters(in: .whitespacesAndNewlines)
         // anything that reads like plumbing rather than a sentence stays hidden
@@ -820,7 +911,7 @@ final class AppModel {
         return m
     }
 
-    private func friendly(_ error: Error, _ fallback: String) -> String {
+    func friendly(_ error: Error, _ fallback: String) -> String {
         let m = String(describing: error).lowercased() + " " + error.localizedDescription.lowercased()
         if m.contains("invalid login") || m.contains("invalid_credentials") { return "That email and password don't match. Check for typos, or reset your password." }
         if m.contains("already") && (m.contains("registered") || m.contains("exists")) { return "An account with this email already exists — sign in instead." }

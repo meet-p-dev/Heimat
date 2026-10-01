@@ -1,107 +1,178 @@
-import { useState, useEffect } from 'react'
-import type { CSSProperties } from 'react'
-import { Settings2, Trash2 } from 'lucide-react'
-import type { Theme, Member, Expense, Cat } from '../../lib/types'
+import { useState, useEffect, useMemo } from 'react'
+import { Settings2, Trash2, Users, ChevronRight } from 'lucide-react'
+import type { Theme, Member, Expense, Cat, SplitType, SplitData } from '../../lib/types'
 import { hasLeft } from '../../lib/types'
 import { iconOf } from '../../icons'
 import { money, amountVal, tod, relDay } from '../../lib/format'
-import { allocate, minorToInput, toMinor, toMajor } from '../../lib/ledger'
-import { Sheet, Field, Btn, Chip, Avatar, CheckCircle } from '../ui'
+import { computeShares, minorToInput, toMinor, cmp } from '../../lib/ledger'
+import { personName, pairCircle } from '../../lib/places'
+import type { PersonPick } from '../../lib/places'
+import { Sheet, Field, Btn, Chip, Avatar, SegmentedControl } from '../ui'
+import { SplitEditor, PayersEditor, emptySplit, buildSpec, splitData, payersOf, fromExpense } from '../SplitEditor'
+import type { SplitState } from '../SplitEditor'
+import { WithPicker } from '../Friends'
+import type { FriendsCtx } from '../Friends'
 
-type ExpenseInput = { id?: string; desc: string; amount: number; paidBy: string; among: string[]; category: string; spentOn: string }
+/* what the form hands back: engine v2's columns, always all of them — that is how
+   the server tells this app from the ones before split types (docs/money-engine.md) */
+export interface ExpenseSave {
+  id: string; place: string; editing: boolean
+  description: string; amount: number; currency: string; paid_by: string; split_among: string[]
+  split_type: SplitType; split: SplitData | null; payers: Record<string, number> | null; category: string; spent_on: string
+}
+export interface ExpensePrefill { desc?: string; category?: string; people?: PersonPick[] | null }
 
 /* an id for a new expense, made before it is saved so the split shown is the split saved */
 const newId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID()
-  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 3) | 8).toString(16) }))
+  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 3) | 8).toString(16) })).toLowerCase()
 
-export default function ExpenseModal({ open, onClose, T, members, uid, addExpense, updateExpense, editing, prefill, hostCur, homeCur, rate, flatName, cats, openCategories, onDelete }: {
-  open: boolean; onClose: () => void; T: Theme; members: Member[]; uid: string | null
-  addExpense: (x: ExpenseInput) => void
-  updateExpense: (id: string, x: ExpenseInput) => void
-  editing: Expense | null; prefill: { desc: string; category: string } | null
-  hostCur: string; homeCur: string; rate: number; flatName?: string
+export default function ExpenseModal({ open, onClose, c, start, editing, prefill, hostCur, homeCur, rate, cats, openCategories, onDelete, save, resolve }: {
+  open: boolean; onClose: () => void; c: FriendsCtx
+  /* the group to start in when adding, when nothing else says */
+  start: string | null
+  editing: Expense | null; prefill: ExpensePrefill | null
+  hostCur: string; homeCur: string; rate: number
   cats: Cat[]; openCategories: () => void; onDelete?: () => void
+  save: (x: ExpenseSave) => void
+  /* people → the circle that holds an expense with them (found or made by the server) */
+  resolve: (picks: PersonPick[]) => Promise<string | null>
 }) {
+  const { T, uid } = c
   const [desc, setDesc] = useState('')
   const [amt, setAmt] = useState('')
   const [payer, setPayer] = useState(uid || '')
-  const [among, setAmong] = useState<string[]>(members.map((m) => m.user_id))
-  const [c, setC] = useState('groceries')
+  const [split, setSplit] = useState<SplitState>(emptySplit([]))
+  const [cat, setCat] = useState('groceries')
   const [date, setDate] = useState(tod())
   const [draftId, setDraftId] = useState(newId)
-  // people who have left are not offered for new splits; an old expense that
-  // already includes them keeps them, so editing it cannot quietly drop anyone
-  const people = members.filter((m) => !hasLeft(m) || (!!editing && editing.split_among?.includes(m.user_id)) || (!!editing && editing.paid_by === m.user_id))
-  const everyoneIds = () => members.filter((m) => !hasLeft(m)).map((m) => m.user_id)
+  const [target, setTarget] = useState('')
+  const [choosing, setChoosing] = useState(false)
+  const [resolving, setResolving] = useState(false)
+  const circle = c.circles.some((x) => x.id === target)
+
+  // who can be on it: the place's people now — and anyone already on an expense being
+  // edited, so editing it cannot quietly drop someone who has left since
+  const people: Member[] = useMemo(() => c.members.filter((m) => m.flat_id === target && (!hasLeft(m)
+    || (!!editing && (editing.split_among?.includes(m.user_id) || editing.paid_by === m.user_id || !!editing.payers?.[m.user_id])))), [c.members, target, editing])
+  const ids = people.map((m) => m.user_id)
+  const nm = (u: string) => (u === uid ? 'You' : personName(c.members, u))
+
+  const choose = async (choice: { group: string } | { people: PersonPick[] }) => {
+    setChoosing(false)
+    if ('group' in choice) { setTarget(choice.group); return }
+    const picks = choice.people
+    const known = picks.length === 1 && picks[0].userId ? pairCircle(c.circles, c.members, uid, picks[0].userId) : null
+    if (known) { setTarget(known); return }
+    setResolving(true)
+    const id = await resolve(picks)
+    setResolving(false)
+    if (id) setTarget(id)
+  }
+
   useEffect(() => {
     if (!open) return
-    if (editing) { setDesc(editing.description || ''); setAmt(minorToInput(toMinor(editing.amount, editing.currency), editing.currency)); setPayer(editing.paid_by); setAmong(editing.split_among || []); setC(editing.category || 'other'); setDate(editing.spent_on || tod()) }
-    else { setDesc(prefill ? prefill.desc : ''); setAmt(''); setPayer(uid || ''); setAmong(everyoneIds()); setC(prefill ? prefill.category : 'groceries'); setDate(tod()); setDraftId(newId()) }
+    if (editing) {
+      setDesc(editing.description || ''); setAmt(minorToInput(toMinor(editing.amount, editing.currency), editing.currency)); setPayer(editing.paid_by)
+      setSplit(fromExpense(editing)); setCat(editing.category || 'other'); setDate(editing.spent_on || tod()); setTarget(editing.flat_id)
+    } else {
+      setDesc(prefill?.desc || ''); setAmt(''); setPayer(uid || ''); setCat(prefill?.category || 'groceries'); setDate(tod()); setDraftId(newId())
+      const picks = prefill?.people
+      if (picks) { setTarget(''); if (picks.length) choose({ people: picks }); else setChoosing(true) }
+      else setTarget(start || c.groups[0]?.id || '')
+    }
   }, [open])
-  // when the flat's members change while the sheet is open (after choosing a different flat), re-seed split & payer
-  useEffect(() => { if (open && !editing) { setAmong(everyoneIds()); setPayer((p) => (members.some((m) => m.user_id === p && !hasLeft(m)) ? p : uid || '')) } }, [members])
+  // new people: an even split between all of them, paid by you (an edit keeps its payer while they are on it)
+  useEffect(() => {
+    if (!open || !target) return
+    if (editing && editing.flat_id === target) return
+    setSplit(emptySplit(c.members.filter((m) => m.flat_id === target && !hasLeft(m)).map((m) => m.user_id)))
+    setPayer((p) => (c.members.some((m) => m.flat_id === target && m.user_id === p) ? p : uid || ''))
+  }, [target])
+
   const cur = editing?.currency || hostCur
   const v = amountVal(amt, cur)
-  // exactly what each person will be charged: whole cents that add up to the total
-  const shares = allocate(toMinor(v, cur), among, editing ? editing.id : draftId)
-  const valid = v > 0 && among.length > 0 && !!payer && /^\d{4}-\d{2}-\d{2}$/.test(date)
-  const toggle = (id: string) => setAmong((a) => (a.includes(id) ? a.filter((x) => x !== id) : [...a, id]))
-  const nm = (u: string) => (u === uid ? 'You' : (members.find((m) => m.user_id === u) || ({} as Member)).display_name || '?')
-  const everyone = everyoneIds().every((id) => among.includes(id))
-  const save = () => { if (!valid) return; const x = { desc: desc.trim(), amount: v, paidBy: payer, among, category: c, spentOn: date }; if (editing) updateExpense(editing.id, x); else addExpense({ ...x, id: draftId }); onClose() }
+  const total = toMinor(v, cur)
+  const seed = editing ? editing.id : draftId
+  const built = buildSpec(split, cur)
+  const result = computeShares(total, built.spec, seed)
+  const paid = payersOf(split, cur)
+  const paidOK = split.severalPaid ? !!paid && Object.keys(paid).length > 0 && Object.values(paid).reduce((a, b) => a + b, 0) === total : !!payer
+  const valid = v > 0 && result.ok && !built.unreadable && paidOK && !!target && !resolving && /^\d{4}-\d{2}-\d{2}$/.test(date)
 
+  const withLabel = !target ? 'Choose' : circle ? people.filter((m) => m.user_id !== uid).map((m) => personName(c.members, m.user_id)).join(', ') || 'Choose'
+    : c.groups.find((g) => g.id === target)?.name || ''
+
+  const submit = () => {
+    if (!valid || !result.ok) return
+    // several payers only when it really was several; paid_by is whoever put down most
+    const payers = split.severalPaid && paid && Object.keys(paid).length > 1 ? paid : null
+    const paidBy = payers ? Object.entries(payers).sort((a, b) => b[1] - a[1] || cmp(a[0], b[0]))[0][0] : split.severalPaid && paid ? Object.keys(paid)[0] : payer
+    // equal and adjusted splits are worked out from who is ticked; the rest from their figures
+    const among = split.mode === 'equal' || split.mode === 'adjust' ? [...split.among].sort(cmp) : [...result.shares.keys()].sort(cmp)
+    save({
+      id: editing ? editing.id : draftId, place: target, editing: !!editing,
+      description: desc.trim(), amount: v, currency: cur, paid_by: paidBy, split_among: among,
+      split_type: split.mode, split: splitData(split, built.spec), payers, category: cat, spent_on: date,
+    })
+    onClose()
+  }
+
+  const peopleRows = people.map((m) => ({ id: m.user_id, name: m.display_name }))
   return (
-    <Sheet open={open} onClose={onClose} title={editing ? 'Edit expense' : 'New shared expense'} T={T}
-      footer={<>
-        <Btn full disabled={!valid} onClick={save}>{editing ? 'Save changes' : v > 0 ? `Add ${money(v, cur)}` : 'Add expense'}</Btn>
-        {editing && onDelete && <Btn full kind="danger" size="md" icon={Trash2} onClick={onDelete} style={{ marginTop: 4 }}>Delete expense</Btn>}
-      </>}>
-      {flatName && <div style={{ fontSize: 13.5, color: T.txt2, marginBottom: 14, marginTop: -4 }}>{editing ? 'In' : 'Adding to'} <b style={{ color: T.acc }}>{flatName}</b></div>}
-      <Field T={T} label="How much?" htmlFor="ex-amt" error={amt.trim() && v <= 0 ? 'Enter an amount like 12,50' : undefined} hint={cur === hostCur && homeCur !== hostCur && v > 0 ? `≈ ${money(v * rate, homeCur)} in your home currency` : undefined}>
-        <div style={{ position: 'relative' }}>
-          <input id="ex-amt" className="fld fld-big" value={amt} onChange={(e) => setAmt(e.target.value)} inputMode="decimal" placeholder="0,00" style={{ paddingRight: 64 }} />
-          <span style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: T.txt3 }}>{cur}</span>
-        </div>
-      </Field>
-      <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
-      <Field T={T} label="Category">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-          {cats.map((x) => <Chip key={x.id} T={T} on={c === x.id} tint={x.color} icon={iconOf(x)} onClick={() => setC(x.id)}>{x.label}</Chip>)}
-          <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
-        </div>
-      </Field>
-      <Field T={T} label="Paid by">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-          {people.map((m) => (
-            <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
-              <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
-            </Chip>
-          ))}
-        </div>
-      </Field>
-      <Field T={T} label={
-        <span style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>Split between · {among.length}</span>
-          <button type="button" className="h-link" style={{ fontSize: 13 }} onClick={() => setAmong(everyone && uid ? [uid] : everyoneIds())}>{everyone ? 'Just me' : 'Everyone'}</button>
-        </span>
-      }>
-        <div className="h-well">
-          {people.map((m) => {
-            const on = among.includes(m.user_id)
-            return (
-              <button key={m.user_id} type="button" className="h-item" aria-pressed={on} onClick={() => toggle(m.user_id)} style={{ '--inset': '58px', minHeight: 52 } as CSSProperties}>
-                <Avatar name={m.display_name} seed={m.user_id} size={30} />
-                <span style={{ flex: 1, fontWeight: 500 }}>{nm(m.user_id)}</span>
-                <span style={{ fontSize: 14, fontWeight: 650, color: on ? T.txt : T.txt3, fontVariantNumeric: 'tabular-nums' }}>{on ? money(toMajor(shares.get(m.user_id) ?? 0, cur), cur) : 'not in'}</span>
-                <CheckCircle on={on} />
-              </button>
-            )
-          })}
-        </div>
-      </Field>
-      <Field T={T} label="Date" htmlFor="ex-date" hint={date && date !== tod() ? relDay(date) : undefined} style={{ marginBottom: 4 }}>
-        <input id="ex-date" className="fld" value={date} onChange={(e) => setDate(e.target.value)} type="date" />
-      </Field>
-    </Sheet>
+    <>
+      <Sheet open={open && !choosing} onClose={onClose} title={editing ? 'Edit expense' : 'New expense'} T={T}
+        footer={<>
+          <Btn full disabled={!valid} onClick={submit}>{editing ? 'Save changes' : v > 0 ? `Add ${money(v, cur)}` : 'Add expense'}</Btn>
+          {editing && onDelete && <Btn full kind="danger" size="md" icon={Trash2} onClick={onDelete} style={{ marginTop: 4 }}>Delete expense</Btn>}
+        </>}>
+        <Field T={T} label="With you and" hint={editing && !circle ? "A group's expense stays in its group." : undefined}>
+          <button type="button" className="h-well" disabled={(!!editing && !circle) || resolving} onClick={() => setChoosing(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', cursor: 'pointer', color: target ? T.txt : T.acc, textAlign: 'left', font: 'inherit' }}>
+            <Users size={18} color={T.acc} />
+            <span style={{ flex: 1, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resolving ? 'One moment…' : withLabel}</span>
+            {!(editing && !circle) && <ChevronRight size={17} color={T.txt3} />}
+          </button>
+        </Field>
+        <Field T={T} label="How much?" htmlFor="ex-amt" error={amt.trim() && v <= 0 ? 'Enter an amount like 12,50' : undefined} hint={cur === hostCur && homeCur !== hostCur && v > 0 ? `≈ ${money(v * rate, homeCur)} in your home currency` : undefined}>
+          <div style={{ position: 'relative' }}>
+            <input id="ex-amt" className="fld fld-big" value={amt} onChange={(e) => setAmt(e.target.value)} inputMode="decimal" placeholder="0,00" style={{ paddingRight: 64 }} />
+            <span style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: T.txt3 }}>{cur}</span>
+          </div>
+        </Field>
+        <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
+        <Field T={T} label="Category">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+            {cats.map((x) => <Chip key={x.id} T={T} on={cat === x.id} tint={x.color} icon={iconOf(x)} onClick={() => setCat(x.id)}>{x.label}</Chip>)}
+            <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
+          </div>
+        </Field>
+        {people.length > 0 && <>
+          <Field T={T} label="Paid by">
+            <SegmentedControl T={T} label="Paid by" options={[['one', 'One person'], ['several', 'Several people']]} value={split.severalPaid ? 'several' : 'one'}
+              onChange={(v) => setSplit({ ...split, severalPaid: v === 'several', paid: v === 'several' && !Object.keys(split.paid).length && payer ? { [payer]: amt } : split.paid })} />
+            {!split.severalPaid && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 10 }}>
+                {people.map((m) => (
+                  <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
+                    <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
+                  </Chip>
+                ))}
+              </div>
+            )}
+          </Field>
+          {split.severalPaid && <PayersEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} name={nm} />}
+          <SplitEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} seed={seed} result={result} unreadable={built.unreadable}
+            name={nm} setTotal={(minor) => setAmt(minorToInput(minor, cur))} />
+        </>}
+        <Field T={T} label="Date" htmlFor="ex-date" hint={date && date !== tod() ? relDay(date) : undefined} style={{ marginBottom: 4 }}>
+          <input id="ex-date" className="fld" value={date} onChange={(e) => setDate(e.target.value)} type="date" />
+        </Field>
+        {ids.length === 0 && target && <div style={{ fontSize: 13, color: T.txt3 }}>Loading the people…</div>}
+      </Sheet>
+      <WithPicker c={c} open={open && choosing} onClose={() => { setChoosing(false); if (!target) onClose() }}
+        group={circle ? null : target || null}
+        people={circle ? people.filter((m) => m.user_id !== uid).map((m) => ({ userId: m.user_id, name: personName(c.members, m.user_id) })) : []}
+        groupsAllowed={!editing} done={choose} />
+    </>
   )
 }

@@ -16,6 +16,8 @@ struct ExpenseDraft {
     var split: SplitData? = nil
     /// minor units each person paid, when more than one did
     var payers: [String: Int]? = nil
+    /// the expense's currency; nil: the app's host currency
+    var currency: String? = nil
 }
 
 struct ExpenseForm: View {
@@ -33,8 +35,11 @@ struct ExpenseForm: View {
     /// lowercased because the database hands uuids back lowercase, and the id
     /// seeds who takes the odd cent — it has to be the same string before and after saving
     @State private var draftId = UUID().uuidString.lowercased()
-    /// where it lands. Home can reach any flat, so this is not always the open one.
+    /// where it lands: a group, or the circle behind a non-group expense. Home can
+    /// reach any group, so this is not always the open one.
     @State private var target = ""
+    @State private var choosing = false
+    @State private var resolving = false
 
     private var people: [Member] {
         let list = m.members(of: target)
@@ -52,7 +57,7 @@ struct ExpenseForm: View {
         let paid = split.payers(cur)
         let paidOK = split.severalPaid ? paid.map { !$0.isEmpty && $0.values.reduce(0, +) == total } ?? false : !payer.isEmpty
         let splitOK = built.unreadable == nil && { if case .ok = result { true } else { false } }()
-        let valid = v > 0 && splitOK && paidOK && !target.isEmpty
+        let valid = v > 0 && splitOK && paidOK && !target.isEmpty && !resolving
         NavigationStack {
             Form {
                 Section {
@@ -66,17 +71,21 @@ struct ExpenseForm: View {
                     else if cur == m.hostCur && m.homeCur != m.hostCur && v > 0 { Text("≈ \(Fmt.money(v * m.profile.rate, m.homeCur)) in your home currency") }
                 }
                 Section {
-                    TextField("What for? e.g. Rewe groceries", text: $desc)
-                    if m.flats.count > 1 {
-                        Picker("Flat", selection: $target) {
-                            ForEach(m.flats) { f in
-                                Label(f.name, systemImage: f.isGroup ? "person.2.fill" : "house.fill").tag(f.id)
+                    // a group, or people outside any group. A group expense stays in its
+                    // group (moving it would rewrite whose debt it is); a non-group
+                    // expense can change its people, and moves to their circle
+                    Button { choosing = true } label: {
+                        HStack {
+                            Text("With you and").foregroundStyle(.primary)
+                            Spacer()
+                            if resolving { ProgressView() } else {
+                                Label(withSummary, systemImage: m.isCircle(target) ? "person.2.fill" : target.isEmpty ? "plus" : "person.3.fill")
+                                    .foregroundStyle(target.isEmpty ? Color.accentColor : Color.secondary).lineLimit(1)
                             }
                         }
-                        // moving an expense between flats would rewrite whose
-                        // debt it is, so it is only a choice when adding
-                        .disabled(editing != nil)
                     }
+                    .disabled(editing.map { !m.isCircle($0.flatId) } ?? false)
+                    TextField("What for? e.g. Rewe groceries", text: $desc)
                     Picker("Category", selection: $cat) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                     Picker("Paid by", selection: payerChoice) {
@@ -114,8 +123,14 @@ struct ExpenseForm: View {
                             ? split.among.sorted(by: Ledger.less) : owed.keys.sorted(by: Ledger.less)
                         let d = ExpenseDraft(id: editing == nil ? draftId : nil, flatId: target, desc: desc.trimmingCharacters(in: .whitespaces), amount: v, paidBy: paidBy,
                                              among: among, category: cat, spentOn: Fmt.ymd(date), splitType: split.mode.rawValue,
-                                             split: split.data(built.spec), payers: payers.count > 1 ? payers : nil)
-                        Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
+                                             split: split.data(built.spec), payers: payers.count > 1 ? payers : nil, currency: cur)
+                        if m.isCircle(target) {
+                            let others = people.map(\.userId).filter { $0 != m.uid }
+                            let id = editing?.id ?? draftId, edit = editing != nil
+                            Task { _ = await m.saveFriendExpense(id, people: others, d, editing: edit) }
+                        } else {
+                            Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
+                        }
                         dismiss()
                     }
                     .disabled(!valid)
@@ -130,9 +145,22 @@ struct ExpenseForm: View {
                     amount = Money.input(Money.toMinor(e.amount, e.currency) ?? 0, e.currency); desc = e.description ?? ""; payer = e.paidBy
                     split = SplitState.from(e); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
                 } else {
-                    target = m.flatId ?? m.flats.first?.id ?? ""
                     desc = prefill?.desc ?? ""; cat = prefill?.category ?? "groceries"
+                    if let picks = prefill?.people {
+                        // from Non-group expenses or a person's page: those people, or choose them now
+                        if picks.isEmpty { choosing = true } else { Task { await choose(.people(picks)) } }
+                    } else {
+                        target = m.flatId ?? m.flats.first?.id ?? ""
+                    }
                     payer = m.uid ?? ""; split = SplitState(among: Set(people.map(\.userId)))
+                }
+            }
+            .sheet(isPresented: $choosing) {
+                WithPicker(group: m.isCircle(target) ? nil : target,
+                           people: m.isCircle(target) ? people.filter { $0.userId != m.uid }.map { PersonPick(userId: $0.userId, name: m.personName($0.userId)) } : [],
+                           groupsAllowed: editing == nil) { c in
+                    choosing = false
+                    Task { await choose(c) }
                 }
             }
             // a new way of splitting starts from where the equal split stood
@@ -140,8 +168,9 @@ struct ExpenseForm: View {
             .scrollDismissesKeyboard(.interactively)
             // a different flat means different people, so the split starts over
             .onChange(of: target) { _, _ in
-                guard editing == nil else { return }
-                payer = m.uid ?? ""
+                // new people: an even split between all of them, paid by you (an edit
+                // keeps its payer while they are still on it)
+                if editing == nil || !people.contains(where: { $0.userId == payer }) { payer = m.uid ?? "" }
                 split = SplitState(among: Set(people.map(\.userId)))
             }
         }
@@ -150,6 +179,27 @@ struct ExpenseForm: View {
 
 extension ExpenseForm {
     static let several = "\u{0}several"
+
+    /// "Münchener Straße 67", "Nina, Tom", or "Choose"
+    private var withSummary: String {
+        if target.isEmpty { return "Choose" }
+        if !m.isCircle(target) { return m.flatName(target) }
+        let names = people.filter { $0.userId != m.uid }.map { m.personName($0.userId) }
+        return names.isEmpty ? "Choose" : names.joined(separator: ", ")
+    }
+
+    /// A group is the target as it is; people are turned into their circle first
+    /// (found or made by the server), so the split has their ids to work with.
+    private func choose(_ c: WithChoice) async {
+        switch c {
+        case .group(let id): target = id
+        case .people(let picks):
+            if picks.count == 1, let u = picks[0].userId, let pair = m.pairCircle(with: u) { target = pair; return }
+            resolving = true
+            if let id = await m.friendCircle(picks) { target = id }
+            resolving = false
+        }
+    }
 
     /// "Paid by" is one person, or "Several people", which opens a row per person
     private var payerChoice: Binding<String> {
@@ -179,7 +229,7 @@ struct ExpenseDetailView: View {
                     VStack(spacing: 8) {
                         CatIcon(cat: c, size: 56)
                         Text((expense.description ?? "").isEmpty ? c.label : expense.description!).font(.headline)
-                        Text(m.fH(expense.amount)).font(.system(size: 36, weight: .bold, design: .rounded)).monospacedDigit()
+                        Text(Fmt.money(expense.amount, expense.currency)).font(.system(size: 36, weight: .bold, design: .rounded)).monospacedDigit()
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -293,12 +343,12 @@ struct CreateJoinForm: View {
                             .textInputAutocapitalization(.characters).autocorrectionDisabled()
                             .font(.system(size: 28, weight: .bold, design: .monospaced)).multilineTextAlignment(.center)
                             .onChange(of: text) { _, t in text = t.uppercased().replacingOccurrences(of: " ", with: "") }
-                    } header: { Text("Flat code") } footer: { Text("Ask a flatmate — it's on their Flat tab.") }
+                    } header: { Text("Group code") } footer: { Text("Ask someone in the group — it's on the group's page.") }
                 } else if mode == .group {
                     Section {
-                        TextField("e.g. Sicily trip", text: $text)
+                        TextField("e.g. WG Hauptstraße, Sicily trip", text: $text)
                     } header: { Text("Group name") } footer: {
-                        Text("For splitting with people you don't live with. Add them by email — they don't need a Heimat account first.")
+                        Text("Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Heimat account first.")
                     }
                 } else {
                     Section {
@@ -306,7 +356,7 @@ struct CreateJoinForm: View {
                     } header: { Text("Flat name") } footer: { Text("You'll get a code to share with your flatmates.") }
                 }
             }
-            .navigationTitle(mode == .join ? "Join a flat" : mode == .group ? "New group" : "Create a flat")
+            .navigationTitle(mode == .join ? "Join a group" : mode == .group ? "New group" : "Create a flat")
             .heimatSurface()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -517,6 +567,81 @@ struct CategoriesView: View {
             .heimatSurface()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+
+enum WithChoice { case group(String), people([PersonPick]) }
+
+/// Who an expense is with: people (found by name, email or from contacts) or
+/// one of your groups.
+struct WithPicker: View {
+    @Environment(AppModel.self) private var m
+    @Environment(\.dismiss) private var dismiss
+    let group: String?
+    @State var people: [PersonPick]
+    var groupsAllowed = true
+    let done: (WithChoice) -> Void
+    @State private var query = ""
+
+    init(group: String?, people: [PersonPick], groupsAllowed: Bool, done: @escaping (WithChoice) -> Void) {
+        self.group = group
+        self._people = State(initialValue: people)
+        self.groupsAllowed = groupsAllowed
+        self.done = done
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if !people.isEmpty {
+                        ScrollView(.horizontal) {
+                            HStack(spacing: 8) {
+                                ForEach(people) { p in
+                                    Chip(text: p.name, symbol: "xmark", on: true) { people.removeAll { $0.id == p.id } }
+                                }
+                            }
+                        }
+                        .scrollIndicators(.hidden)
+                    }
+                    PersonSearch(query: $query, placeholder: "Name or email", exclude: Set(people.compactMap(\.userId)), autofocus: true) { pick in
+                        if !people.contains(where: { $0.id == pick.id }) { people.append(pick) }
+                        query = ""
+                    }
+                    if people.isEmpty && query.isEmpty && groupsAllowed && !m.flats.isEmpty {
+                        SectionLabel("Or one of your groups")
+                        VStack(spacing: 0) {
+                            ForEach(Array(m.flats.enumerated()), id: \.element.id) { i, f in
+                                Button { done(.group(f.id)) } label: {
+                                    HStack(spacing: 12) {
+                                        Image(systemName: "person.3.fill").foregroundStyle(.tint).frame(width: 32)
+                                        Text(f.name).lineLimit(1)
+                                        Spacer()
+                                        if f.id == group { Image(systemName: "checkmark").foregroundStyle(.tint) }
+                                    }
+                                    .padding(.horizontal, 16).padding(.vertical, 12)
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PressStyle())
+                                .foregroundStyle(.primary)
+                                if i < m.flats.count - 1 { RowDivider(inset: 60) }
+                            }
+                        }
+                        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                    }
+                }
+                .padding(16)
+            }
+            .navigationTitle("With you and")
+            .navigationBarTitleDisplayMode(.inline)
+            .heimatSurface()
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { done(.people(people)) }.disabled(people.isEmpty)
+                }
+            }
         }
     }
 }

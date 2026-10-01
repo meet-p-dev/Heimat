@@ -16,6 +16,9 @@ struct HeimatApp: App {
                     Push.shared.takeDelegate()
                     Router.shared.model = model
                     await model.start()
+                    #if DEBUG
+                    if AppModel.fixtureMode { return }
+                    #endif
                     await Push.shared.refresh()
                     model.publishWidgetData()
                 }
@@ -47,12 +50,12 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
     case home, flat, work
     var id: Self { self }
     var title: String {
-        switch self { case .home: "Home"; case .flat: "Flat"; case .work: "Work" }
+        switch self { case .home: "Home"; case .flat: "Groups"; case .work: "Work" }
     }
     var symbol: String {
         switch self {
         case .home: "house.fill"
-        case .flat: "person.2.fill"
+        case .flat: "person.3.fill"
         case .work: "clock.fill"
         }
     }
@@ -60,7 +63,12 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
 }
 enum AuthMode: String, Hashable { case signup, signin, forgot, password, email }
 enum FlatMode: Hashable { case create, join, group }
-struct ExpensePrefill: Hashable { var desc: String; var category: String }
+struct ExpensePrefill: Hashable {
+    var desc = ""
+    var category = "groceries"
+    /// start as an expense outside any group, with these people
+    var people: [PersonPick]? = nil
+}
 
 /// Sideways scrolling inside a page — the flat chips, anything else laid out
 /// in a row — should scroll rather than turn the page. Such a scroller marks
@@ -95,6 +103,7 @@ enum SheetRoute: Identifiable, Hashable {
     case expenseDetail(Expense)
     case shift(Shift?, String?)
     case settle(Calc.Suggestion?)
+    case settlePerson(String)
     var id: String { String(describing: self) }
 }
 
@@ -116,6 +125,7 @@ struct SheetHost: View {
         case .expenseDetail(let e): ExpenseDetailView(expense: e)
         case .shift(let s, let date): ShiftForm(editing: s, day: date)
         case .settle(let s): SettleForm(initial: s)
+        case .settlePerson(let p): PersonSettleForm(person: p)
         }
     }
 }
@@ -206,8 +216,9 @@ struct MainTabs: View {
             .onChanged { v in
                 let dx = v.translation.width, dy = v.translation.height
                 if sideways == nil {
-                    if gate.busy {
-                        sideways = false                    // a row inside the page has it
+                    if gate.busy || (m.tab == .flat && !m.groupsPath.isEmpty) {
+                        // a row inside the page has it — or a pushed page, whose drag is the way back
+                        sideways = false
                     } else if abs(dx) > Self.slop && abs(dx) > abs(dy) {
                         sideways = true; base = progress; origin = dx
                     } else if abs(dy) > Self.slop {
@@ -245,7 +256,7 @@ struct MainTabs: View {
     @ViewBuilder private func page(_ tab: AppTab) -> some View {
         switch tab {
         case .home: HomeView()
-        case .flat: FlatView()
+        case .flat: GroupsView()
         case .work: WorkView()
         }
     }

@@ -10,7 +10,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   fnv1a, allocate, sharesOf, buildLedger, settlePlan, zeroSumGroups, parseMinor, minorToInput,
-  toMinor, pairwiseFor, EXACT_LIMIT, flatCurrency,
+  toMinor, pairwiseFor, EXACT_LIMIT, flatCurrency, spread,
 } from '../src/lib/ledger.ts'
 import type { Expense, Settlement } from '../src/lib/types.ts'
 
@@ -539,4 +539,44 @@ test('v2 share weights are exact decimals, read the way Postgres reads them', ()
   assert.ok(computeShares(1000, { type: 'shares', values: { ana: 0.3, ben: 1.25, cara: 2 } }, 's').ok)
   assert.deepEqual(computeShares(1000, { type: 'shares', values: { ana: 0.1 + 0.2 } }, 's'), { ok: false, error: { code: 'bad_value', who: 'ana' } })
   assert.deepEqual(computeShares(1000, { type: 'shares', values: { ana: 1e-7 } }, 's'), { ok: false, error: { code: 'bad_value', who: 'ana' } })
+})
+
+// ------------------------------------------------- settling up with one person
+
+test('spread: always adds up to the payment, and a full payment leaves every place square', () => {
+  let state = 9
+  const r = () => ((state = (state * 1103515245 + 12345) % 2147483648) / 2147483648)
+  for (let i = 0; i < 20000; i++) {
+    const places = Array.from({ length: Math.floor(r() * 6) }, (_, k) => ({ place: 'p' + k, owed: Math.floor((r() - 0.35) * 50000) }))
+    const fallback = r() < 0.5 && places.length ? 'p0' : 'pair'
+    const net = places.reduce((a, p) => a + p.owed, 0)
+    const pay = r() < 0.4 && net > 0 ? net + (r() < 0.3 ? Math.floor(r() * 500) : 0) : 1 + Math.floor(r() * 60000)
+    const parts = spread(pay, places, fallback)
+    assert.equal(parts.reduce((a, p) => a + (p.reverse ? -p.minor : p.minor), 0), pay, `case ${i}: parts ≠ payment`)
+    for (const p of parts) assert.ok(Number.isSafeInteger(p.minor) && p.minor > 0, `case ${i}: bad part`)
+    assert.equal(new Set(parts.map((p) => p.place)).size, parts.length, `case ${i}: a place twice`)
+    const after = new Map(places.map((p) => [p.place, p.owed]))
+    for (const p of parts) after.set(p.place, (after.get(p.place) || 0) - (p.reverse ? -p.minor : p.minor))
+    if (net > 0 && pay >= net) {
+      for (const [place, v] of after) assert.equal(v, place === fallback ? net - pay : 0, `case ${i}: ${place} not square`)
+    } else {
+      for (const p of parts) assert.ok(!p.reverse, `case ${i}: a partial payment went the other way`)
+      for (const p of places) if (p.place !== fallback) assert.ok((after.get(p.place) ?? 0) >= Math.min(0, p.owed), `case ${i}: ${p.place} overpaid`)
+    }
+  }
+})
+
+test('spread: the largest debt is paid first, and the order of places never matters', () => {
+  assert.deepEqual(spread(700, [{ place: 'g1', owed: 400 }, { place: 'g2', owed: 500 }], 'c'),
+    [{ place: 'g2', minor: 500, reverse: false }, { place: 'g1', minor: 200, reverse: false }])
+  assert.deepEqual(spread(600, [{ place: 'g1', owed: 1000 }, { place: 'g2', owed: -400 }], 'c'),
+    [{ place: 'g1', minor: 1000, reverse: false }, { place: 'g2', minor: 400, reverse: true }])
+  assert.deepEqual(spread(1, [{ place: 'b', owed: 5 }, { place: 'a', owed: 5 }], 'c'), [{ place: 'a', minor: 1, reverse: false }])
+  assert.deepEqual(spread(250, [], 'c'), [{ place: 'c', minor: 250, reverse: false }])
+  assert.deepEqual(spread(0, [{ place: 'g', owed: 5 }], 'c'), [])
+  const places = [{ place: 'x', owed: 300 }, { place: 'y', owed: -120 }, { place: 'z', owed: 300 }, { place: 'w', owed: 40 }]
+  for (let k = 0; k < 24; k++) {
+    const shuffled = [...places].sort(() => Math.sin(k * 7 + places.length) - 0.1)
+    for (const pay of [1, 200, 520, 600, 9000]) assert.deepEqual(spread(pay, shuffled, 'c'), spread(pay, places, 'c'))
+  }
 })

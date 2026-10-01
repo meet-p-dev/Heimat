@@ -38386,5 +38386,8225 @@
     }
    ]
   }
+ ],
+ "spreads": [
+  {
+   "pay": 1000,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 600
+    },
+    {
+     "place": "g2",
+     "owed": 400
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "g1",
+     "minor": 600,
+     "reverse": false
+    },
+    {
+     "place": "g2",
+     "minor": 400,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 600,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 600
+    },
+    {
+     "place": "g2",
+     "owed": 400
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "g1",
+     "minor": 600,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 700,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 400
+    },
+    {
+     "place": "g2",
+     "owed": 400
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "g1",
+     "minor": 400,
+     "reverse": false
+    },
+    {
+     "place": "g2",
+     "minor": 300,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 600,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 1000
+    },
+    {
+     "place": "c",
+     "owed": -400
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "g1",
+     "minor": 1000,
+     "reverse": false
+    },
+    {
+     "place": "c",
+     "minor": 400,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 900,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 1000
+    },
+    {
+     "place": "g2",
+     "owed": -400
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "g1",
+     "minor": 1000,
+     "reverse": false
+    },
+    {
+     "place": "g2",
+     "minor": 400,
+     "reverse": true
+    },
+    {
+     "place": "c",
+     "minor": 300,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 500,
+   "places": [
+    {
+     "place": "g1",
+     "owed": -300
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "c",
+     "minor": 500,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 250,
+   "places": [],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "c",
+     "minor": 250,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 1,
+   "places": [
+    {
+     "place": "b",
+     "owed": 5
+    },
+    {
+     "place": "a",
+     "owed": 5
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "a",
+     "minor": 1,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 0,
+   "places": [
+    {
+     "place": "g1",
+     "owed": 5
+    }
+   ],
+   "fallback": "c",
+   "out": []
+  },
+  {
+   "pay": 1500,
+   "places": [
+    {
+     "place": "c",
+     "owed": 1000
+    }
+   ],
+   "fallback": "c",
+   "out": [
+    {
+     "place": "c",
+     "minor": 1500,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13635,
+   "places": [
+    {
+     "place": "0b71dec0-2e97-4b60-a216-8f0432330d87",
+     "owed": 763
+    },
+    {
+     "place": "94494b7a-9614-480e-a2e7-d564ad6694c5",
+     "owed": 3493
+    }
+   ],
+   "fallback": "0b71dec0-2e97-4b60-a216-8f0432330d87",
+   "out": [
+    {
+     "place": "0b71dec0-2e97-4b60-a216-8f0432330d87",
+     "minor": 10142,
+     "reverse": false
+    },
+    {
+     "place": "94494b7a-9614-480e-a2e7-d564ad6694c5",
+     "minor": 3493,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6796,
+   "places": [
+    {
+     "place": "88857995-7110-4646-a349-07da895c8f40",
+     "owed": 12650
+    },
+    {
+     "place": "c2060d71-a513-414c-ac28-f8d9830337bc",
+     "owed": -2332
+    },
+    {
+     "place": "c13c5870-e36c-41ce-ac64-aeb0916e7a5b",
+     "owed": -3856
+    },
+    {
+     "place": "6ffd9467-9eba-493b-a2b4-1bc778c77a3f",
+     "owed": -1700
+    }
+   ],
+   "fallback": "88857995-7110-4646-a349-07da895c8f40",
+   "out": [
+    {
+     "place": "88857995-7110-4646-a349-07da895c8f40",
+     "minor": 14684,
+     "reverse": false
+    },
+    {
+     "place": "c13c5870-e36c-41ce-ac64-aeb0916e7a5b",
+     "minor": 3856,
+     "reverse": true
+    },
+    {
+     "place": "c2060d71-a513-414c-ac28-f8d9830337bc",
+     "minor": 2332,
+     "reverse": true
+    },
+    {
+     "place": "6ffd9467-9eba-493b-a2b4-1bc778c77a3f",
+     "minor": 1700,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 10706,
+   "places": [
+    {
+     "place": "47c99307-e213-44a0-ae02-e95bf5d6baf1",
+     "owed": -3317
+    },
+    {
+     "place": "27eaa9db-8eb3-4310-a81a-bb93b4e6c681",
+     "owed": 12812
+    },
+    {
+     "place": "38782982-accc-4ae6-a2ff-ea87463d2d97",
+     "owed": 12122
+    }
+   ],
+   "fallback": "47c99307-e213-44a0-ae02-e95bf5d6baf1",
+   "out": [
+    {
+     "place": "27eaa9db-8eb3-4310-a81a-bb93b4e6c681",
+     "minor": 10706,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13898,
+   "places": [
+    {
+     "place": "29f15384-e485-4da4-a3fa-825b0ff34c54",
+     "owed": 13898
+    }
+   ],
+   "fallback": "9a1cbbdb-6e9f-4cde-adc4-22fb9fa7cfc9",
+   "out": [
+    {
+     "place": "29f15384-e485-4da4-a3fa-825b0ff34c54",
+     "minor": 13898,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4326,
+   "places": [
+    {
+     "place": "85f24104-a212-421d-a27b-2322fe798f39",
+     "owed": 4326
+    }
+   ],
+   "fallback": "85f24104-a212-421d-a27b-2322fe798f39",
+   "out": [
+    {
+     "place": "85f24104-a212-421d-a27b-2322fe798f39",
+     "minor": 4326,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18136,
+   "places": [
+    {
+     "place": "9975a25f-3974-4101-a69b-0a9ba86a5c7f",
+     "owed": 11901
+    },
+    {
+     "place": "a2dbef36-b8f6-4d40-a93b-610911846e08",
+     "owed": 3093
+    },
+    {
+     "place": "5a74e7f6-d7af-4795-a747-9faeccd084c7",
+     "owed": 3142
+    }
+   ],
+   "fallback": "9975a25f-3974-4101-a69b-0a9ba86a5c7f",
+   "out": [
+    {
+     "place": "9975a25f-3974-4101-a69b-0a9ba86a5c7f",
+     "minor": 11901,
+     "reverse": false
+    },
+    {
+     "place": "5a74e7f6-d7af-4795-a747-9faeccd084c7",
+     "minor": 3142,
+     "reverse": false
+    },
+    {
+     "place": "a2dbef36-b8f6-4d40-a93b-610911846e08",
+     "minor": 3093,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19960,
+   "places": [
+    {
+     "place": "db2c6add-b271-4508-afc1-11ed8450b7e0",
+     "owed": -392
+    },
+    {
+     "place": "3f904795-0056-43c2-a875-f70299c830d7",
+     "owed": 7308
+    },
+    {
+     "place": "356ff6fc-5488-4f16-a1cd-d79072eefe7a",
+     "owed": 8373
+    },
+    {
+     "place": "5ac29d70-4d01-4355-a4ea-f312f7e69673",
+     "owed": 986
+    }
+   ],
+   "fallback": "b55f8986-5b0c-4d91-a9ff-e2a8c57bc275",
+   "out": [
+    {
+     "place": "356ff6fc-5488-4f16-a1cd-d79072eefe7a",
+     "minor": 8373,
+     "reverse": false
+    },
+    {
+     "place": "3f904795-0056-43c2-a875-f70299c830d7",
+     "minor": 7308,
+     "reverse": false
+    },
+    {
+     "place": "b55f8986-5b0c-4d91-a9ff-e2a8c57bc275",
+     "minor": 3685,
+     "reverse": false
+    },
+    {
+     "place": "5ac29d70-4d01-4355-a4ea-f312f7e69673",
+     "minor": 986,
+     "reverse": false
+    },
+    {
+     "place": "db2c6add-b271-4508-afc1-11ed8450b7e0",
+     "minor": 392,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 9313,
+   "places": [
+    {
+     "place": "93f8404c-75e1-4668-a129-b0955e446e14",
+     "owed": 2938
+    }
+   ],
+   "fallback": "fa4509d0-636b-4dbb-a5b2-56aea4247142",
+   "out": [
+    {
+     "place": "fa4509d0-636b-4dbb-a5b2-56aea4247142",
+     "minor": 6375,
+     "reverse": false
+    },
+    {
+     "place": "93f8404c-75e1-4668-a129-b0955e446e14",
+     "minor": 2938,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23221,
+   "places": [
+    {
+     "place": "1a5b9466-0769-466d-a9a8-901bcd38beb2",
+     "owed": 11702
+    },
+    {
+     "place": "219eca2a-32f4-4f64-a6e0-0fde8f856cb3",
+     "owed": -1998
+    }
+   ],
+   "fallback": "bce4bfd5-63a7-42bc-ac99-e2f2f10fdcc5",
+   "out": [
+    {
+     "place": "bce4bfd5-63a7-42bc-ac99-e2f2f10fdcc5",
+     "minor": 13517,
+     "reverse": false
+    },
+    {
+     "place": "1a5b9466-0769-466d-a9a8-901bcd38beb2",
+     "minor": 11702,
+     "reverse": false
+    },
+    {
+     "place": "219eca2a-32f4-4f64-a6e0-0fde8f856cb3",
+     "minor": 1998,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8048,
+   "places": [
+    {
+     "place": "1994b5fa-cff0-4f85-ae65-00c1b688095f",
+     "owed": 13697
+    },
+    {
+     "place": "45deae55-467b-4884-a85c-bd69f03073bd",
+     "owed": 5196
+    },
+    {
+     "place": "12b7a071-e91e-4077-a4e8-0e20b0f2338b",
+     "owed": 12376
+    },
+    {
+     "place": "3fdda309-7778-4784-aba3-a34c1db5d407",
+     "owed": -4685
+    }
+   ],
+   "fallback": "9b7ac441-bfdd-47ec-afd6-84c6f5faea6c",
+   "out": [
+    {
+     "place": "1994b5fa-cff0-4f85-ae65-00c1b688095f",
+     "minor": 8048,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11428,
+   "places": [
+    {
+     "place": "54472e6c-2ded-460b-a6ed-8856e3a16b1a",
+     "owed": 11428
+    }
+   ],
+   "fallback": "54472e6c-2ded-460b-a6ed-8856e3a16b1a",
+   "out": [
+    {
+     "place": "54472e6c-2ded-460b-a6ed-8856e3a16b1a",
+     "minor": 11428,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12445,
+   "places": [
+    {
+     "place": "f40a6540-d45e-4c53-a472-5956c38aa7d1",
+     "owed": 5692
+    },
+    {
+     "place": "8b0fa749-ab09-4143-a89b-14bb27e28e8a",
+     "owed": 11556
+    },
+    {
+     "place": "8cf20a5e-ac32-499e-a7ed-0ce51f4abc41",
+     "owed": 4065
+    },
+    {
+     "place": "2ff7e274-a969-4dcc-a6ee-656c7b076737",
+     "owed": 3970
+    }
+   ],
+   "fallback": "f40a6540-d45e-4c53-a472-5956c38aa7d1",
+   "out": [
+    {
+     "place": "8b0fa749-ab09-4143-a89b-14bb27e28e8a",
+     "minor": 11556,
+     "reverse": false
+    },
+    {
+     "place": "f40a6540-d45e-4c53-a472-5956c38aa7d1",
+     "minor": 889,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18741,
+   "places": [
+    {
+     "place": "bef15994-a23e-4390-a1ed-359772250990",
+     "owed": 3175
+    },
+    {
+     "place": "ab6b2c00-c57f-434f-a257-f1408cedeeb6",
+     "owed": 12572
+    },
+    {
+     "place": "bf60a42a-6d76-4c7a-a7f0-2ef7778b3889",
+     "owed": 2994
+    }
+   ],
+   "fallback": "20bc21f9-3fd5-4c3a-a66f-89512e92c5b7",
+   "out": [
+    {
+     "place": "ab6b2c00-c57f-434f-a257-f1408cedeeb6",
+     "minor": 12572,
+     "reverse": false
+    },
+    {
+     "place": "bef15994-a23e-4390-a1ed-359772250990",
+     "minor": 3175,
+     "reverse": false
+    },
+    {
+     "place": "bf60a42a-6d76-4c7a-a7f0-2ef7778b3889",
+     "minor": 2994,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22281,
+   "places": [
+    {
+     "place": "79558237-5081-4e20-aa9d-994f7d316ff0",
+     "owed": 2552
+    },
+    {
+     "place": "7fe2c70a-5e51-4a80-ab82-f073c0b59345",
+     "owed": 12586
+    },
+    {
+     "place": "36ed1107-d63c-4016-aa46-71d5f70131dd",
+     "owed": -2172
+    }
+   ],
+   "fallback": "6d6241f5-0b8d-473a-abbb-c04336deecd3",
+   "out": [
+    {
+     "place": "7fe2c70a-5e51-4a80-ab82-f073c0b59345",
+     "minor": 12586,
+     "reverse": false
+    },
+    {
+     "place": "6d6241f5-0b8d-473a-abbb-c04336deecd3",
+     "minor": 9315,
+     "reverse": false
+    },
+    {
+     "place": "79558237-5081-4e20-aa9d-994f7d316ff0",
+     "minor": 2552,
+     "reverse": false
+    },
+    {
+     "place": "36ed1107-d63c-4016-aa46-71d5f70131dd",
+     "minor": 2172,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 22658,
+   "places": [],
+   "fallback": "75795b08-e7f0-4fdc-ae29-ea948c20b1d1",
+   "out": [
+    {
+     "place": "75795b08-e7f0-4fdc-ae29-ea948c20b1d1",
+     "minor": 22658,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11796,
+   "places": [],
+   "fallback": "d92564f8-6cc4-4ca4-a7b6-f3dcb14b9e90",
+   "out": [
+    {
+     "place": "d92564f8-6cc4-4ca4-a7b6-f3dcb14b9e90",
+     "minor": 11796,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15207,
+   "places": [
+    {
+     "place": "ea051752-457b-4b71-a74f-531fa5bc5191",
+     "owed": 6382
+    }
+   ],
+   "fallback": "f5c2cfd4-d0fd-41aa-a8ef-6968a0b78f61",
+   "out": [
+    {
+     "place": "f5c2cfd4-d0fd-41aa-a8ef-6968a0b78f61",
+     "minor": 8825,
+     "reverse": false
+    },
+    {
+     "place": "ea051752-457b-4b71-a74f-531fa5bc5191",
+     "minor": 6382,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22928,
+   "places": [
+    {
+     "place": "ca06ea62-286c-441e-adc7-bfe174dc4f4a",
+     "owed": 11821
+    }
+   ],
+   "fallback": "ca06ea62-286c-441e-adc7-bfe174dc4f4a",
+   "out": [
+    {
+     "place": "ca06ea62-286c-441e-adc7-bfe174dc4f4a",
+     "minor": 22928,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22995,
+   "places": [
+    {
+     "place": "6f923d86-adba-4a62-a783-23385be22def",
+     "owed": 1599
+    },
+    {
+     "place": "c014faa8-a9f5-48f2-ab26-86da38c866e2",
+     "owed": 12267
+    },
+    {
+     "place": "0a19122c-1e78-46bf-a92f-2f7e4eb12458",
+     "owed": -724
+    },
+    {
+     "place": "0df356da-83f5-4856-a0df-a026de71922a",
+     "owed": 149
+    }
+   ],
+   "fallback": "404370ce-551b-46e2-aa47-fb2fc1fc87d8",
+   "out": [
+    {
+     "place": "c014faa8-a9f5-48f2-ab26-86da38c866e2",
+     "minor": 12267,
+     "reverse": false
+    },
+    {
+     "place": "404370ce-551b-46e2-aa47-fb2fc1fc87d8",
+     "minor": 9704,
+     "reverse": false
+    },
+    {
+     "place": "6f923d86-adba-4a62-a783-23385be22def",
+     "minor": 1599,
+     "reverse": false
+    },
+    {
+     "place": "0a19122c-1e78-46bf-a92f-2f7e4eb12458",
+     "minor": 724,
+     "reverse": true
+    },
+    {
+     "place": "0df356da-83f5-4856-a0df-a026de71922a",
+     "minor": 149,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17160,
+   "places": [
+    {
+     "place": "bdf197d9-3d04-4fef-a778-691efcc788bd",
+     "owed": -2109
+    },
+    {
+     "place": "9463b7be-9ec1-483e-a305-b8481444b030",
+     "owed": -341
+    }
+   ],
+   "fallback": "2e221f9b-c551-486a-aa36-651716846dd4",
+   "out": [
+    {
+     "place": "2e221f9b-c551-486a-aa36-651716846dd4",
+     "minor": 17160,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23118,
+   "places": [
+    {
+     "place": "d1f184fc-5d39-46e8-a133-14abad49c6b1",
+     "owed": 6471
+    },
+    {
+     "place": "d007ca09-d11f-40e0-a774-9700f0e53d32",
+     "owed": 1116
+    },
+    {
+     "place": "d1bb5557-a693-4397-a689-30059f2ceef4",
+     "owed": 3003
+    }
+   ],
+   "fallback": "d1f184fc-5d39-46e8-a133-14abad49c6b1",
+   "out": [
+    {
+     "place": "d1f184fc-5d39-46e8-a133-14abad49c6b1",
+     "minor": 18999,
+     "reverse": false
+    },
+    {
+     "place": "d1bb5557-a693-4397-a689-30059f2ceef4",
+     "minor": 3003,
+     "reverse": false
+    },
+    {
+     "place": "d007ca09-d11f-40e0-a774-9700f0e53d32",
+     "minor": 1116,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3859,
+   "places": [
+    {
+     "place": "fb6c0891-10b4-4f3c-a39f-936e82a67323",
+     "owed": -3167
+    },
+    {
+     "place": "2072bd7d-4445-4a4a-a5b7-aa210dabd0d3",
+     "owed": 9717
+    },
+    {
+     "place": "5e2eca69-ee2b-4a34-a38a-2e6725d22617",
+     "owed": -4537
+    }
+   ],
+   "fallback": "394abff0-caa6-4af2-a1eb-d70e599b1653",
+   "out": [
+    {
+     "place": "2072bd7d-4445-4a4a-a5b7-aa210dabd0d3",
+     "minor": 9717,
+     "reverse": false
+    },
+    {
+     "place": "5e2eca69-ee2b-4a34-a38a-2e6725d22617",
+     "minor": 4537,
+     "reverse": true
+    },
+    {
+     "place": "fb6c0891-10b4-4f3c-a39f-936e82a67323",
+     "minor": 3167,
+     "reverse": true
+    },
+    {
+     "place": "394abff0-caa6-4af2-a1eb-d70e599b1653",
+     "minor": 1846,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9449,
+   "places": [
+    {
+     "place": "32894df6-ac1f-4146-a394-751b72652cc5",
+     "owed": -3060
+    },
+    {
+     "place": "55b038d5-3793-4bfa-a5a9-163bf73037f5",
+     "owed": 2514
+    }
+   ],
+   "fallback": "32894df6-ac1f-4146-a394-751b72652cc5",
+   "out": [
+    {
+     "place": "32894df6-ac1f-4146-a394-751b72652cc5",
+     "minor": 6935,
+     "reverse": false
+    },
+    {
+     "place": "55b038d5-3793-4bfa-a5a9-163bf73037f5",
+     "minor": 2514,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17814,
+   "places": [
+    {
+     "place": "4d70cd43-fb6e-4d44-ab43-25f1fc0a17f8",
+     "owed": 5555
+    },
+    {
+     "place": "337ca681-4475-4b0e-a398-d7c5a9def4a8",
+     "owed": 7930
+    }
+   ],
+   "fallback": "0df4cf9a-2021-4b9d-a430-c4a5d8c6de5a",
+   "out": [
+    {
+     "place": "337ca681-4475-4b0e-a398-d7c5a9def4a8",
+     "minor": 7930,
+     "reverse": false
+    },
+    {
+     "place": "4d70cd43-fb6e-4d44-ab43-25f1fc0a17f8",
+     "minor": 5555,
+     "reverse": false
+    },
+    {
+     "place": "0df4cf9a-2021-4b9d-a430-c4a5d8c6de5a",
+     "minor": 4329,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23517,
+   "places": [
+    {
+     "place": "7b9ca7f3-9c62-44e7-a23b-f09694bcaa6d",
+     "owed": 2905
+    },
+    {
+     "place": "99047bb8-3a45-4c78-a6a2-c99bd77cf028",
+     "owed": 3953
+    }
+   ],
+   "fallback": "7b9ca7f3-9c62-44e7-a23b-f09694bcaa6d",
+   "out": [
+    {
+     "place": "7b9ca7f3-9c62-44e7-a23b-f09694bcaa6d",
+     "minor": 19564,
+     "reverse": false
+    },
+    {
+     "place": "99047bb8-3a45-4c78-a6a2-c99bd77cf028",
+     "minor": 3953,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8503,
+   "places": [
+    {
+     "place": "cb0872bd-446d-4b8f-afaa-db6725531931",
+     "owed": 10461
+    },
+    {
+     "place": "4e67e3d6-b321-4a82-a97d-f5dc0e7a1d20",
+     "owed": -2846
+    },
+    {
+     "place": "446a550d-8cc0-477b-a6de-a495fa3e56e1",
+     "owed": 3783
+    },
+    {
+     "place": "f1d8f549-6a8f-4c8b-a0ea-456c6f56e9c9",
+     "owed": -4906
+    }
+   ],
+   "fallback": "cb0872bd-446d-4b8f-afaa-db6725531931",
+   "out": [
+    {
+     "place": "cb0872bd-446d-4b8f-afaa-db6725531931",
+     "minor": 12472,
+     "reverse": false
+    },
+    {
+     "place": "f1d8f549-6a8f-4c8b-a0ea-456c6f56e9c9",
+     "minor": 4906,
+     "reverse": true
+    },
+    {
+     "place": "446a550d-8cc0-477b-a6de-a495fa3e56e1",
+     "minor": 3783,
+     "reverse": false
+    },
+    {
+     "place": "4e67e3d6-b321-4a82-a97d-f5dc0e7a1d20",
+     "minor": 2846,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8608,
+   "places": [
+    {
+     "place": "550ea432-5a96-43f6-afe0-6db5ce236c69",
+     "owed": 4088
+    },
+    {
+     "place": "17c4e490-e824-49c7-a10c-4325817af7c8",
+     "owed": 4520
+    }
+   ],
+   "fallback": "5e1539c2-9c30-47f7-a951-19fc11bd10d6",
+   "out": [
+    {
+     "place": "17c4e490-e824-49c7-a10c-4325817af7c8",
+     "minor": 4520,
+     "reverse": false
+    },
+    {
+     "place": "550ea432-5a96-43f6-afe0-6db5ce236c69",
+     "minor": 4088,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12663,
+   "places": [
+    {
+     "place": "e6aa0dd4-72a8-4728-a15e-d469c28e79a4",
+     "owed": -764
+    },
+    {
+     "place": "5c60092a-0770-4def-a6b9-78f70e780765",
+     "owed": -4853
+    },
+    {
+     "place": "365db1e1-d326-4857-a200-2aa66859cf00",
+     "owed": 12683
+    },
+    {
+     "place": "cc5cf245-62a6-48e0-aec3-52a8a8fe1cb1",
+     "owed": -2134
+    }
+   ],
+   "fallback": "d98711a7-44c4-410d-a010-2f0c3ebfcbc1",
+   "out": [
+    {
+     "place": "365db1e1-d326-4857-a200-2aa66859cf00",
+     "minor": 12683,
+     "reverse": false
+    },
+    {
+     "place": "d98711a7-44c4-410d-a010-2f0c3ebfcbc1",
+     "minor": 7731,
+     "reverse": false
+    },
+    {
+     "place": "5c60092a-0770-4def-a6b9-78f70e780765",
+     "minor": 4853,
+     "reverse": true
+    },
+    {
+     "place": "cc5cf245-62a6-48e0-aec3-52a8a8fe1cb1",
+     "minor": 2134,
+     "reverse": true
+    },
+    {
+     "place": "e6aa0dd4-72a8-4728-a15e-d469c28e79a4",
+     "minor": 764,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 2312,
+   "places": [
+    {
+     "place": "076bccaf-c244-4998-a236-ccfa71a72dd6",
+     "owed": 10138
+    },
+    {
+     "place": "a5f598d8-f6be-493e-a96e-4bda80799146",
+     "owed": 2561
+    },
+    {
+     "place": "8abb2df0-5711-42b7-aa5f-d8fdc58f6085",
+     "owed": 1393
+    }
+   ],
+   "fallback": "426d61f7-f820-47aa-a0bb-7d1c11eeaa4b",
+   "out": [
+    {
+     "place": "076bccaf-c244-4998-a236-ccfa71a72dd6",
+     "minor": 2312,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 718,
+   "places": [
+    {
+     "place": "63fa0b1a-47de-4e11-ab5a-61a83489fd0a",
+     "owed": 3336
+    },
+    {
+     "place": "bc3044dd-bef6-4ade-a3b3-18dbf8bd6d76",
+     "owed": -5488
+    },
+    {
+     "place": "7fbd1396-2db6-4b65-aa15-fb003338ea59",
+     "owed": 750
+    },
+    {
+     "place": "f0c09d6a-aa35-4eec-a03c-3a42ae363dc1",
+     "owed": -5656
+    }
+   ],
+   "fallback": "08e6fb94-a7f7-4925-ac99-6e8151d5756c",
+   "out": [
+    {
+     "place": "63fa0b1a-47de-4e11-ab5a-61a83489fd0a",
+     "minor": 718,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9042,
+   "places": [
+    {
+     "place": "b013fce8-2167-477b-a877-5ed69cde7aff",
+     "owed": -4736
+    },
+    {
+     "place": "b80adf78-77c7-42cc-a003-518f1ffb02e3",
+     "owed": 4694
+    },
+    {
+     "place": "52a3b0c5-27ce-4b71-a162-af0285f88a0c",
+     "owed": 9084
+    }
+   ],
+   "fallback": "05114c53-6e13-4214-ab42-f0ca3d798350",
+   "out": [
+    {
+     "place": "52a3b0c5-27ce-4b71-a162-af0285f88a0c",
+     "minor": 9084,
+     "reverse": false
+    },
+    {
+     "place": "b013fce8-2167-477b-a877-5ed69cde7aff",
+     "minor": 4736,
+     "reverse": true
+    },
+    {
+     "place": "b80adf78-77c7-42cc-a003-518f1ffb02e3",
+     "minor": 4694,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13888,
+   "places": [
+    {
+     "place": "136f6f7b-6304-4941-ab0b-d16b5b60778b",
+     "owed": 7994
+    },
+    {
+     "place": "9467de85-4daa-4a1f-a43a-57dcafbf6e13",
+     "owed": 1283
+    },
+    {
+     "place": "cdfc36f4-53f0-4ca5-afc3-538cb4f8e91e",
+     "owed": 11915
+    }
+   ],
+   "fallback": "136f6f7b-6304-4941-ab0b-d16b5b60778b",
+   "out": [
+    {
+     "place": "cdfc36f4-53f0-4ca5-afc3-538cb4f8e91e",
+     "minor": 11915,
+     "reverse": false
+    },
+    {
+     "place": "136f6f7b-6304-4941-ab0b-d16b5b60778b",
+     "minor": 1973,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18544,
+   "places": [],
+   "fallback": "6dbee1fd-c4c8-4a9f-a863-fcac52b2509a",
+   "out": [
+    {
+     "place": "6dbee1fd-c4c8-4a9f-a863-fcac52b2509a",
+     "minor": 18544,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 632,
+   "places": [
+    {
+     "place": "50c3824f-67c2-4e43-ac4e-f22c14e98129",
+     "owed": 12378
+    },
+    {
+     "place": "1d5e14b6-1837-40b1-a3b3-85ce79f7b757",
+     "owed": 10359
+    },
+    {
+     "place": "598c08e2-138e-40fa-a6ac-d9604c291401",
+     "owed": 12222
+    },
+    {
+     "place": "69377c65-dfa0-4c29-a223-737b52cdfaf8",
+     "owed": -1283
+    }
+   ],
+   "fallback": "49dd0c48-dfb0-40a2-a74c-e78f3418ed6d",
+   "out": [
+    {
+     "place": "50c3824f-67c2-4e43-ac4e-f22c14e98129",
+     "minor": 632,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6628,
+   "places": [],
+   "fallback": "86ff46da-9632-4693-a2fe-ebf8530cbe58",
+   "out": [
+    {
+     "place": "86ff46da-9632-4693-a2fe-ebf8530cbe58",
+     "minor": 6628,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7542,
+   "places": [
+    {
+     "place": "b52dd747-15f2-42a3-a6e2-7faeb4e0409c",
+     "owed": 10854
+    },
+    {
+     "place": "7048b9e7-98f5-4d5a-a133-b0872fe98746",
+     "owed": 830
+    },
+    {
+     "place": "40c602aa-e4d0-4828-a65c-1a481a3a763b",
+     "owed": -4142
+    }
+   ],
+   "fallback": "d1e41f21-1e54-4b6c-a749-a0ad9ac3a243",
+   "out": [
+    {
+     "place": "b52dd747-15f2-42a3-a6e2-7faeb4e0409c",
+     "minor": 10854,
+     "reverse": false
+    },
+    {
+     "place": "40c602aa-e4d0-4828-a65c-1a481a3a763b",
+     "minor": 4142,
+     "reverse": true
+    },
+    {
+     "place": "7048b9e7-98f5-4d5a-a133-b0872fe98746",
+     "minor": 830,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14369,
+   "places": [
+    {
+     "place": "22625a94-8780-468d-a4ab-c03c7e1ad572",
+     "owed": 12352
+    },
+    {
+     "place": "0080b8ca-3c9d-4ff4-ab22-0767035463d6",
+     "owed": 5379
+    },
+    {
+     "place": "ad58da87-af18-4fab-a044-4c64743c9002",
+     "owed": -3362
+    }
+   ],
+   "fallback": "22625a94-8780-468d-a4ab-c03c7e1ad572",
+   "out": [
+    {
+     "place": "22625a94-8780-468d-a4ab-c03c7e1ad572",
+     "minor": 12352,
+     "reverse": false
+    },
+    {
+     "place": "0080b8ca-3c9d-4ff4-ab22-0767035463d6",
+     "minor": 5379,
+     "reverse": false
+    },
+    {
+     "place": "ad58da87-af18-4fab-a044-4c64743c9002",
+     "minor": 3362,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 17290,
+   "places": [
+    {
+     "place": "da9fb2c8-4bda-4db6-ad88-3dbcd5be0729",
+     "owed": 12968
+    },
+    {
+     "place": "9059aab7-3ec1-40c5-a090-0a3de87d6a41",
+     "owed": 6396
+    },
+    {
+     "place": "a891eb37-9963-4d57-a2b8-9f8204402362",
+     "owed": -2306
+    },
+    {
+     "place": "494d16e8-bc36-4647-a20c-773edb871a34",
+     "owed": 881
+    }
+   ],
+   "fallback": "f7505c4a-5870-404e-a846-5ec3bd74e737",
+   "out": [
+    {
+     "place": "da9fb2c8-4bda-4db6-ad88-3dbcd5be0729",
+     "minor": 12968,
+     "reverse": false
+    },
+    {
+     "place": "9059aab7-3ec1-40c5-a090-0a3de87d6a41",
+     "minor": 4322,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14741,
+   "places": [
+    {
+     "place": "c2eb2e1b-de7d-480d-a039-6888aad0952a",
+     "owed": 4661
+    },
+    {
+     "place": "17cd00ef-6c17-4216-ab03-bbdbdec488f5",
+     "owed": 8561
+    },
+    {
+     "place": "09cbbb78-6246-45ea-af3c-5ee9b8060ff9",
+     "owed": -2227
+    }
+   ],
+   "fallback": "c2eb2e1b-de7d-480d-a039-6888aad0952a",
+   "out": [
+    {
+     "place": "17cd00ef-6c17-4216-ab03-bbdbdec488f5",
+     "minor": 8561,
+     "reverse": false
+    },
+    {
+     "place": "c2eb2e1b-de7d-480d-a039-6888aad0952a",
+     "minor": 8407,
+     "reverse": false
+    },
+    {
+     "place": "09cbbb78-6246-45ea-af3c-5ee9b8060ff9",
+     "minor": 2227,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8186,
+   "places": [
+    {
+     "place": "e140bbeb-8f22-476c-acec-de20295d73c5",
+     "owed": 10570
+    }
+   ],
+   "fallback": "69d9a672-9aff-4fcd-ae7e-6c46b2c09e51",
+   "out": [
+    {
+     "place": "e140bbeb-8f22-476c-acec-de20295d73c5",
+     "minor": 8186,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23892,
+   "places": [
+    {
+     "place": "9d980fcd-60c6-4af6-a453-a068cd2ac10d",
+     "owed": 12245
+    }
+   ],
+   "fallback": "9d980fcd-60c6-4af6-a453-a068cd2ac10d",
+   "out": [
+    {
+     "place": "9d980fcd-60c6-4af6-a453-a068cd2ac10d",
+     "minor": 23892,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8952,
+   "places": [
+    {
+     "place": "c19a08d7-2fb6-4eb9-ac47-6acf8699dd71",
+     "owed": -2803
+    },
+    {
+     "place": "c2389629-83ea-428d-a762-4eeb6b59b4f0",
+     "owed": 13475
+    },
+    {
+     "place": "0de093ae-81ef-49e3-a148-dccb3d20c0cc",
+     "owed": 7224
+    }
+   ],
+   "fallback": "c19a08d7-2fb6-4eb9-ac47-6acf8699dd71",
+   "out": [
+    {
+     "place": "c2389629-83ea-428d-a762-4eeb6b59b4f0",
+     "minor": 8952,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 36038,
+   "places": [
+    {
+     "place": "b628c7b9-bf2c-48ab-ad50-5689d1767c2d",
+     "owed": 6615
+    },
+    {
+     "place": "0a2001fa-6cf2-47bd-a558-98bcd2be0683",
+     "owed": 7833
+    },
+    {
+     "place": "ec709d10-6e75-4731-abe0-c71ccf37a7c4",
+     "owed": 13969
+    },
+    {
+     "place": "f8f37151-d67f-4231-a955-c5404308095f",
+     "owed": 7621
+    }
+   ],
+   "fallback": "5a406eb2-2243-4207-a2de-ec13cf69a64d",
+   "out": [
+    {
+     "place": "ec709d10-6e75-4731-abe0-c71ccf37a7c4",
+     "minor": 13969,
+     "reverse": false
+    },
+    {
+     "place": "0a2001fa-6cf2-47bd-a558-98bcd2be0683",
+     "minor": 7833,
+     "reverse": false
+    },
+    {
+     "place": "f8f37151-d67f-4231-a955-c5404308095f",
+     "minor": 7621,
+     "reverse": false
+    },
+    {
+     "place": "b628c7b9-bf2c-48ab-ad50-5689d1767c2d",
+     "minor": 6615,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13188,
+   "places": [
+    {
+     "place": "19f55a89-25da-4bda-a26d-482b37018df3",
+     "owed": 2586
+    },
+    {
+     "place": "5cc82adc-0d88-4f17-ae61-ca03457c54b8",
+     "owed": 8414
+    }
+   ],
+   "fallback": "6fcd9ca2-77dc-45d5-ae1c-ead16b0df23a",
+   "out": [
+    {
+     "place": "5cc82adc-0d88-4f17-ae61-ca03457c54b8",
+     "minor": 8414,
+     "reverse": false
+    },
+    {
+     "place": "19f55a89-25da-4bda-a26d-482b37018df3",
+     "minor": 2586,
+     "reverse": false
+    },
+    {
+     "place": "6fcd9ca2-77dc-45d5-ae1c-ead16b0df23a",
+     "minor": 2188,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23398,
+   "places": [
+    {
+     "place": "8de00bdd-78b3-4182-af83-140a88d6fb5d",
+     "owed": -5793
+    },
+    {
+     "place": "617f866b-d6a7-4f6c-a7ec-6d0164e8fca7",
+     "owed": 4924
+    },
+    {
+     "place": "96081f77-cf24-4aff-a659-09536e93e698",
+     "owed": 1681
+    },
+    {
+     "place": "bede00a8-82f8-407a-ac17-96ae3a000eb4",
+     "owed": -2068
+    }
+   ],
+   "fallback": "8de00bdd-78b3-4182-af83-140a88d6fb5d",
+   "out": [
+    {
+     "place": "8de00bdd-78b3-4182-af83-140a88d6fb5d",
+     "minor": 16793,
+     "reverse": false
+    },
+    {
+     "place": "617f866b-d6a7-4f6c-a7ec-6d0164e8fca7",
+     "minor": 4924,
+     "reverse": false
+    },
+    {
+     "place": "96081f77-cf24-4aff-a659-09536e93e698",
+     "minor": 1681,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6714,
+   "places": [],
+   "fallback": "301c1da3-6cd0-4141-af2f-41d6a4c43cf8",
+   "out": [
+    {
+     "place": "301c1da3-6cd0-4141-af2f-41d6a4c43cf8",
+     "minor": 6714,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6645,
+   "places": [
+    {
+     "place": "5347c387-ceb3-424b-af8e-3f09ee1a32ba",
+     "owed": 6645
+    }
+   ],
+   "fallback": "5347c387-ceb3-424b-af8e-3f09ee1a32ba",
+   "out": [
+    {
+     "place": "5347c387-ceb3-424b-af8e-3f09ee1a32ba",
+     "minor": 6645,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13990,
+   "places": [
+    {
+     "place": "67e727cb-2f7c-4d68-a1eb-9ecbba65ee98",
+     "owed": 258
+    },
+    {
+     "place": "bc5bbe69-fc06-4fcb-abe1-47f0f20e0a82",
+     "owed": 12392
+    },
+    {
+     "place": "5894e5b4-939f-42e4-aaae-96f1a6d4d70d",
+     "owed": 1340
+    }
+   ],
+   "fallback": "8f5cc339-ceb1-4ed0-a0f0-aa5dae53373e",
+   "out": [
+    {
+     "place": "bc5bbe69-fc06-4fcb-abe1-47f0f20e0a82",
+     "minor": 12392,
+     "reverse": false
+    },
+    {
+     "place": "5894e5b4-939f-42e4-aaae-96f1a6d4d70d",
+     "minor": 1340,
+     "reverse": false
+    },
+    {
+     "place": "67e727cb-2f7c-4d68-a1eb-9ecbba65ee98",
+     "minor": 258,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9829,
+   "places": [
+    {
+     "place": "ea8a5b6c-1795-46c4-ae70-3c88b997b4bb",
+     "owed": 7316
+    }
+   ],
+   "fallback": "534b7b15-03d6-4c78-a9ed-24da85eb1d20",
+   "out": [
+    {
+     "place": "ea8a5b6c-1795-46c4-ae70-3c88b997b4bb",
+     "minor": 7316,
+     "reverse": false
+    },
+    {
+     "place": "534b7b15-03d6-4c78-a9ed-24da85eb1d20",
+     "minor": 2513,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6301,
+   "places": [
+    {
+     "place": "f276eb24-0071-470c-ad52-cee009dc00a9",
+     "owed": -1487
+    },
+    {
+     "place": "0a06c41f-d6ee-4f8c-a51f-c1b091bb6e31",
+     "owed": 12931
+    },
+    {
+     "place": "24653ac7-3c43-4774-afec-fef6610057d8",
+     "owed": -5649
+    },
+    {
+     "place": "6aed8947-f670-4a60-a830-2f82dabca672",
+     "owed": 506
+    }
+   ],
+   "fallback": "f276eb24-0071-470c-ad52-cee009dc00a9",
+   "out": [
+    {
+     "place": "0a06c41f-d6ee-4f8c-a51f-c1b091bb6e31",
+     "minor": 12931,
+     "reverse": false
+    },
+    {
+     "place": "24653ac7-3c43-4774-afec-fef6610057d8",
+     "minor": 5649,
+     "reverse": true
+    },
+    {
+     "place": "f276eb24-0071-470c-ad52-cee009dc00a9",
+     "minor": 1487,
+     "reverse": true
+    },
+    {
+     "place": "6aed8947-f670-4a60-a830-2f82dabca672",
+     "minor": 506,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 65,
+   "places": [
+    {
+     "place": "2474d5db-0697-4aad-a8ca-3d0a47c45792",
+     "owed": -1296
+    },
+    {
+     "place": "44817fd7-8c8c-4804-a193-72ff26e985d3",
+     "owed": 9328
+    },
+    {
+     "place": "cfbb8828-b9b5-4045-a6e6-b6328df8b46f",
+     "owed": 1210
+    }
+   ],
+   "fallback": "d837de1d-57d8-4394-a8d2-1ef5b8c80785",
+   "out": [
+    {
+     "place": "44817fd7-8c8c-4804-a193-72ff26e985d3",
+     "minor": 65,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 30409,
+   "places": [
+    {
+     "place": "1d4f0e93-c02e-4439-adea-6ebae70945d4",
+     "owed": 13640
+    },
+    {
+     "place": "89284721-b540-45bc-af68-869dcf469e31",
+     "owed": 5851
+    },
+    {
+     "place": "f197b586-72fc-4a2f-a55c-3197e0e2c082",
+     "owed": 10377
+    },
+    {
+     "place": "a98614cf-c7a5-4952-ab41-efd788050b08",
+     "owed": 541
+    }
+   ],
+   "fallback": "1d4f0e93-c02e-4439-adea-6ebae70945d4",
+   "out": [
+    {
+     "place": "1d4f0e93-c02e-4439-adea-6ebae70945d4",
+     "minor": 13640,
+     "reverse": false
+    },
+    {
+     "place": "f197b586-72fc-4a2f-a55c-3197e0e2c082",
+     "minor": 10377,
+     "reverse": false
+    },
+    {
+     "place": "89284721-b540-45bc-af68-869dcf469e31",
+     "minor": 5851,
+     "reverse": false
+    },
+    {
+     "place": "a98614cf-c7a5-4952-ab41-efd788050b08",
+     "minor": 541,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22569,
+   "places": [
+    {
+     "place": "b1d6695c-a6eb-45d0-a242-42944edfa308",
+     "owed": -603
+    },
+    {
+     "place": "359b1bf3-c94d-48a7-a3df-4798b2acf4aa",
+     "owed": 13918
+    }
+   ],
+   "fallback": "b1d6695c-a6eb-45d0-a242-42944edfa308",
+   "out": [
+    {
+     "place": "359b1bf3-c94d-48a7-a3df-4798b2acf4aa",
+     "minor": 13918,
+     "reverse": false
+    },
+    {
+     "place": "b1d6695c-a6eb-45d0-a242-42944edfa308",
+     "minor": 8651,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18879,
+   "places": [
+    {
+     "place": "8c4a4e19-fe3f-4db9-abd4-36095353e53e",
+     "owed": -1739
+    },
+    {
+     "place": "fb33b215-87ab-469d-af92-1e31d9cdc9c4",
+     "owed": 13151
+    }
+   ],
+   "fallback": "77eb760b-9996-41bc-ad06-9ed99c9e8645",
+   "out": [
+    {
+     "place": "fb33b215-87ab-469d-af92-1e31d9cdc9c4",
+     "minor": 13151,
+     "reverse": false
+    },
+    {
+     "place": "77eb760b-9996-41bc-ad06-9ed99c9e8645",
+     "minor": 7467,
+     "reverse": false
+    },
+    {
+     "place": "8c4a4e19-fe3f-4db9-abd4-36095353e53e",
+     "minor": 1739,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 21590,
+   "places": [],
+   "fallback": "502f026f-16b4-45a5-a04e-a66c302a6e82",
+   "out": [
+    {
+     "place": "502f026f-16b4-45a5-a04e-a66c302a6e82",
+     "minor": 21590,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22461,
+   "places": [
+    {
+     "place": "8d1f898c-f895-4b41-a040-71fc46eb81bc",
+     "owed": 8254
+    },
+    {
+     "place": "37d4d005-1dd7-48e7-a670-dbc6493b1a7a",
+     "owed": 12595
+    },
+    {
+     "place": "b6420453-9f9e-4904-aae9-a5eacda7b0a1",
+     "owed": -720
+    },
+    {
+     "place": "8e2bdb1b-ba4b-4931-ab2d-c109fbe76b76",
+     "owed": 8143
+    }
+   ],
+   "fallback": "8d1f898c-f895-4b41-a040-71fc46eb81bc",
+   "out": [
+    {
+     "place": "37d4d005-1dd7-48e7-a670-dbc6493b1a7a",
+     "minor": 12595,
+     "reverse": false
+    },
+    {
+     "place": "8d1f898c-f895-4b41-a040-71fc46eb81bc",
+     "minor": 8254,
+     "reverse": false
+    },
+    {
+     "place": "8e2bdb1b-ba4b-4931-ab2d-c109fbe76b76",
+     "minor": 1612,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2552,
+   "places": [
+    {
+     "place": "670fdc83-e647-433e-a233-9f41121bdab9",
+     "owed": 5730
+    },
+    {
+     "place": "550ca5e1-0b2d-40c5-aba8-ff8b40ca9c1d",
+     "owed": -2620
+    }
+   ],
+   "fallback": "a40bccac-f409-4802-adcf-4946b5709a93",
+   "out": [
+    {
+     "place": "670fdc83-e647-433e-a233-9f41121bdab9",
+     "minor": 2552,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17055,
+   "places": [
+    {
+     "place": "3a387272-35c1-48b2-a947-f44eb9170eaa",
+     "owed": 13299
+    },
+    {
+     "place": "7ba7d296-e272-401b-af07-8cfe0b173444",
+     "owed": 10171
+    }
+   ],
+   "fallback": "3a387272-35c1-48b2-a947-f44eb9170eaa",
+   "out": [
+    {
+     "place": "3a387272-35c1-48b2-a947-f44eb9170eaa",
+     "minor": 13299,
+     "reverse": false
+    },
+    {
+     "place": "7ba7d296-e272-401b-af07-8cfe0b173444",
+     "minor": 3756,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 281,
+   "places": [
+    {
+     "place": "bb34a466-c2c2-48be-a9eb-7b4dcf7be0d4",
+     "owed": 8765
+    },
+    {
+     "place": "ee393250-3a0d-4e19-ab51-dc386ef871dd",
+     "owed": 6947
+    },
+    {
+     "place": "34d6ff53-3cca-4013-a54a-6024e7b6cc40",
+     "owed": -1346
+    },
+    {
+     "place": "e2c387c1-72d4-4fa0-a47d-05f6abc87782",
+     "owed": 7056
+    }
+   ],
+   "fallback": "56a1d0aa-f0f8-476d-a6e5-9057fef73636",
+   "out": [
+    {
+     "place": "bb34a466-c2c2-48be-a9eb-7b4dcf7be0d4",
+     "minor": 281,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2958,
+   "places": [
+    {
+     "place": "a98e665e-0d85-4ad7-af45-f46f8aa2a5ba",
+     "owed": -3062
+    },
+    {
+     "place": "0fd336d8-1446-4cf5-a142-139c932c8cf6",
+     "owed": 1747
+    },
+    {
+     "place": "ab30307f-224f-4483-acb1-9a3951526e58",
+     "owed": 2748
+    },
+    {
+     "place": "1f76e98c-dd89-49be-a4f1-9d27e9e66fc5",
+     "owed": 2485
+    }
+   ],
+   "fallback": "a98e665e-0d85-4ad7-af45-f46f8aa2a5ba",
+   "out": [
+    {
+     "place": "ab30307f-224f-4483-acb1-9a3951526e58",
+     "minor": 2748,
+     "reverse": false
+    },
+    {
+     "place": "1f76e98c-dd89-49be-a4f1-9d27e9e66fc5",
+     "minor": 210,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15529,
+   "places": [
+    {
+     "place": "de541a13-b956-4fd2-ada2-abf8095ee840",
+     "owed": -3020
+    },
+    {
+     "place": "c2e42c97-2ffd-49ba-a1c1-6cff14ae93ad",
+     "owed": 4749
+    },
+    {
+     "place": "4bbbf79b-6de2-463a-a749-6713b36cbd6a",
+     "owed": 13800
+    }
+   ],
+   "fallback": "de541a13-b956-4fd2-ada2-abf8095ee840",
+   "out": [
+    {
+     "place": "4bbbf79b-6de2-463a-a749-6713b36cbd6a",
+     "minor": 13800,
+     "reverse": false
+    },
+    {
+     "place": "c2e42c97-2ffd-49ba-a1c1-6cff14ae93ad",
+     "minor": 4749,
+     "reverse": false
+    },
+    {
+     "place": "de541a13-b956-4fd2-ada2-abf8095ee840",
+     "minor": 3020,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 4517,
+   "places": [
+    {
+     "place": "fd684c29-4cbd-4db7-a9e3-bbd782a41919",
+     "owed": 4517
+    }
+   ],
+   "fallback": "9e9540be-be6e-42d0-a126-3f9c60431795",
+   "out": [
+    {
+     "place": "fd684c29-4cbd-4db7-a9e3-bbd782a41919",
+     "minor": 4517,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17945,
+   "places": [
+    {
+     "place": "8ed48c10-f724-44de-a874-0ac3464160f5",
+     "owed": 4940
+    },
+    {
+     "place": "c4c316df-e697-4599-a0c6-392886f01861",
+     "owed": 1870
+    },
+    {
+     "place": "460601a3-15ea-4854-aba8-e222216e24b6",
+     "owed": 2239
+    },
+    {
+     "place": "533f7941-c9c3-4f98-aa35-1b5f6ac03b78",
+     "owed": -467
+    }
+   ],
+   "fallback": "8ed48c10-f724-44de-a874-0ac3464160f5",
+   "out": [
+    {
+     "place": "8ed48c10-f724-44de-a874-0ac3464160f5",
+     "minor": 14303,
+     "reverse": false
+    },
+    {
+     "place": "460601a3-15ea-4854-aba8-e222216e24b6",
+     "minor": 2239,
+     "reverse": false
+    },
+    {
+     "place": "c4c316df-e697-4599-a0c6-392886f01861",
+     "minor": 1870,
+     "reverse": false
+    },
+    {
+     "place": "533f7941-c9c3-4f98-aa35-1b5f6ac03b78",
+     "minor": 467,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 19132,
+   "places": [
+    {
+     "place": "0a8f7ccb-9ec5-45c7-a2ca-d8841353b995",
+     "owed": -4384
+    },
+    {
+     "place": "eb89803c-d9de-4688-a47f-c06962ee8776",
+     "owed": 5262
+    },
+    {
+     "place": "74921583-9f65-456f-a04b-80d1bf9a2661",
+     "owed": -3997
+    },
+    {
+     "place": "0b8111c2-8637-44ae-a57c-e1006e89c584",
+     "owed": 6573
+    }
+   ],
+   "fallback": "0a8f7ccb-9ec5-45c7-a2ca-d8841353b995",
+   "out": [
+    {
+     "place": "0a8f7ccb-9ec5-45c7-a2ca-d8841353b995",
+     "minor": 11294,
+     "reverse": false
+    },
+    {
+     "place": "0b8111c2-8637-44ae-a57c-e1006e89c584",
+     "minor": 6573,
+     "reverse": false
+    },
+    {
+     "place": "eb89803c-d9de-4688-a47f-c06962ee8776",
+     "minor": 5262,
+     "reverse": false
+    },
+    {
+     "place": "74921583-9f65-456f-a04b-80d1bf9a2661",
+     "minor": 3997,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8095,
+   "places": [
+    {
+     "place": "fa5c947d-47fd-4b0b-a05b-656da6163942",
+     "owed": 8095
+    }
+   ],
+   "fallback": "52fea42c-4ac6-4957-a576-98362f463299",
+   "out": [
+    {
+     "place": "fa5c947d-47fd-4b0b-a05b-656da6163942",
+     "minor": 8095,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20393,
+   "places": [
+    {
+     "place": "f2ff283e-c02c-4b36-a1df-252b7f427752",
+     "owed": -5007
+    },
+    {
+     "place": "c15b74a1-8350-4faa-a762-acbccdc66764",
+     "owed": 1254
+    }
+   ],
+   "fallback": "b49f1b9b-6bf6-4745-a295-4e4b152a614b",
+   "out": [
+    {
+     "place": "b49f1b9b-6bf6-4745-a295-4e4b152a614b",
+     "minor": 19139,
+     "reverse": false
+    },
+    {
+     "place": "c15b74a1-8350-4faa-a762-acbccdc66764",
+     "minor": 1254,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9648,
+   "places": [],
+   "fallback": "8e0b7044-4d2a-4034-a028-281b66b5ed62",
+   "out": [
+    {
+     "place": "8e0b7044-4d2a-4034-a028-281b66b5ed62",
+     "minor": 9648,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16518,
+   "places": [
+    {
+     "place": "89f4c104-213d-4d5c-ade9-ff98f7496237",
+     "owed": -4397
+    },
+    {
+     "place": "64427e9c-be88-4a53-adb6-3e1b2238d3c1",
+     "owed": 8867
+    },
+    {
+     "place": "c5dbbb79-3dfa-42bc-a859-23b38d40d707",
+     "owed": 419
+    },
+    {
+     "place": "b269554f-d598-4f13-acee-41931a5141aa",
+     "owed": -1151
+    }
+   ],
+   "fallback": "89f4c104-213d-4d5c-ade9-ff98f7496237",
+   "out": [
+    {
+     "place": "64427e9c-be88-4a53-adb6-3e1b2238d3c1",
+     "minor": 8867,
+     "reverse": false
+    },
+    {
+     "place": "89f4c104-213d-4d5c-ade9-ff98f7496237",
+     "minor": 8383,
+     "reverse": false
+    },
+    {
+     "place": "b269554f-d598-4f13-acee-41931a5141aa",
+     "minor": 1151,
+     "reverse": true
+    },
+    {
+     "place": "c5dbbb79-3dfa-42bc-a859-23b38d40d707",
+     "minor": 419,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 21436,
+   "places": [],
+   "fallback": "11f63df4-496a-4c5c-a353-f0d6e20e58ba",
+   "out": [
+    {
+     "place": "11f63df4-496a-4c5c-a353-f0d6e20e58ba",
+     "minor": 21436,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4723,
+   "places": [
+    {
+     "place": "25b07273-8811-4000-abbf-3067c16a4eea",
+     "owed": 1647
+    },
+    {
+     "place": "c3edbafa-af77-42e6-ada4-0b6cb1a14811",
+     "owed": 3076
+    }
+   ],
+   "fallback": "624fbf89-af68-4028-ac69-3dc19fd536a4",
+   "out": [
+    {
+     "place": "c3edbafa-af77-42e6-ada4-0b6cb1a14811",
+     "minor": 3076,
+     "reverse": false
+    },
+    {
+     "place": "25b07273-8811-4000-abbf-3067c16a4eea",
+     "minor": 1647,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16075,
+   "places": [
+    {
+     "place": "fc222f20-b6c0-4c1d-aeae-8c8a9989efcc",
+     "owed": 8689
+    },
+    {
+     "place": "f44c072a-49a8-4553-aafb-8922be2d6bdd",
+     "owed": -4444
+    }
+   ],
+   "fallback": "fc222f20-b6c0-4c1d-aeae-8c8a9989efcc",
+   "out": [
+    {
+     "place": "fc222f20-b6c0-4c1d-aeae-8c8a9989efcc",
+     "minor": 20519,
+     "reverse": false
+    },
+    {
+     "place": "f44c072a-49a8-4553-aafb-8922be2d6bdd",
+     "minor": 4444,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 16975,
+   "places": [
+    {
+     "place": "711356f4-d88e-457f-ad39-1a0de668bf8c",
+     "owed": 8073
+    },
+    {
+     "place": "c4e8a151-1598-4a21-a443-db4f73fa82f7",
+     "owed": -4774
+    },
+    {
+     "place": "e3efed9b-f74b-417a-a0d9-58c444962e62",
+     "owed": 7252
+    }
+   ],
+   "fallback": "37068361-79b9-4e8d-a2eb-7c37034432b7",
+   "out": [
+    {
+     "place": "711356f4-d88e-457f-ad39-1a0de668bf8c",
+     "minor": 8073,
+     "reverse": false
+    },
+    {
+     "place": "e3efed9b-f74b-417a-a0d9-58c444962e62",
+     "minor": 7252,
+     "reverse": false
+    },
+    {
+     "place": "37068361-79b9-4e8d-a2eb-7c37034432b7",
+     "minor": 6424,
+     "reverse": false
+    },
+    {
+     "place": "c4e8a151-1598-4a21-a443-db4f73fa82f7",
+     "minor": 4774,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 1799,
+   "places": [
+    {
+     "place": "add67e18-d972-4c30-a171-2087c767c390",
+     "owed": -1319
+    },
+    {
+     "place": "f1eb1f7e-b0f8-4369-a20f-658756f9ae90",
+     "owed": 11238
+    }
+   ],
+   "fallback": "37a597ae-259a-492d-a70d-262a30aefec3",
+   "out": [
+    {
+     "place": "f1eb1f7e-b0f8-4369-a20f-658756f9ae90",
+     "minor": 1799,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18594,
+   "places": [],
+   "fallback": "8ec171e5-8a7c-48ce-a94e-ac04c9305e5c",
+   "out": [
+    {
+     "place": "8ec171e5-8a7c-48ce-a94e-ac04c9305e5c",
+     "minor": 18594,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6294,
+   "places": [
+    {
+     "place": "32627bb0-6bad-4459-a1d7-c83a3116e130",
+     "owed": 7721
+    },
+    {
+     "place": "5bbae4ae-0e8d-456d-a8ce-d8548656e4b9",
+     "owed": -4432
+    },
+    {
+     "place": "c6689656-6683-42f9-ae12-72cae1bb969a",
+     "owed": 2452
+    },
+    {
+     "place": "828dbd5e-f65a-430d-ab35-4f01106d505b",
+     "owed": 553
+    }
+   ],
+   "fallback": "fc331e53-fc0b-4df2-aa96-deaaae4f2f5d",
+   "out": [
+    {
+     "place": "32627bb0-6bad-4459-a1d7-c83a3116e130",
+     "minor": 7721,
+     "reverse": false
+    },
+    {
+     "place": "5bbae4ae-0e8d-456d-a8ce-d8548656e4b9",
+     "minor": 4432,
+     "reverse": true
+    },
+    {
+     "place": "c6689656-6683-42f9-ae12-72cae1bb969a",
+     "minor": 2452,
+     "reverse": false
+    },
+    {
+     "place": "828dbd5e-f65a-430d-ab35-4f01106d505b",
+     "minor": 553,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23384,
+   "places": [
+    {
+     "place": "b93e9fa6-ea24-4681-a809-babc6ce0394c",
+     "owed": 9866
+    },
+    {
+     "place": "f3f51c0a-747e-4290-ae93-f8089f02bc9b",
+     "owed": -615
+    },
+    {
+     "place": "26ae4d64-4cd6-4ab7-af3b-b04b55f03efb",
+     "owed": 7826
+    },
+    {
+     "place": "a50b4066-d266-489a-aa1f-0e7e3cee7019",
+     "owed": 6307
+    }
+   ],
+   "fallback": "b93e9fa6-ea24-4681-a809-babc6ce0394c",
+   "out": [
+    {
+     "place": "b93e9fa6-ea24-4681-a809-babc6ce0394c",
+     "minor": 9866,
+     "reverse": false
+    },
+    {
+     "place": "26ae4d64-4cd6-4ab7-af3b-b04b55f03efb",
+     "minor": 7826,
+     "reverse": false
+    },
+    {
+     "place": "a50b4066-d266-489a-aa1f-0e7e3cee7019",
+     "minor": 6307,
+     "reverse": false
+    },
+    {
+     "place": "f3f51c0a-747e-4290-ae93-f8089f02bc9b",
+     "minor": 615,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 3234,
+   "places": [
+    {
+     "place": "aa98f1f4-770c-4d9b-a9c1-0083df57641a",
+     "owed": 6079
+    },
+    {
+     "place": "b99b5ceb-c193-4856-a713-e3dccb09ed4f",
+     "owed": 9522
+    },
+    {
+     "place": "1e691185-0aab-4cfd-a50a-c13dfc42e0a8",
+     "owed": 1255
+    }
+   ],
+   "fallback": "96eaea82-a538-4a02-abf8-ddb0e05ae5b9",
+   "out": [
+    {
+     "place": "b99b5ceb-c193-4856-a713-e3dccb09ed4f",
+     "minor": 3234,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18892,
+   "places": [
+    {
+     "place": "6e20d12f-256d-4dd5-a773-8e54920d017b",
+     "owed": 392
+    }
+   ],
+   "fallback": "6e20d12f-256d-4dd5-a773-8e54920d017b",
+   "out": [
+    {
+     "place": "6e20d12f-256d-4dd5-a773-8e54920d017b",
+     "minor": 18892,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2380,
+   "places": [],
+   "fallback": "c47e0090-10e4-4204-a232-ac8230880668",
+   "out": [
+    {
+     "place": "c47e0090-10e4-4204-a232-ac8230880668",
+     "minor": 2380,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19310,
+   "places": [
+    {
+     "place": "b97882de-c358-4880-a3b6-4bf383cbe280",
+     "owed": 513
+    },
+    {
+     "place": "a3f53e38-8e93-467d-ab5c-7e790e70a500",
+     "owed": 9514
+    },
+    {
+     "place": "2bb2be2c-47f2-4ee4-ae2c-76363a2e13f4",
+     "owed": 9283
+    }
+   ],
+   "fallback": "b97882de-c358-4880-a3b6-4bf383cbe280",
+   "out": [
+    {
+     "place": "a3f53e38-8e93-467d-ab5c-7e790e70a500",
+     "minor": 9514,
+     "reverse": false
+    },
+    {
+     "place": "2bb2be2c-47f2-4ee4-ae2c-76363a2e13f4",
+     "minor": 9283,
+     "reverse": false
+    },
+    {
+     "place": "b97882de-c358-4880-a3b6-4bf383cbe280",
+     "minor": 513,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22179,
+   "places": [
+    {
+     "place": "c3a2bd0c-962f-48cc-af14-2c5159e6c14f",
+     "owed": 614
+    },
+    {
+     "place": "8ce0e131-9c87-4087-abdd-d6cf4db83cf8",
+     "owed": 7421
+    },
+    {
+     "place": "42fabd31-0370-406e-a39f-0203712bdf19",
+     "owed": 10825
+    }
+   ],
+   "fallback": "5eea815c-bda8-4507-a38b-b54e1e792f1e",
+   "out": [
+    {
+     "place": "42fabd31-0370-406e-a39f-0203712bdf19",
+     "minor": 10825,
+     "reverse": false
+    },
+    {
+     "place": "8ce0e131-9c87-4087-abdd-d6cf4db83cf8",
+     "minor": 7421,
+     "reverse": false
+    },
+    {
+     "place": "5eea815c-bda8-4507-a38b-b54e1e792f1e",
+     "minor": 3319,
+     "reverse": false
+    },
+    {
+     "place": "c3a2bd0c-962f-48cc-af14-2c5159e6c14f",
+     "minor": 614,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24200,
+   "places": [],
+   "fallback": "4397421b-d9fb-4c65-a0e1-69f7477bc639",
+   "out": [
+    {
+     "place": "4397421b-d9fb-4c65-a0e1-69f7477bc639",
+     "minor": 24200,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11093,
+   "places": [],
+   "fallback": "18fe3287-0795-4449-af4a-5e0ffffee488",
+   "out": [
+    {
+     "place": "18fe3287-0795-4449-af4a-5e0ffffee488",
+     "minor": 11093,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9927,
+   "places": [],
+   "fallback": "3881ef73-ae64-41ff-a1d5-7fec797ee671",
+   "out": [
+    {
+     "place": "3881ef73-ae64-41ff-a1d5-7fec797ee671",
+     "minor": 9927,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18752,
+   "places": [
+    {
+     "place": "ea03418e-e86a-4a96-aecd-b82b677cea4a",
+     "owed": -1171
+    }
+   ],
+   "fallback": "ea03418e-e86a-4a96-aecd-b82b677cea4a",
+   "out": [
+    {
+     "place": "ea03418e-e86a-4a96-aecd-b82b677cea4a",
+     "minor": 18752,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11287,
+   "places": [
+    {
+     "place": "388bfd30-a5b5-4cd4-a6dc-370f29d87b91",
+     "owed": 11287
+    }
+   ],
+   "fallback": "efce4715-fc2a-492d-a31e-58a8e4e6eaf6",
+   "out": [
+    {
+     "place": "388bfd30-a5b5-4cd4-a6dc-370f29d87b91",
+     "minor": 11287,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2476,
+   "places": [],
+   "fallback": "fbd88186-78fc-477f-a9aa-19275b09ef17",
+   "out": [
+    {
+     "place": "fbd88186-78fc-477f-a9aa-19275b09ef17",
+     "minor": 2476,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18885,
+   "places": [
+    {
+     "place": "05007ac3-83df-4cce-a70a-7cb51299b964",
+     "owed": 906
+    },
+    {
+     "place": "2f1882ab-ddf8-457b-ac59-3d6aeed25496",
+     "owed": 7730
+    },
+    {
+     "place": "3b3c25c6-023c-4280-a57c-129aa4811b91",
+     "owed": -1698
+    }
+   ],
+   "fallback": "8314ae5f-da9b-46a6-ace2-69a0322d4c10",
+   "out": [
+    {
+     "place": "8314ae5f-da9b-46a6-ace2-69a0322d4c10",
+     "minor": 11947,
+     "reverse": false
+    },
+    {
+     "place": "2f1882ab-ddf8-457b-ac59-3d6aeed25496",
+     "minor": 7730,
+     "reverse": false
+    },
+    {
+     "place": "3b3c25c6-023c-4280-a57c-129aa4811b91",
+     "minor": 1698,
+     "reverse": true
+    },
+    {
+     "place": "05007ac3-83df-4cce-a70a-7cb51299b964",
+     "minor": 906,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14008,
+   "places": [],
+   "fallback": "c3de8abf-1e00-40de-a25f-b0f0b2d9166f",
+   "out": [
+    {
+     "place": "c3de8abf-1e00-40de-a25f-b0f0b2d9166f",
+     "minor": 14008,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20641,
+   "places": [],
+   "fallback": "358c1ac2-f350-4beb-a0e6-159a1cd0dab5",
+   "out": [
+    {
+     "place": "358c1ac2-f350-4beb-a0e6-159a1cd0dab5",
+     "minor": 20641,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11970,
+   "places": [
+    {
+     "place": "dc362083-d7b9-45e7-abfd-fe8834cec5f4",
+     "owed": 948
+    },
+    {
+     "place": "0127d834-cc74-470e-a328-1f295c4cecb4",
+     "owed": 11022
+    }
+   ],
+   "fallback": "dc362083-d7b9-45e7-abfd-fe8834cec5f4",
+   "out": [
+    {
+     "place": "0127d834-cc74-470e-a328-1f295c4cecb4",
+     "minor": 11022,
+     "reverse": false
+    },
+    {
+     "place": "dc362083-d7b9-45e7-abfd-fe8834cec5f4",
+     "minor": 948,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2811,
+   "places": [
+    {
+     "place": "b2d4d7cc-2824-49c1-aeac-3189104be943",
+     "owed": 12013
+    },
+    {
+     "place": "01c9a0ca-2576-4d19-a790-ed02ac1d5641",
+     "owed": 4839
+    }
+   ],
+   "fallback": "f861f3ee-c520-4d9b-a450-b8058e4d2f00",
+   "out": [
+    {
+     "place": "b2d4d7cc-2824-49c1-aeac-3189104be943",
+     "minor": 2811,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8136,
+   "places": [
+    {
+     "place": "a965c9ac-ec2d-49ef-addd-2eea4b6fc4c8",
+     "owed": 5298
+    },
+    {
+     "place": "9a635121-d5ce-400f-a08e-655d191ce620",
+     "owed": 5127
+    },
+    {
+     "place": "2aa0c492-558e-4f2f-a2ec-278ac5aa97d7",
+     "owed": 4487
+    }
+   ],
+   "fallback": "a965c9ac-ec2d-49ef-addd-2eea4b6fc4c8",
+   "out": [
+    {
+     "place": "a965c9ac-ec2d-49ef-addd-2eea4b6fc4c8",
+     "minor": 5298,
+     "reverse": false
+    },
+    {
+     "place": "9a635121-d5ce-400f-a08e-655d191ce620",
+     "minor": 2838,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15319,
+   "places": [
+    {
+     "place": "37286809-bb31-4d63-aafb-623b529c1ee4",
+     "owed": 4330
+    },
+    {
+     "place": "50dc0f84-c565-4fb1-a56b-2c0e57fbf738",
+     "owed": 1444
+    },
+    {
+     "place": "1b99e27f-3331-4c7b-a1b8-2ffe693d18ae",
+     "owed": 10005
+    },
+    {
+     "place": "d7b8366c-f32d-4b4e-ad32-41da5958de13",
+     "owed": 6553
+    }
+   ],
+   "fallback": "37286809-bb31-4d63-aafb-623b529c1ee4",
+   "out": [
+    {
+     "place": "1b99e27f-3331-4c7b-a1b8-2ffe693d18ae",
+     "minor": 10005,
+     "reverse": false
+    },
+    {
+     "place": "d7b8366c-f32d-4b4e-ad32-41da5958de13",
+     "minor": 5314,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 27610,
+   "places": [
+    {
+     "place": "b47268f7-5df9-43dd-a4f5-ee1848a77789",
+     "owed": 3027
+    },
+    {
+     "place": "83ed512a-3d74-46bc-a1f6-af8ebb80e877",
+     "owed": -745
+    },
+    {
+     "place": "c982dde5-efb1-48a1-add4-c2adfae971e5",
+     "owed": 13969
+    },
+    {
+     "place": "377503de-cc9a-453a-aab8-a70beb6b2817",
+     "owed": 11359
+    }
+   ],
+   "fallback": "256ff1f1-2eec-401c-aafa-50d8bb9c581e",
+   "out": [
+    {
+     "place": "c982dde5-efb1-48a1-add4-c2adfae971e5",
+     "minor": 13969,
+     "reverse": false
+    },
+    {
+     "place": "377503de-cc9a-453a-aab8-a70beb6b2817",
+     "minor": 11359,
+     "reverse": false
+    },
+    {
+     "place": "b47268f7-5df9-43dd-a4f5-ee1848a77789",
+     "minor": 3027,
+     "reverse": false
+    },
+    {
+     "place": "83ed512a-3d74-46bc-a1f6-af8ebb80e877",
+     "minor": 745,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8720,
+   "places": [
+    {
+     "place": "9f0555a2-81dd-498c-ab48-84397745ae3d",
+     "owed": 1318
+    }
+   ],
+   "fallback": "9f0555a2-81dd-498c-ab48-84397745ae3d",
+   "out": [
+    {
+     "place": "9f0555a2-81dd-498c-ab48-84397745ae3d",
+     "minor": 8720,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7958,
+   "places": [
+    {
+     "place": "74ac0f3a-51d2-4698-a7ab-fec19a80a2e9",
+     "owed": 10275
+    },
+    {
+     "place": "1715fc27-75d1-4df9-aadd-30cf38179297",
+     "owed": 13003
+    },
+    {
+     "place": "25d3cdde-3372-41f1-a071-c0003ea820b9",
+     "owed": 9492
+    }
+   ],
+   "fallback": "12b2c17b-1b67-46bd-a5e8-05733184e708",
+   "out": [
+    {
+     "place": "1715fc27-75d1-4df9-aadd-30cf38179297",
+     "minor": 7958,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3436,
+   "places": [
+    {
+     "place": "30439c63-a3aa-4c7c-a94e-7661095db8a3",
+     "owed": 9787
+    },
+    {
+     "place": "edec4f3d-729f-4e88-af0e-ab71738d0d42",
+     "owed": 13769
+    }
+   ],
+   "fallback": "d5f30738-47d4-4434-a372-25f3231a60c8",
+   "out": [
+    {
+     "place": "edec4f3d-729f-4e88-af0e-ab71738d0d42",
+     "minor": 3436,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2328,
+   "places": [],
+   "fallback": "ca654ea1-5eb8-4c8e-a731-3d2d94ffc494",
+   "out": [
+    {
+     "place": "ca654ea1-5eb8-4c8e-a731-3d2d94ffc494",
+     "minor": 2328,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8891,
+   "places": [
+    {
+     "place": "7a29fa3f-4a18-4794-acf5-43b436c37d44",
+     "owed": -4376
+    },
+    {
+     "place": "7ddf5d24-87f3-4ef4-a1fd-bb59fd13d1fe",
+     "owed": -5566
+    },
+    {
+     "place": "5d8750c0-f1fc-4f50-a747-6e69d2d9052e",
+     "owed": 5632
+    },
+    {
+     "place": "004ff456-4911-4d7f-a1ad-5eefb52163fa",
+     "owed": 13201
+    }
+   ],
+   "fallback": "9f306b46-7cb7-4c20-a201-160c7a77cc33",
+   "out": [
+    {
+     "place": "004ff456-4911-4d7f-a1ad-5eefb52163fa",
+     "minor": 13201,
+     "reverse": false
+    },
+    {
+     "place": "5d8750c0-f1fc-4f50-a747-6e69d2d9052e",
+     "minor": 5632,
+     "reverse": false
+    },
+    {
+     "place": "7ddf5d24-87f3-4ef4-a1fd-bb59fd13d1fe",
+     "minor": 5566,
+     "reverse": true
+    },
+    {
+     "place": "7a29fa3f-4a18-4794-acf5-43b436c37d44",
+     "minor": 4376,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 22522,
+   "places": [],
+   "fallback": "7ec3a385-3be8-4018-abfc-a69a57538780",
+   "out": [
+    {
+     "place": "7ec3a385-3be8-4018-abfc-a69a57538780",
+     "minor": 22522,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17584,
+   "places": [],
+   "fallback": "4cbdbcb6-123b-4cd6-a32b-e7ec085ef2f9",
+   "out": [
+    {
+     "place": "4cbdbcb6-123b-4cd6-a32b-e7ec085ef2f9",
+     "minor": 17584,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23824,
+   "places": [],
+   "fallback": "780c0299-0829-41d4-aa46-b5d1026fe206",
+   "out": [
+    {
+     "place": "780c0299-0829-41d4-aa46-b5d1026fe206",
+     "minor": 23824,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3106,
+   "places": [
+    {
+     "place": "e92a7c23-1e79-402c-abfa-42c1a8907269",
+     "owed": 5301
+    },
+    {
+     "place": "8c9d63dd-51ea-414c-a26e-7d35f01d3ad4",
+     "owed": 3457
+    },
+    {
+     "place": "29be0e85-1c1d-42cb-a2e3-1f7e83e2aa08",
+     "owed": 8212
+    },
+    {
+     "place": "a37bd964-76ea-41d4-a1bf-b750710c05de",
+     "owed": 2780
+    }
+   ],
+   "fallback": "e92a7c23-1e79-402c-abfa-42c1a8907269",
+   "out": [
+    {
+     "place": "29be0e85-1c1d-42cb-a2e3-1f7e83e2aa08",
+     "minor": 3106,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5536,
+   "places": [
+    {
+     "place": "1fdf0eaf-422d-4ba7-af40-b151bafacbdd",
+     "owed": 5536
+    }
+   ],
+   "fallback": "812823cc-fb86-475c-a7a5-95342c5b2d58",
+   "out": [
+    {
+     "place": "1fdf0eaf-422d-4ba7-af40-b151bafacbdd",
+     "minor": 5536,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11434,
+   "places": [
+    {
+     "place": "8fa2a425-b02e-4fd1-a8f7-51d3eff94f25",
+     "owed": 5543
+    },
+    {
+     "place": "441f8327-2ec8-4680-af8b-8d8e9f519993",
+     "owed": 5660
+    },
+    {
+     "place": "0cd2de78-3d38-4ded-a9c3-723bd429c29e",
+     "owed": -3831
+    },
+    {
+     "place": "0e8e2f75-7630-4c2b-a0dd-ffd433d81276",
+     "owed": 451
+    }
+   ],
+   "fallback": "3329a31f-e6a3-4da4-a7ee-c201084119d2",
+   "out": [
+    {
+     "place": "441f8327-2ec8-4680-af8b-8d8e9f519993",
+     "minor": 5660,
+     "reverse": false
+    },
+    {
+     "place": "8fa2a425-b02e-4fd1-a8f7-51d3eff94f25",
+     "minor": 5543,
+     "reverse": false
+    },
+    {
+     "place": "0cd2de78-3d38-4ded-a9c3-723bd429c29e",
+     "minor": 3831,
+     "reverse": true
+    },
+    {
+     "place": "3329a31f-e6a3-4da4-a7ee-c201084119d2",
+     "minor": 3611,
+     "reverse": false
+    },
+    {
+     "place": "0e8e2f75-7630-4c2b-a0dd-ffd433d81276",
+     "minor": 451,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8793,
+   "places": [],
+   "fallback": "2303c2b1-4f31-4131-a135-4c283263c97a",
+   "out": [
+    {
+     "place": "2303c2b1-4f31-4131-a135-4c283263c97a",
+     "minor": 8793,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 21826,
+   "places": [
+    {
+     "place": "fe8ea69e-5357-4d40-a4c5-f2590a054c1e",
+     "owed": 7560
+    },
+    {
+     "place": "26882ddf-bb72-4313-ac1d-d83614d283ca",
+     "owed": 7228
+    },
+    {
+     "place": "bb0f385b-b20c-40e3-acbf-ead9d3e09f28",
+     "owed": 9607
+    },
+    {
+     "place": "5db39d87-86af-4ed9-a08d-702d8bd311a2",
+     "owed": -2569
+    }
+   ],
+   "fallback": "ed52d5d6-48ed-4cd9-a17d-5e20f1d55d9a",
+   "out": [
+    {
+     "place": "bb0f385b-b20c-40e3-acbf-ead9d3e09f28",
+     "minor": 9607,
+     "reverse": false
+    },
+    {
+     "place": "fe8ea69e-5357-4d40-a4c5-f2590a054c1e",
+     "minor": 7560,
+     "reverse": false
+    },
+    {
+     "place": "26882ddf-bb72-4313-ac1d-d83614d283ca",
+     "minor": 7228,
+     "reverse": false
+    },
+    {
+     "place": "5db39d87-86af-4ed9-a08d-702d8bd311a2",
+     "minor": 2569,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 22345,
+   "places": [
+    {
+     "place": "58f6f78d-8387-403c-a6eb-8fd130791ac3",
+     "owed": 13932
+    },
+    {
+     "place": "647a76ca-efbe-4024-ab76-f45560df0213",
+     "owed": 1778
+    },
+    {
+     "place": "e0a78d24-1aa0-45e5-a747-ad40d85dad0e",
+     "owed": 5255
+    },
+    {
+     "place": "2e7dd4b0-ea7e-49e9-a1dc-10329060515a",
+     "owed": -1299
+    }
+   ],
+   "fallback": "58f6f78d-8387-403c-a6eb-8fd130791ac3",
+   "out": [
+    {
+     "place": "58f6f78d-8387-403c-a6eb-8fd130791ac3",
+     "minor": 16611,
+     "reverse": false
+    },
+    {
+     "place": "e0a78d24-1aa0-45e5-a747-ad40d85dad0e",
+     "minor": 5255,
+     "reverse": false
+    },
+    {
+     "place": "647a76ca-efbe-4024-ab76-f45560df0213",
+     "minor": 1778,
+     "reverse": false
+    },
+    {
+     "place": "2e7dd4b0-ea7e-49e9-a1dc-10329060515a",
+     "minor": 1299,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 8449,
+   "places": [],
+   "fallback": "af240031-2c52-4c0c-a212-5cd7517e7b7c",
+   "out": [
+    {
+     "place": "af240031-2c52-4c0c-a212-5cd7517e7b7c",
+     "minor": 8449,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19149,
+   "places": [
+    {
+     "place": "fb8d8ab9-b57d-4f89-a7da-00679f4be766",
+     "owed": 12268
+    },
+    {
+     "place": "35ea731d-df15-49bc-af89-bc4d26cfdf74",
+     "owed": 5141
+    },
+    {
+     "place": "0443e16b-8407-46c3-abe6-e0fdbd6beca1",
+     "owed": 1740
+    }
+   ],
+   "fallback": "404cb18c-a7ad-4f4b-a549-d278ad52b6e2",
+   "out": [
+    {
+     "place": "fb8d8ab9-b57d-4f89-a7da-00679f4be766",
+     "minor": 12268,
+     "reverse": false
+    },
+    {
+     "place": "35ea731d-df15-49bc-af89-bc4d26cfdf74",
+     "minor": 5141,
+     "reverse": false
+    },
+    {
+     "place": "0443e16b-8407-46c3-abe6-e0fdbd6beca1",
+     "minor": 1740,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16446,
+   "places": [
+    {
+     "place": "6a1157bb-2af5-45f9-a97c-b612739d2c74",
+     "owed": 373
+    },
+    {
+     "place": "c6e00751-b3a3-4b57-acfb-e6f2cb972930",
+     "owed": -4776
+    },
+    {
+     "place": "599ef883-7958-4ee4-a8f8-d97a72ffb469",
+     "owed": 10864
+    }
+   ],
+   "fallback": "10c47484-edc3-47d8-acb1-7f4f4089984a",
+   "out": [
+    {
+     "place": "599ef883-7958-4ee4-a8f8-d97a72ffb469",
+     "minor": 10864,
+     "reverse": false
+    },
+    {
+     "place": "10c47484-edc3-47d8-acb1-7f4f4089984a",
+     "minor": 9985,
+     "reverse": false
+    },
+    {
+     "place": "c6e00751-b3a3-4b57-acfb-e6f2cb972930",
+     "minor": 4776,
+     "reverse": true
+    },
+    {
+     "place": "6a1157bb-2af5-45f9-a97c-b612739d2c74",
+     "minor": 373,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 25474,
+   "places": [
+    {
+     "place": "fe40f091-af3d-4f05-a793-64b4edab8cf2",
+     "owed": 7206
+    },
+    {
+     "place": "423ab357-20be-471f-a352-e4e7c946e994",
+     "owed": 5278
+    },
+    {
+     "place": "ba31181a-5c8e-4799-af17-b1c2fddfb043",
+     "owed": 12990
+    }
+   ],
+   "fallback": "fe40f091-af3d-4f05-a793-64b4edab8cf2",
+   "out": [
+    {
+     "place": "ba31181a-5c8e-4799-af17-b1c2fddfb043",
+     "minor": 12990,
+     "reverse": false
+    },
+    {
+     "place": "fe40f091-af3d-4f05-a793-64b4edab8cf2",
+     "minor": 7206,
+     "reverse": false
+    },
+    {
+     "place": "423ab357-20be-471f-a352-e4e7c946e994",
+     "minor": 5278,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2056,
+   "places": [
+    {
+     "place": "d14596a7-f4cf-46d7-af0d-709874a3759a",
+     "owed": 5671
+    }
+   ],
+   "fallback": "3c818a81-44ed-4a7c-a15b-b743b72b07d9",
+   "out": [
+    {
+     "place": "d14596a7-f4cf-46d7-af0d-709874a3759a",
+     "minor": 2056,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20382,
+   "places": [],
+   "fallback": "39bc0c73-539f-44ca-a6e7-0f3141c07875",
+   "out": [
+    {
+     "place": "39bc0c73-539f-44ca-a6e7-0f3141c07875",
+     "minor": 20382,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 38812,
+   "places": [
+    {
+     "place": "c7d85b3e-3c4b-46f9-ab64-f41f298794ca",
+     "owed": 10455
+    },
+    {
+     "place": "dead5ac4-6baa-457f-af0c-1088ffa7571a",
+     "owed": 8650
+    },
+    {
+     "place": "b06b32da-8a27-444b-a076-ce39a27a9130",
+     "owed": 5724
+    },
+    {
+     "place": "5f04f81c-ad0b-4782-a5ab-5851a8c46b21",
+     "owed": 13983
+    }
+   ],
+   "fallback": "7685e242-1719-4902-af71-cddbf3ce7cf9",
+   "out": [
+    {
+     "place": "5f04f81c-ad0b-4782-a5ab-5851a8c46b21",
+     "minor": 13983,
+     "reverse": false
+    },
+    {
+     "place": "c7d85b3e-3c4b-46f9-ab64-f41f298794ca",
+     "minor": 10455,
+     "reverse": false
+    },
+    {
+     "place": "dead5ac4-6baa-457f-af0c-1088ffa7571a",
+     "minor": 8650,
+     "reverse": false
+    },
+    {
+     "place": "b06b32da-8a27-444b-a076-ce39a27a9130",
+     "minor": 5724,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14880,
+   "places": [],
+   "fallback": "14b9fd80-3b47-4568-a173-b83654f85643",
+   "out": [
+    {
+     "place": "14b9fd80-3b47-4568-a173-b83654f85643",
+     "minor": 14880,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9702,
+   "places": [],
+   "fallback": "a6d98cb2-e90a-4ac3-a27f-79df4f45326d",
+   "out": [
+    {
+     "place": "a6d98cb2-e90a-4ac3-a27f-79df4f45326d",
+     "minor": 9702,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13841,
+   "places": [
+    {
+     "place": "86102c38-c938-4051-a9ba-52cee52729bc",
+     "owed": 10090
+    },
+    {
+     "place": "52ba25c9-ea24-40e6-afdb-78651aabb194",
+     "owed": -715
+    }
+   ],
+   "fallback": "9bdd657c-dc4f-4119-a431-239140cd70e3",
+   "out": [
+    {
+     "place": "86102c38-c938-4051-a9ba-52cee52729bc",
+     "minor": 10090,
+     "reverse": false
+    },
+    {
+     "place": "9bdd657c-dc4f-4119-a431-239140cd70e3",
+     "minor": 4466,
+     "reverse": false
+    },
+    {
+     "place": "52ba25c9-ea24-40e6-afdb-78651aabb194",
+     "minor": 715,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 3217,
+   "places": [],
+   "fallback": "1d482ac3-931b-49a0-ac68-5a4f86bd3754",
+   "out": [
+    {
+     "place": "1d482ac3-931b-49a0-ac68-5a4f86bd3754",
+     "minor": 3217,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 32803,
+   "places": [
+    {
+     "place": "00005d66-d2b1-4235-a357-4893b6660fe4",
+     "owed": 895
+    },
+    {
+     "place": "64d2a8ce-3bc9-4dba-a20c-6b3fcbc6ec4b",
+     "owed": 12288
+    },
+    {
+     "place": "5fc4dead-59dc-4815-a787-2fa1b6ffe992",
+     "owed": 13633
+    },
+    {
+     "place": "b80893a8-940e-4748-a885-929f459d756c",
+     "owed": 5987
+    }
+   ],
+   "fallback": "a6e10a98-fabd-4dea-a4fb-bf187f838845",
+   "out": [
+    {
+     "place": "5fc4dead-59dc-4815-a787-2fa1b6ffe992",
+     "minor": 13633,
+     "reverse": false
+    },
+    {
+     "place": "64d2a8ce-3bc9-4dba-a20c-6b3fcbc6ec4b",
+     "minor": 12288,
+     "reverse": false
+    },
+    {
+     "place": "b80893a8-940e-4748-a885-929f459d756c",
+     "minor": 5987,
+     "reverse": false
+    },
+    {
+     "place": "00005d66-d2b1-4235-a357-4893b6660fe4",
+     "minor": 895,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 26846,
+   "places": [
+    {
+     "place": "753c5eaf-347e-46b7-a7cb-0329f70b76cf",
+     "owed": 3151
+    },
+    {
+     "place": "4c038c60-1d17-4d58-a330-cd6e9bff1062",
+     "owed": 8784
+    },
+    {
+     "place": "df99dbb1-18c8-4de3-a4b9-a42a21d3287a",
+     "owed": 4848
+    },
+    {
+     "place": "7d2d8722-8a10-4fb0-a82e-0ea439711128",
+     "owed": 10063
+    }
+   ],
+   "fallback": "d3394ba1-ed9a-49d4-a320-e1e25eac2cf3",
+   "out": [
+    {
+     "place": "7d2d8722-8a10-4fb0-a82e-0ea439711128",
+     "minor": 10063,
+     "reverse": false
+    },
+    {
+     "place": "4c038c60-1d17-4d58-a330-cd6e9bff1062",
+     "minor": 8784,
+     "reverse": false
+    },
+    {
+     "place": "df99dbb1-18c8-4de3-a4b9-a42a21d3287a",
+     "minor": 4848,
+     "reverse": false
+    },
+    {
+     "place": "753c5eaf-347e-46b7-a7cb-0329f70b76cf",
+     "minor": 3151,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7026,
+   "places": [
+    {
+     "place": "246236ec-7c61-4716-ab46-83626f81cab4",
+     "owed": -1317
+    }
+   ],
+   "fallback": "246236ec-7c61-4716-ab46-83626f81cab4",
+   "out": [
+    {
+     "place": "246236ec-7c61-4716-ab46-83626f81cab4",
+     "minor": 7026,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3678,
+   "places": [],
+   "fallback": "3ba0fa62-1395-4b03-ad3d-42bdeefaae05",
+   "out": [
+    {
+     "place": "3ba0fa62-1395-4b03-ad3d-42bdeefaae05",
+     "minor": 3678,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22165,
+   "places": [
+    {
+     "place": "deb127e1-46f9-424e-a8b8-40c481f15532",
+     "owed": 3108
+    },
+    {
+     "place": "115ea73d-6375-41c9-a52b-f5ddfef5b220",
+     "owed": 1784
+    },
+    {
+     "place": "4a44129c-dc35-48da-aec1-988da34ef6e2",
+     "owed": -4264
+    }
+   ],
+   "fallback": "0fe54f46-7bf3-465d-a505-f0d52c8692af",
+   "out": [
+    {
+     "place": "0fe54f46-7bf3-465d-a505-f0d52c8692af",
+     "minor": 21537,
+     "reverse": false
+    },
+    {
+     "place": "4a44129c-dc35-48da-aec1-988da34ef6e2",
+     "minor": 4264,
+     "reverse": true
+    },
+    {
+     "place": "deb127e1-46f9-424e-a8b8-40c481f15532",
+     "minor": 3108,
+     "reverse": false
+    },
+    {
+     "place": "115ea73d-6375-41c9-a52b-f5ddfef5b220",
+     "minor": 1784,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9744,
+   "places": [
+    {
+     "place": "348b47ee-c7de-4b8e-a0ec-431fbfbc1e80",
+     "owed": 8431
+    },
+    {
+     "place": "fb1e6bef-07d1-43c5-a34e-d69ac6322c27",
+     "owed": 5905
+    }
+   ],
+   "fallback": "c4a9bd49-fc9b-41e6-aff7-f7203b03649c",
+   "out": [
+    {
+     "place": "348b47ee-c7de-4b8e-a0ec-431fbfbc1e80",
+     "minor": 8431,
+     "reverse": false
+    },
+    {
+     "place": "fb1e6bef-07d1-43c5-a34e-d69ac6322c27",
+     "minor": 1313,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 10860,
+   "places": [
+    {
+     "place": "433293fd-48ce-4c38-a609-38654d9ea671",
+     "owed": 2702
+    },
+    {
+     "place": "391629d0-35a5-48e5-ae47-35c769df9481",
+     "owed": 7648
+    },
+    {
+     "place": "164bbae2-bdcd-4c7c-ae3f-07533d0d753d",
+     "owed": 510
+    }
+   ],
+   "fallback": "433293fd-48ce-4c38-a609-38654d9ea671",
+   "out": [
+    {
+     "place": "391629d0-35a5-48e5-ae47-35c769df9481",
+     "minor": 7648,
+     "reverse": false
+    },
+    {
+     "place": "433293fd-48ce-4c38-a609-38654d9ea671",
+     "minor": 2702,
+     "reverse": false
+    },
+    {
+     "place": "164bbae2-bdcd-4c7c-ae3f-07533d0d753d",
+     "minor": 510,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 1152,
+   "places": [
+    {
+     "place": "21f66f5c-86e6-482f-a6ba-b0382202ad8b",
+     "owed": -4961
+    }
+   ],
+   "fallback": "21f66f5c-86e6-482f-a6ba-b0382202ad8b",
+   "out": [
+    {
+     "place": "21f66f5c-86e6-482f-a6ba-b0382202ad8b",
+     "minor": 1152,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15402,
+   "places": [],
+   "fallback": "9a5d14e8-3959-47ab-a3e1-97f9ecdaa783",
+   "out": [
+    {
+     "place": "9a5d14e8-3959-47ab-a3e1-97f9ecdaa783",
+     "minor": 15402,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16767,
+   "places": [],
+   "fallback": "cf9d1cba-2ecf-4b8d-a5b8-96eca7023ea4",
+   "out": [
+    {
+     "place": "cf9d1cba-2ecf-4b8d-a5b8-96eca7023ea4",
+     "minor": 16767,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24740,
+   "places": [
+    {
+     "place": "3641bf20-54e9-480f-a25c-9d35a1429554",
+     "owed": 9632
+    },
+    {
+     "place": "d4c6ea11-a513-4ecd-ae2d-7e2d9721e220",
+     "owed": -2960
+    }
+   ],
+   "fallback": "3641bf20-54e9-480f-a25c-9d35a1429554",
+   "out": [
+    {
+     "place": "3641bf20-54e9-480f-a25c-9d35a1429554",
+     "minor": 27700,
+     "reverse": false
+    },
+    {
+     "place": "d4c6ea11-a513-4ecd-ae2d-7e2d9721e220",
+     "minor": 2960,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 21578,
+   "places": [
+    {
+     "place": "4cc4bdd2-b52f-446c-a793-5b7a754c70d6",
+     "owed": 10222
+    },
+    {
+     "place": "59f29dc9-eaeb-468a-a8fd-20565047df2f",
+     "owed": 3525
+    },
+    {
+     "place": "128ebd9d-d218-43ee-a102-78ff4e1c7cb5",
+     "owed": 9009
+    },
+    {
+     "place": "d208f0c3-b903-451e-abfc-b15cf6871afc",
+     "owed": -2154
+    }
+   ],
+   "fallback": "a76eb9db-13e3-402f-a700-1e802dddc60e",
+   "out": [
+    {
+     "place": "4cc4bdd2-b52f-446c-a793-5b7a754c70d6",
+     "minor": 10222,
+     "reverse": false
+    },
+    {
+     "place": "128ebd9d-d218-43ee-a102-78ff4e1c7cb5",
+     "minor": 9009,
+     "reverse": false
+    },
+    {
+     "place": "59f29dc9-eaeb-468a-a8fd-20565047df2f",
+     "minor": 3525,
+     "reverse": false
+    },
+    {
+     "place": "d208f0c3-b903-451e-abfc-b15cf6871afc",
+     "minor": 2154,
+     "reverse": true
+    },
+    {
+     "place": "a76eb9db-13e3-402f-a700-1e802dddc60e",
+     "minor": 976,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12067,
+   "places": [
+    {
+     "place": "623f30a6-6eea-44a9-a96d-e2084f00d874",
+     "owed": 12506
+    },
+    {
+     "place": "f70a8f77-1e80-44aa-a7ca-ee59fc3740f8",
+     "owed": 13619
+    },
+    {
+     "place": "00299fa3-383b-4cd9-ac79-c7f0f146b96f",
+     "owed": -2124
+    },
+    {
+     "place": "3110ca3b-1a4b-4f2d-a746-230d250bf9ec",
+     "owed": 9696
+    }
+   ],
+   "fallback": "623f30a6-6eea-44a9-a96d-e2084f00d874",
+   "out": [
+    {
+     "place": "f70a8f77-1e80-44aa-a7ca-ee59fc3740f8",
+     "minor": 12067,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15086,
+   "places": [
+    {
+     "place": "20d81ef4-0e9f-40de-aa7f-fe608232fb82",
+     "owed": -5068
+    },
+    {
+     "place": "4ca5550b-5fca-4ec6-ae67-36a21f6e387c",
+     "owed": 7430
+    },
+    {
+     "place": "7389cd8a-b2b1-4713-a8dd-dae93909c7a7",
+     "owed": 8880
+    },
+    {
+     "place": "522825d9-b1f8-4813-a4a7-ea5ee48efc72",
+     "owed": -743
+    }
+   ],
+   "fallback": "20d81ef4-0e9f-40de-aa7f-fe608232fb82",
+   "out": [
+    {
+     "place": "7389cd8a-b2b1-4713-a8dd-dae93909c7a7",
+     "minor": 8880,
+     "reverse": false
+    },
+    {
+     "place": "4ca5550b-5fca-4ec6-ae67-36a21f6e387c",
+     "minor": 7430,
+     "reverse": false
+    },
+    {
+     "place": "522825d9-b1f8-4813-a4a7-ea5ee48efc72",
+     "minor": 743,
+     "reverse": true
+    },
+    {
+     "place": "20d81ef4-0e9f-40de-aa7f-fe608232fb82",
+     "minor": 481,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 7326,
+   "places": [
+    {
+     "place": "f9f754b4-5cdc-492f-ac6d-66844950d84a",
+     "owed": -3192
+    },
+    {
+     "place": "39824047-b33d-4b50-a6df-c6ace287afa7",
+     "owed": 9480
+    },
+    {
+     "place": "b35315a5-241d-47d3-a0ac-ef386c9f7c40",
+     "owed": -277
+    }
+   ],
+   "fallback": "f9f754b4-5cdc-492f-ac6d-66844950d84a",
+   "out": [
+    {
+     "place": "39824047-b33d-4b50-a6df-c6ace287afa7",
+     "minor": 9480,
+     "reverse": false
+    },
+    {
+     "place": "f9f754b4-5cdc-492f-ac6d-66844950d84a",
+     "minor": 1877,
+     "reverse": true
+    },
+    {
+     "place": "b35315a5-241d-47d3-a0ac-ef386c9f7c40",
+     "minor": 277,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 17603,
+   "places": [
+    {
+     "place": "5cf821c3-5c27-4c72-a2da-275770a6aaa9",
+     "owed": 9108
+    },
+    {
+     "place": "e25e24d7-82d1-49fb-a3bc-c81ad965d4ac",
+     "owed": 5664
+    },
+    {
+     "place": "49465bf0-fe5c-47fd-a162-cdbf2adb8153",
+     "owed": 6702
+    },
+    {
+     "place": "efe12e2e-df83-469b-a78c-d849efec03f1",
+     "owed": -3871
+    }
+   ],
+   "fallback": "e580463c-d786-4718-adfd-e78e550a5e34",
+   "out": [
+    {
+     "place": "5cf821c3-5c27-4c72-a2da-275770a6aaa9",
+     "minor": 9108,
+     "reverse": false
+    },
+    {
+     "place": "49465bf0-fe5c-47fd-a162-cdbf2adb8153",
+     "minor": 6702,
+     "reverse": false
+    },
+    {
+     "place": "e25e24d7-82d1-49fb-a3bc-c81ad965d4ac",
+     "minor": 5664,
+     "reverse": false
+    },
+    {
+     "place": "efe12e2e-df83-469b-a78c-d849efec03f1",
+     "minor": 3871,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 5614,
+   "places": [
+    {
+     "place": "5b16b6f2-efb8-46d4-a456-2c741c3b7120",
+     "owed": 4302
+    },
+    {
+     "place": "0025ce5b-d5ab-4b01-a9c2-be1d475106db",
+     "owed": 801
+    },
+    {
+     "place": "567fe9a6-04b1-4765-a163-75b6e25ab7b5",
+     "owed": 11550
+    },
+    {
+     "place": "b9bee598-7485-4dd6-a577-e3434d23bbbd",
+     "owed": 6480
+    }
+   ],
+   "fallback": "149e086d-28d0-473f-ae9d-f5fb9cf1b441",
+   "out": [
+    {
+     "place": "567fe9a6-04b1-4765-a163-75b6e25ab7b5",
+     "minor": 5614,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 21706,
+   "places": [
+    {
+     "place": "cc341e3d-7261-4f01-af1d-5ba8dcab3798",
+     "owed": -1138
+    }
+   ],
+   "fallback": "e583d196-d161-4b01-af52-1fb6829b931a",
+   "out": [
+    {
+     "place": "e583d196-d161-4b01-af52-1fb6829b931a",
+     "minor": 21706,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24717,
+   "places": [
+    {
+     "place": "57515ebb-58d5-476b-af3a-e28db2759ad6",
+     "owed": 13893
+    },
+    {
+     "place": "b08245cc-a842-483a-a23b-aa58382afba3",
+     "owed": -5683
+    },
+    {
+     "place": "def2c20e-8b45-457e-ac4a-48e5acda736e",
+     "owed": 9521
+    }
+   ],
+   "fallback": "47f673e2-3913-4354-a6c8-bad1602f33c3",
+   "out": [
+    {
+     "place": "57515ebb-58d5-476b-af3a-e28db2759ad6",
+     "minor": 13893,
+     "reverse": false
+    },
+    {
+     "place": "def2c20e-8b45-457e-ac4a-48e5acda736e",
+     "minor": 9521,
+     "reverse": false
+    },
+    {
+     "place": "47f673e2-3913-4354-a6c8-bad1602f33c3",
+     "minor": 6986,
+     "reverse": false
+    },
+    {
+     "place": "b08245cc-a842-483a-a23b-aa58382afba3",
+     "minor": 5683,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 24500,
+   "places": [
+    {
+     "place": "d4c3e90a-2339-4ed0-a9d3-f711a300502b",
+     "owed": 11486
+    },
+    {
+     "place": "57e610c0-ed4a-4475-a061-c2511365f897",
+     "owed": 4847
+    },
+    {
+     "place": "a72c14b0-a033-4b14-aaa6-9ada291c28b7",
+     "owed": -1459
+    },
+    {
+     "place": "b4f3be48-a18b-4c5b-ae8e-25e8a328f9db",
+     "owed": 12756
+    }
+   ],
+   "fallback": "92394485-c151-4c7d-ad7d-640cc27d362a",
+   "out": [
+    {
+     "place": "b4f3be48-a18b-4c5b-ae8e-25e8a328f9db",
+     "minor": 12756,
+     "reverse": false
+    },
+    {
+     "place": "d4c3e90a-2339-4ed0-a9d3-f711a300502b",
+     "minor": 11486,
+     "reverse": false
+    },
+    {
+     "place": "57e610c0-ed4a-4475-a061-c2511365f897",
+     "minor": 258,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4025,
+   "places": [],
+   "fallback": "d2d71ec6-e434-45c3-a57d-e2ab5d20f88c",
+   "out": [
+    {
+     "place": "d2d71ec6-e434-45c3-a57d-e2ab5d20f88c",
+     "minor": 4025,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9883,
+   "places": [],
+   "fallback": "33265429-ae7f-4123-a577-bf70520c8014",
+   "out": [
+    {
+     "place": "33265429-ae7f-4123-a577-bf70520c8014",
+     "minor": 9883,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17794,
+   "places": [],
+   "fallback": "5aea5bcd-92a2-4f2f-a06c-c0344c6c46d2",
+   "out": [
+    {
+     "place": "5aea5bcd-92a2-4f2f-a06c-c0344c6c46d2",
+     "minor": 17794,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17633,
+   "places": [
+    {
+     "place": "481771cb-f751-4e39-a3af-5640a392ff8b",
+     "owed": 13131
+    },
+    {
+     "place": "4b22e274-9639-41fc-a5f5-b479d0a0df04",
+     "owed": 4356
+    },
+    {
+     "place": "f1a8a696-e634-429e-acf3-f60cffecd402",
+     "owed": 1898
+    },
+    {
+     "place": "3271b0dc-c441-4964-a9b1-1550a1e70fe4",
+     "owed": -1752
+    }
+   ],
+   "fallback": "e14cca5a-6f90-4579-a206-55483ef833e0",
+   "out": [
+    {
+     "place": "481771cb-f751-4e39-a3af-5640a392ff8b",
+     "minor": 13131,
+     "reverse": false
+    },
+    {
+     "place": "4b22e274-9639-41fc-a5f5-b479d0a0df04",
+     "minor": 4356,
+     "reverse": false
+    },
+    {
+     "place": "f1a8a696-e634-429e-acf3-f60cffecd402",
+     "minor": 1898,
+     "reverse": false
+    },
+    {
+     "place": "3271b0dc-c441-4964-a9b1-1550a1e70fe4",
+     "minor": 1752,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 3092,
+   "places": [],
+   "fallback": "4acd7d89-2caa-46aa-a355-29e92601f331",
+   "out": [
+    {
+     "place": "4acd7d89-2caa-46aa-a355-29e92601f331",
+     "minor": 3092,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11372,
+   "places": [
+    {
+     "place": "e7bd78f6-81f1-48cb-a037-7575d4f72707",
+     "owed": 13739
+    },
+    {
+     "place": "7560644e-c960-4cdd-ad4b-6bf88f47332c",
+     "owed": 3730
+    },
+    {
+     "place": "b84a6531-73a1-46ee-a378-52edb03d2b8a",
+     "owed": 624
+    }
+   ],
+   "fallback": "6dcd2db9-2809-49b5-ad30-1123241211ae",
+   "out": [
+    {
+     "place": "e7bd78f6-81f1-48cb-a037-7575d4f72707",
+     "minor": 11372,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19702,
+   "places": [
+    {
+     "place": "c0a539fb-8419-4872-a52d-c8e693d11167",
+     "owed": 4837
+    },
+    {
+     "place": "e8b9f343-2b1d-4525-a056-6eec980631b4",
+     "owed": 13772
+    },
+    {
+     "place": "250f77ff-84aa-42dd-a6f5-fda2e87d571d",
+     "owed": -2133
+    },
+    {
+     "place": "3cf89a30-e8d4-4eee-a209-088e1e3b9189",
+     "owed": 1601
+    }
+   ],
+   "fallback": "fc9d586a-6589-4430-a174-304aa2c11858",
+   "out": [
+    {
+     "place": "e8b9f343-2b1d-4525-a056-6eec980631b4",
+     "minor": 13772,
+     "reverse": false
+    },
+    {
+     "place": "c0a539fb-8419-4872-a52d-c8e693d11167",
+     "minor": 4837,
+     "reverse": false
+    },
+    {
+     "place": "250f77ff-84aa-42dd-a6f5-fda2e87d571d",
+     "minor": 2133,
+     "reverse": true
+    },
+    {
+     "place": "fc9d586a-6589-4430-a174-304aa2c11858",
+     "minor": 1625,
+     "reverse": false
+    },
+    {
+     "place": "3cf89a30-e8d4-4eee-a209-088e1e3b9189",
+     "minor": 1601,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2863,
+   "places": [
+    {
+     "place": "e50fb4e3-f3b4-491a-a1e3-301e5443e453",
+     "owed": 9131
+    }
+   ],
+   "fallback": "bb31a76e-7bba-4057-ae64-08211d23ad95",
+   "out": [
+    {
+     "place": "e50fb4e3-f3b4-491a-a1e3-301e5443e453",
+     "minor": 2863,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12434,
+   "places": [
+    {
+     "place": "12fd24ce-a016-4ead-a4dd-76422b458275",
+     "owed": 5969
+    },
+    {
+     "place": "cffbd2ae-a681-4197-a488-03c07faeeedd",
+     "owed": 1381
+    },
+    {
+     "place": "6be9c1a9-ec26-47ec-a0e2-012793859edb",
+     "owed": 10252
+    },
+    {
+     "place": "5859fade-49f4-40bc-aec6-6980df13ee59",
+     "owed": 2171
+    }
+   ],
+   "fallback": "ec4eb6b7-8378-4ebd-a62e-69e9297b3879",
+   "out": [
+    {
+     "place": "6be9c1a9-ec26-47ec-a0e2-012793859edb",
+     "minor": 10252,
+     "reverse": false
+    },
+    {
+     "place": "12fd24ce-a016-4ead-a4dd-76422b458275",
+     "minor": 2182,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20300,
+   "places": [
+    {
+     "place": "94f98f49-335b-41e3-a578-f2c0bf91388e",
+     "owed": 8752
+    },
+    {
+     "place": "40ffbfc4-711d-41bc-afa5-c99da91bbb03",
+     "owed": 11548
+    }
+   ],
+   "fallback": "ede05c98-7eb0-4397-ac2c-ee5ca6cc9d19",
+   "out": [
+    {
+     "place": "40ffbfc4-711d-41bc-afa5-c99da91bbb03",
+     "minor": 11548,
+     "reverse": false
+    },
+    {
+     "place": "94f98f49-335b-41e3-a578-f2c0bf91388e",
+     "minor": 8752,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 260,
+   "places": [
+    {
+     "place": "cce83a48-4c35-48bd-a8bd-9eef03fc6e61",
+     "owed": -1009
+    },
+    {
+     "place": "4fd56952-c6e6-48a4-a86b-d479750008f6",
+     "owed": -123
+    },
+    {
+     "place": "7bb740df-8d7e-4024-a3a0-ba444c38e4cb",
+     "owed": 4983
+    },
+    {
+     "place": "efda0c89-6ba0-4fc4-af18-c2af222e48cb",
+     "owed": -3591
+    }
+   ],
+   "fallback": "8900df08-507c-4585-a98f-67a101f84ce1",
+   "out": [
+    {
+     "place": "7bb740df-8d7e-4024-a3a0-ba444c38e4cb",
+     "minor": 4983,
+     "reverse": false
+    },
+    {
+     "place": "efda0c89-6ba0-4fc4-af18-c2af222e48cb",
+     "minor": 3591,
+     "reverse": true
+    },
+    {
+     "place": "cce83a48-4c35-48bd-a8bd-9eef03fc6e61",
+     "minor": 1009,
+     "reverse": true
+    },
+    {
+     "place": "4fd56952-c6e6-48a4-a86b-d479750008f6",
+     "minor": 123,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 16004,
+   "places": [
+    {
+     "place": "19f89b06-6123-4768-af3e-bd0227392b19",
+     "owed": 7423
+    },
+    {
+     "place": "d96c81e0-6014-4521-a7cf-46397f910d90",
+     "owed": 8581
+    }
+   ],
+   "fallback": "19f89b06-6123-4768-af3e-bd0227392b19",
+   "out": [
+    {
+     "place": "d96c81e0-6014-4521-a7cf-46397f910d90",
+     "minor": 8581,
+     "reverse": false
+    },
+    {
+     "place": "19f89b06-6123-4768-af3e-bd0227392b19",
+     "minor": 7423,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20445,
+   "places": [
+    {
+     "place": "9b06f9d9-f2e8-4afb-a022-058c843983d7",
+     "owed": 13024
+    },
+    {
+     "place": "c8c77334-f306-40da-a9b6-d026217c26d5",
+     "owed": 8249
+    },
+    {
+     "place": "544fc3af-5ba7-4455-a6d3-c0b15b12b45e",
+     "owed": -828
+    }
+   ],
+   "fallback": "31a5543e-ad0e-49b8-ab96-becf981fc3cb",
+   "out": [
+    {
+     "place": "9b06f9d9-f2e8-4afb-a022-058c843983d7",
+     "minor": 13024,
+     "reverse": false
+    },
+    {
+     "place": "c8c77334-f306-40da-a9b6-d026217c26d5",
+     "minor": 8249,
+     "reverse": false
+    },
+    {
+     "place": "544fc3af-5ba7-4455-a6d3-c0b15b12b45e",
+     "minor": 828,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 15751,
+   "places": [
+    {
+     "place": "d9ea5ea4-0623-4ebd-a799-2db491e8b4b7",
+     "owed": 7358
+    },
+    {
+     "place": "81b0794e-099c-46ac-afc6-794df27f0e7c",
+     "owed": 8393
+    }
+   ],
+   "fallback": "d9ea5ea4-0623-4ebd-a799-2db491e8b4b7",
+   "out": [
+    {
+     "place": "81b0794e-099c-46ac-afc6-794df27f0e7c",
+     "minor": 8393,
+     "reverse": false
+    },
+    {
+     "place": "d9ea5ea4-0623-4ebd-a799-2db491e8b4b7",
+     "minor": 7358,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5946,
+   "places": [
+    {
+     "place": "5d50dd3e-94ee-424f-a6db-8d0856dc33ca",
+     "owed": 5946
+    }
+   ],
+   "fallback": "5d50dd3e-94ee-424f-a6db-8d0856dc33ca",
+   "out": [
+    {
+     "place": "5d50dd3e-94ee-424f-a6db-8d0856dc33ca",
+     "minor": 5946,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14559,
+   "places": [
+    {
+     "place": "1a4cedab-2052-47eb-aaa2-98c38f1cd732",
+     "owed": 10880
+    },
+    {
+     "place": "de9c356f-f015-449f-a353-8d1f2edd1a97",
+     "owed": 2556
+    }
+   ],
+   "fallback": "1a4cedab-2052-47eb-aaa2-98c38f1cd732",
+   "out": [
+    {
+     "place": "1a4cedab-2052-47eb-aaa2-98c38f1cd732",
+     "minor": 12003,
+     "reverse": false
+    },
+    {
+     "place": "de9c356f-f015-449f-a353-8d1f2edd1a97",
+     "minor": 2556,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19253,
+   "places": [
+    {
+     "place": "9da8a325-ad7b-42e3-a164-f817b09c8a63",
+     "owed": 9852
+    },
+    {
+     "place": "f4c4bdbc-c5e3-4703-a919-556dcf31e92d",
+     "owed": 9401
+    }
+   ],
+   "fallback": "1b195f83-bea4-44d8-a9bc-6a8a6f77c88d",
+   "out": [
+    {
+     "place": "9da8a325-ad7b-42e3-a164-f817b09c8a63",
+     "minor": 9852,
+     "reverse": false
+    },
+    {
+     "place": "f4c4bdbc-c5e3-4703-a919-556dcf31e92d",
+     "minor": 9401,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20931,
+   "places": [
+    {
+     "place": "7cc50259-b449-48a5-af38-bac887ed5e7c",
+     "owed": -2451
+    },
+    {
+     "place": "3a3ce76b-a2b5-464f-a0ef-ae450cdfa492",
+     "owed": 1505
+    },
+    {
+     "place": "f605ad3f-9ad1-45cf-a31a-3e709404ac04",
+     "owed": -2864
+    }
+   ],
+   "fallback": "ddd15ed7-160c-4382-aa54-f05b437593ed",
+   "out": [
+    {
+     "place": "ddd15ed7-160c-4382-aa54-f05b437593ed",
+     "minor": 19426,
+     "reverse": false
+    },
+    {
+     "place": "3a3ce76b-a2b5-464f-a0ef-ae450cdfa492",
+     "minor": 1505,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16044,
+   "places": [],
+   "fallback": "540978e3-596a-40ae-a3df-44861e7984ef",
+   "out": [
+    {
+     "place": "540978e3-596a-40ae-a3df-44861e7984ef",
+     "minor": 16044,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22667,
+   "places": [
+    {
+     "place": "a3395c14-010e-422b-ab01-d02a7927e649",
+     "owed": 8750
+    },
+    {
+     "place": "afc03d28-35f6-4d73-ae23-be1d9e3dd560",
+     "owed": 12225
+    },
+    {
+     "place": "a92ef611-db8f-4888-a65a-27ca36a463ea",
+     "owed": 1620
+    },
+    {
+     "place": "34d6a78f-6a89-4faf-a1d7-35ea2593b523",
+     "owed": -4482
+    }
+   ],
+   "fallback": "1dda160f-627c-49df-a2fb-ef352ced06b5",
+   "out": [
+    {
+     "place": "afc03d28-35f6-4d73-ae23-be1d9e3dd560",
+     "minor": 12225,
+     "reverse": false
+    },
+    {
+     "place": "a3395c14-010e-422b-ab01-d02a7927e649",
+     "minor": 8750,
+     "reverse": false
+    },
+    {
+     "place": "1dda160f-627c-49df-a2fb-ef352ced06b5",
+     "minor": 4554,
+     "reverse": false
+    },
+    {
+     "place": "34d6a78f-6a89-4faf-a1d7-35ea2593b523",
+     "minor": 4482,
+     "reverse": true
+    },
+    {
+     "place": "a92ef611-db8f-4888-a65a-27ca36a463ea",
+     "minor": 1620,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18413,
+   "places": [
+    {
+     "place": "f1f6149c-b451-4563-a5b5-7b0fcca50357",
+     "owed": 8159
+    },
+    {
+     "place": "4b5b2c63-0803-4499-a644-0cfe1290bb60",
+     "owed": 3477
+    },
+    {
+     "place": "588507f8-a71d-4233-a28e-99ef15093df4",
+     "owed": 6777
+    }
+   ],
+   "fallback": "f1f6149c-b451-4563-a5b5-7b0fcca50357",
+   "out": [
+    {
+     "place": "f1f6149c-b451-4563-a5b5-7b0fcca50357",
+     "minor": 8159,
+     "reverse": false
+    },
+    {
+     "place": "588507f8-a71d-4233-a28e-99ef15093df4",
+     "minor": 6777,
+     "reverse": false
+    },
+    {
+     "place": "4b5b2c63-0803-4499-a644-0cfe1290bb60",
+     "minor": 3477,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11003,
+   "places": [
+    {
+     "place": "0e0b411b-b4a7-4f7c-a273-6669840018ab",
+     "owed": 281
+    },
+    {
+     "place": "b66ced58-9d72-483f-a5b1-5c6336f7abfe",
+     "owed": 10722
+    }
+   ],
+   "fallback": "216bb705-521f-4707-ad8e-38a1d725b6ae",
+   "out": [
+    {
+     "place": "b66ced58-9d72-483f-a5b1-5c6336f7abfe",
+     "minor": 10722,
+     "reverse": false
+    },
+    {
+     "place": "0e0b411b-b4a7-4f7c-a273-6669840018ab",
+     "minor": 281,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3621,
+   "places": [
+    {
+     "place": "c6ef46bc-3861-4693-a137-2f28362de112",
+     "owed": -5049
+    }
+   ],
+   "fallback": "06be9655-fd71-4a33-ae45-7c9fd346403e",
+   "out": [
+    {
+     "place": "06be9655-fd71-4a33-ae45-7c9fd346403e",
+     "minor": 3621,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6525,
+   "places": [
+    {
+     "place": "655290ff-87ee-4a9e-a1e9-1a847010f18e",
+     "owed": 2497
+    },
+    {
+     "place": "cd5f8968-e92b-4845-aa6f-f1c1d80c9262",
+     "owed": 6038
+    },
+    {
+     "place": "0f3012e4-a02c-463f-a446-5d87bdf3fbe6",
+     "owed": 7624
+    },
+    {
+     "place": "af456b3d-19ad-4d7c-a28d-b11b15326170",
+     "owed": -1778
+    }
+   ],
+   "fallback": "350adab0-0f2f-41f9-ad67-148ed531f81a",
+   "out": [
+    {
+     "place": "0f3012e4-a02c-463f-a446-5d87bdf3fbe6",
+     "minor": 6525,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 10461,
+   "places": [
+    {
+     "place": "ef5a3f26-b4f9-48ff-a803-15a5e900fee3",
+     "owed": 4153
+    },
+    {
+     "place": "2ce5d944-57aa-4d22-a776-1da1ec6ccf70",
+     "owed": -3138
+    },
+    {
+     "place": "552a6def-467c-49d5-ac4b-553dcffcd1cd",
+     "owed": 5374
+    },
+    {
+     "place": "6178bbfa-1caf-4bfb-ac99-e23a8dccbe9d",
+     "owed": -2547
+    }
+   ],
+   "fallback": "ef5a3f26-b4f9-48ff-a803-15a5e900fee3",
+   "out": [
+    {
+     "place": "ef5a3f26-b4f9-48ff-a803-15a5e900fee3",
+     "minor": 10772,
+     "reverse": false
+    },
+    {
+     "place": "552a6def-467c-49d5-ac4b-553dcffcd1cd",
+     "minor": 5374,
+     "reverse": false
+    },
+    {
+     "place": "2ce5d944-57aa-4d22-a776-1da1ec6ccf70",
+     "minor": 3138,
+     "reverse": true
+    },
+    {
+     "place": "6178bbfa-1caf-4bfb-ac99-e23a8dccbe9d",
+     "minor": 2547,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 22100,
+   "places": [
+    {
+     "place": "59e589eb-11cb-44ed-a14b-52192f00a460",
+     "owed": 1204
+    },
+    {
+     "place": "15384640-315c-479f-adfc-a20453104836",
+     "owed": 9968
+    }
+   ],
+   "fallback": "59e589eb-11cb-44ed-a14b-52192f00a460",
+   "out": [
+    {
+     "place": "59e589eb-11cb-44ed-a14b-52192f00a460",
+     "minor": 12132,
+     "reverse": false
+    },
+    {
+     "place": "15384640-315c-479f-adfc-a20453104836",
+     "minor": 9968,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2773,
+   "places": [
+    {
+     "place": "cd00c3fc-e7bb-4298-a155-8fef27f6cdee",
+     "owed": 2773
+    }
+   ],
+   "fallback": "cd00c3fc-e7bb-4298-a155-8fef27f6cdee",
+   "out": [
+    {
+     "place": "cd00c3fc-e7bb-4298-a155-8fef27f6cdee",
+     "minor": 2773,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12210,
+   "places": [
+    {
+     "place": "391b5a14-16d0-4b3c-a046-dfbcc4e4cca5",
+     "owed": 4591
+    },
+    {
+     "place": "d44f6269-9c24-44b5-af31-f83f789312fc",
+     "owed": -5291
+    }
+   ],
+   "fallback": "391b5a14-16d0-4b3c-a046-dfbcc4e4cca5",
+   "out": [
+    {
+     "place": "391b5a14-16d0-4b3c-a046-dfbcc4e4cca5",
+     "minor": 12210,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6735,
+   "places": [
+    {
+     "place": "a2921fbc-e6c7-42da-a582-71f730d822d6",
+     "owed": -521
+    }
+   ],
+   "fallback": "90e842a0-50fc-4bb0-a441-31ea79dabb37",
+   "out": [
+    {
+     "place": "90e842a0-50fc-4bb0-a441-31ea79dabb37",
+     "minor": 6735,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8492,
+   "places": [],
+   "fallback": "e82e2314-7da8-4799-a33a-81ef33628c33",
+   "out": [
+    {
+     "place": "e82e2314-7da8-4799-a33a-81ef33628c33",
+     "minor": 8492,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6153,
+   "places": [
+    {
+     "place": "70017e5b-45f6-4565-a408-6597e65f3c0a",
+     "owed": 1528
+    }
+   ],
+   "fallback": "e6d561cd-27a0-476d-abce-7cdf5b9759cb",
+   "out": [
+    {
+     "place": "e6d561cd-27a0-476d-abce-7cdf5b9759cb",
+     "minor": 4625,
+     "reverse": false
+    },
+    {
+     "place": "70017e5b-45f6-4565-a408-6597e65f3c0a",
+     "minor": 1528,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16998,
+   "places": [
+    {
+     "place": "bbe07e06-2ecf-49b1-a499-f546a79a0472",
+     "owed": 6757
+    },
+    {
+     "place": "70e9cf13-4e5c-4356-ae87-3d8308ef13c5",
+     "owed": 8826
+    },
+    {
+     "place": "8117b514-e109-4575-a4f6-f556d50cdb27",
+     "owed": -4440
+    }
+   ],
+   "fallback": "76e33d38-5794-4e9a-ab8e-1375ffda234a",
+   "out": [
+    {
+     "place": "70e9cf13-4e5c-4356-ae87-3d8308ef13c5",
+     "minor": 8826,
+     "reverse": false
+    },
+    {
+     "place": "bbe07e06-2ecf-49b1-a499-f546a79a0472",
+     "minor": 6757,
+     "reverse": false
+    },
+    {
+     "place": "76e33d38-5794-4e9a-ab8e-1375ffda234a",
+     "minor": 5855,
+     "reverse": false
+    },
+    {
+     "place": "8117b514-e109-4575-a4f6-f556d50cdb27",
+     "minor": 4440,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 878,
+   "places": [],
+   "fallback": "47bcb6b8-31b8-4d23-a745-e6f7f026881a",
+   "out": [
+    {
+     "place": "47bcb6b8-31b8-4d23-a745-e6f7f026881a",
+     "minor": 878,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7965,
+   "places": [
+    {
+     "place": "ccbb83bc-f9c0-45c7-af47-5f8f98e24e87",
+     "owed": 4890
+    },
+    {
+     "place": "a4e4cbb2-ff1b-4bd1-a886-7e63d736128d",
+     "owed": 2412
+    },
+    {
+     "place": "f486ba54-e7fc-46cf-a1b0-51f1d297d27c",
+     "owed": 663
+    }
+   ],
+   "fallback": "81e2f34a-cd5a-4642-acb5-068db3c48d98",
+   "out": [
+    {
+     "place": "ccbb83bc-f9c0-45c7-af47-5f8f98e24e87",
+     "minor": 4890,
+     "reverse": false
+    },
+    {
+     "place": "a4e4cbb2-ff1b-4bd1-a886-7e63d736128d",
+     "minor": 2412,
+     "reverse": false
+    },
+    {
+     "place": "f486ba54-e7fc-46cf-a1b0-51f1d297d27c",
+     "minor": 663,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20746,
+   "places": [
+    {
+     "place": "046be4e5-beb0-4a19-a7fb-83f299555b86",
+     "owed": 13608
+    },
+    {
+     "place": "ba3701d3-97d2-47dd-a553-da3484ea1efb",
+     "owed": 12582
+    },
+    {
+     "place": "f6bf7f2a-18ed-4f92-a120-55333c9894ab",
+     "owed": -5444
+    }
+   ],
+   "fallback": "046be4e5-beb0-4a19-a7fb-83f299555b86",
+   "out": [
+    {
+     "place": "046be4e5-beb0-4a19-a7fb-83f299555b86",
+     "minor": 13608,
+     "reverse": false
+    },
+    {
+     "place": "ba3701d3-97d2-47dd-a553-da3484ea1efb",
+     "minor": 12582,
+     "reverse": false
+    },
+    {
+     "place": "f6bf7f2a-18ed-4f92-a120-55333c9894ab",
+     "minor": 5444,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 12493,
+   "places": [
+    {
+     "place": "4f0390f3-c69b-4cc0-ad29-93ce39275ac8",
+     "owed": -5524
+    }
+   ],
+   "fallback": "75015504-4847-4b0c-a15c-22f25f6c7983",
+   "out": [
+    {
+     "place": "75015504-4847-4b0c-a15c-22f25f6c7983",
+     "minor": 12493,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23912,
+   "places": [
+    {
+     "place": "5df5b255-469b-4d94-abc2-a36b236d3ded",
+     "owed": -4249
+    },
+    {
+     "place": "bdc8f4a0-8113-4725-a4a5-b62768fe92a5",
+     "owed": -1081
+    },
+    {
+     "place": "71c8e2ae-6823-4c62-a31c-b57aa8f7457d",
+     "owed": -4264
+    }
+   ],
+   "fallback": "5df5b255-469b-4d94-abc2-a36b236d3ded",
+   "out": [
+    {
+     "place": "5df5b255-469b-4d94-abc2-a36b236d3ded",
+     "minor": 23912,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14546,
+   "places": [],
+   "fallback": "d5930a14-5cc4-4adf-a0a3-05bbe000b1ab",
+   "out": [
+    {
+     "place": "d5930a14-5cc4-4adf-a0a3-05bbe000b1ab",
+     "minor": 14546,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4922,
+   "places": [
+    {
+     "place": "500265d6-be43-4a60-a86f-237f66964054",
+     "owed": -5827
+    },
+    {
+     "place": "7c3ac3b9-bf96-4597-afc1-bd4c61439cda",
+     "owed": 1134
+    },
+    {
+     "place": "1b0cb4d9-120c-4665-a62a-1c562ddce4a1",
+     "owed": 1541
+    },
+    {
+     "place": "9efa69e6-78ac-4875-ab92-0d5b1d12da2e",
+     "owed": 12976
+    }
+   ],
+   "fallback": "500265d6-be43-4a60-a86f-237f66964054",
+   "out": [
+    {
+     "place": "9efa69e6-78ac-4875-ab92-0d5b1d12da2e",
+     "minor": 4922,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15934,
+   "places": [
+    {
+     "place": "7406034e-f27f-40c5-a8cc-7d0526cfc077",
+     "owed": 5547
+    },
+    {
+     "place": "56835f26-9a3c-46d8-abea-b25a4e0e3e06",
+     "owed": 1377
+    },
+    {
+     "place": "6fb9efb7-bac3-4dfd-a0f2-443db75c494a",
+     "owed": 7018
+    },
+    {
+     "place": "03dbaef4-a9cb-4a4c-a9a4-afb69ccc7c43",
+     "owed": 1992
+    }
+   ],
+   "fallback": "dd6fa38e-f808-4cc5-a17f-be3d9a45ae89",
+   "out": [
+    {
+     "place": "6fb9efb7-bac3-4dfd-a0f2-443db75c494a",
+     "minor": 7018,
+     "reverse": false
+    },
+    {
+     "place": "7406034e-f27f-40c5-a8cc-7d0526cfc077",
+     "minor": 5547,
+     "reverse": false
+    },
+    {
+     "place": "03dbaef4-a9cb-4a4c-a9a4-afb69ccc7c43",
+     "minor": 1992,
+     "reverse": false
+    },
+    {
+     "place": "56835f26-9a3c-46d8-abea-b25a4e0e3e06",
+     "minor": 1377,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23166,
+   "places": [
+    {
+     "place": "18d8f480-bd54-45cb-abe8-b6e03d103f24",
+     "owed": 11520
+    },
+    {
+     "place": "493689f9-b6db-419d-aecf-2eab1aae63b7",
+     "owed": -4343
+    }
+   ],
+   "fallback": "5b5108d4-d9d5-4743-a263-a36acb9e3dfe",
+   "out": [
+    {
+     "place": "5b5108d4-d9d5-4743-a263-a36acb9e3dfe",
+     "minor": 15989,
+     "reverse": false
+    },
+    {
+     "place": "18d8f480-bd54-45cb-abe8-b6e03d103f24",
+     "minor": 11520,
+     "reverse": false
+    },
+    {
+     "place": "493689f9-b6db-419d-aecf-2eab1aae63b7",
+     "minor": 4343,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 252,
+   "places": [
+    {
+     "place": "2114704c-58ff-4ea2-a908-de5e0e9b6bd2",
+     "owed": -5725
+    }
+   ],
+   "fallback": "d244e42c-63a6-4e0b-adff-cc442d04a08a",
+   "out": [
+    {
+     "place": "d244e42c-63a6-4e0b-adff-cc442d04a08a",
+     "minor": 252,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13451,
+   "places": [
+    {
+     "place": "8115e641-b94d-4a15-a509-751e899c4d3d",
+     "owed": 9724
+    }
+   ],
+   "fallback": "8115e641-b94d-4a15-a509-751e899c4d3d",
+   "out": [
+    {
+     "place": "8115e641-b94d-4a15-a509-751e899c4d3d",
+     "minor": 13451,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7914,
+   "places": [],
+   "fallback": "9aaef4f5-5e5e-4eaf-a167-3eba563427b0",
+   "out": [
+    {
+     "place": "9aaef4f5-5e5e-4eaf-a167-3eba563427b0",
+     "minor": 7914,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4030,
+   "places": [],
+   "fallback": "38f1203e-2b41-42c3-adee-a6fc98a808f3",
+   "out": [
+    {
+     "place": "38f1203e-2b41-42c3-adee-a6fc98a808f3",
+     "minor": 4030,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 25726,
+   "places": [
+    {
+     "place": "3ce2a2dd-74bc-40df-a988-351fadfecd72",
+     "owed": 13434
+    },
+    {
+     "place": "60043ee2-2131-4842-a5d7-1fa774c46e41",
+     "owed": 11303
+    },
+    {
+     "place": "0786debb-0875-42c4-a5b3-cd137de4c3ed",
+     "owed": 989
+    }
+   ],
+   "fallback": "a8858c3a-1ac1-4a3e-a542-87647871a552",
+   "out": [
+    {
+     "place": "3ce2a2dd-74bc-40df-a988-351fadfecd72",
+     "minor": 13434,
+     "reverse": false
+    },
+    {
+     "place": "60043ee2-2131-4842-a5d7-1fa774c46e41",
+     "minor": 11303,
+     "reverse": false
+    },
+    {
+     "place": "0786debb-0875-42c4-a5b3-cd137de4c3ed",
+     "minor": 989,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7434,
+   "places": [
+    {
+     "place": "b9d17591-502b-4702-a5b6-e6a15010c19b",
+     "owed": 6271
+    },
+    {
+     "place": "40af76a1-063a-48ab-a30a-c9305a2976cc",
+     "owed": 10870
+    },
+    {
+     "place": "9398b404-da42-4bf1-a361-4dfd0079ace5",
+     "owed": -4746
+    },
+    {
+     "place": "8796ec4a-10ce-4235-a914-b97e9310c17d",
+     "owed": 5299
+    }
+   ],
+   "fallback": "b9d17591-502b-4702-a5b6-e6a15010c19b",
+   "out": [
+    {
+     "place": "40af76a1-063a-48ab-a30a-c9305a2976cc",
+     "minor": 7434,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4750,
+   "places": [
+    {
+     "place": "943339be-7c24-495f-ad8e-3d5bc4f4cfa4",
+     "owed": 12985
+    },
+    {
+     "place": "5d074b45-267a-4525-a89c-91dbc82e4060",
+     "owed": -3957
+    },
+    {
+     "place": "60431c32-272d-4185-aefa-0995976f2c84",
+     "owed": -4278
+    }
+   ],
+   "fallback": "943339be-7c24-495f-ad8e-3d5bc4f4cfa4",
+   "out": [
+    {
+     "place": "943339be-7c24-495f-ad8e-3d5bc4f4cfa4",
+     "minor": 12985,
+     "reverse": false
+    },
+    {
+     "place": "60431c32-272d-4185-aefa-0995976f2c84",
+     "minor": 4278,
+     "reverse": true
+    },
+    {
+     "place": "5d074b45-267a-4525-a89c-91dbc82e4060",
+     "minor": 3957,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 3642,
+   "places": [
+    {
+     "place": "72e69081-755c-4fcc-aeac-5a0edf1ddef5",
+     "owed": 444
+    },
+    {
+     "place": "7983fca7-ed4c-4be3-a939-9e81522fcbe4",
+     "owed": 7974
+    },
+    {
+     "place": "89c8057c-0681-483d-acf6-b43daf74bafe",
+     "owed": 5954
+    },
+    {
+     "place": "e6a8589f-586f-43aa-a41a-8bedcafb974c",
+     "owed": 9532
+    }
+   ],
+   "fallback": "f239e3ca-c60b-4e79-aadc-8bf1a4ef4c5b",
+   "out": [
+    {
+     "place": "e6a8589f-586f-43aa-a41a-8bedcafb974c",
+     "minor": 3642,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7205,
+   "places": [
+    {
+     "place": "e74386d7-79ec-4c57-a0b1-1ddf7c81f354",
+     "owed": 8600
+    },
+    {
+     "place": "59e1a013-c50d-4bdd-a078-9381cf88f6ef",
+     "owed": -31
+    }
+   ],
+   "fallback": "6e4d581a-9218-48cf-afcc-312cabddb6c3",
+   "out": [
+    {
+     "place": "e74386d7-79ec-4c57-a0b1-1ddf7c81f354",
+     "minor": 7205,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7964,
+   "places": [
+    {
+     "place": "bd4ee132-a50a-4bc0-a3bb-bfe2fa885e5a",
+     "owed": -5929
+    },
+    {
+     "place": "3a5bab6a-066a-456c-abfb-1ae2e2d6f653",
+     "owed": 1404
+    },
+    {
+     "place": "3a86a769-7fab-46ef-ab6e-52b349130bab",
+     "owed": 3915
+    }
+   ],
+   "fallback": "bd4ee132-a50a-4bc0-a3bb-bfe2fa885e5a",
+   "out": [
+    {
+     "place": "3a86a769-7fab-46ef-ab6e-52b349130bab",
+     "minor": 3915,
+     "reverse": false
+    },
+    {
+     "place": "bd4ee132-a50a-4bc0-a3bb-bfe2fa885e5a",
+     "minor": 2645,
+     "reverse": false
+    },
+    {
+     "place": "3a5bab6a-066a-456c-abfb-1ae2e2d6f653",
+     "minor": 1404,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11194,
+   "places": [
+    {
+     "place": "5b91b329-e7d5-4d6d-ae65-b7938a111062",
+     "owed": 11194
+    }
+   ],
+   "fallback": "23809537-c408-4606-a1ff-96b3f77580cb",
+   "out": [
+    {
+     "place": "5b91b329-e7d5-4d6d-ae65-b7938a111062",
+     "minor": 11194,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 21761,
+   "places": [
+    {
+     "place": "c19c6bcf-abe9-411b-a545-279df3e6ee66",
+     "owed": 983
+    },
+    {
+     "place": "2c9b1ec3-af6f-462e-ad1e-84df15465664",
+     "owed": -1105
+    },
+    {
+     "place": "1493b7e8-6f5f-445f-a854-6a90442ae451",
+     "owed": 4145
+    },
+    {
+     "place": "23c219b4-4d25-46cb-abca-fdeadba5cebc",
+     "owed": 8195
+    }
+   ],
+   "fallback": "26260ce7-da0f-4b89-aee0-6709e000e162",
+   "out": [
+    {
+     "place": "26260ce7-da0f-4b89-aee0-6709e000e162",
+     "minor": 9543,
+     "reverse": false
+    },
+    {
+     "place": "23c219b4-4d25-46cb-abca-fdeadba5cebc",
+     "minor": 8195,
+     "reverse": false
+    },
+    {
+     "place": "1493b7e8-6f5f-445f-a854-6a90442ae451",
+     "minor": 4145,
+     "reverse": false
+    },
+    {
+     "place": "2c9b1ec3-af6f-462e-ad1e-84df15465664",
+     "minor": 1105,
+     "reverse": true
+    },
+    {
+     "place": "c19c6bcf-abe9-411b-a545-279df3e6ee66",
+     "minor": 983,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 17441,
+   "places": [
+    {
+     "place": "91b4b6f3-9790-48ed-a7f6-b62df5c7006c",
+     "owed": 4020
+    },
+    {
+     "place": "5c249682-589e-47ef-ae6d-bb5ee03668a9",
+     "owed": 13421
+    }
+   ],
+   "fallback": "91b4b6f3-9790-48ed-a7f6-b62df5c7006c",
+   "out": [
+    {
+     "place": "5c249682-589e-47ef-ae6d-bb5ee03668a9",
+     "minor": 13421,
+     "reverse": false
+    },
+    {
+     "place": "91b4b6f3-9790-48ed-a7f6-b62df5c7006c",
+     "minor": 4020,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8120,
+   "places": [
+    {
+     "place": "17e2b508-b616-4c4f-aa12-6b094a1002a7",
+     "owed": 9452
+    }
+   ],
+   "fallback": "645340ff-d465-4176-a056-8dfd9512f8d1",
+   "out": [
+    {
+     "place": "17e2b508-b616-4c4f-aa12-6b094a1002a7",
+     "minor": 8120,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 10699,
+   "places": [
+    {
+     "place": "48ed3657-30d8-4771-ac5a-c3cb94b82536",
+     "owed": -4110
+    },
+    {
+     "place": "dcb5279c-8e9a-4d83-a83e-3697b437ec9b",
+     "owed": 13367
+    }
+   ],
+   "fallback": "48ed3657-30d8-4771-ac5a-c3cb94b82536",
+   "out": [
+    {
+     "place": "dcb5279c-8e9a-4d83-a83e-3697b437ec9b",
+     "minor": 13367,
+     "reverse": false
+    },
+    {
+     "place": "48ed3657-30d8-4771-ac5a-c3cb94b82536",
+     "minor": 2668,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 22744,
+   "places": [
+    {
+     "place": "6b44cb09-9645-41c6-af02-b94efe6eabae",
+     "owed": -5917
+    }
+   ],
+   "fallback": "e8228359-1e9e-4e3c-ad72-0450247fd2e5",
+   "out": [
+    {
+     "place": "e8228359-1e9e-4e3c-ad72-0450247fd2e5",
+     "minor": 22744,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12809,
+   "places": [],
+   "fallback": "f0ef8ed8-cac5-4347-a246-d22d54a3a102",
+   "out": [
+    {
+     "place": "f0ef8ed8-cac5-4347-a246-d22d54a3a102",
+     "minor": 12809,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9597,
+   "places": [
+    {
+     "place": "6ac1e94f-5d7a-4fb9-ad4b-94701c0b4680",
+     "owed": 1995
+    },
+    {
+     "place": "494ad8c0-3bf6-49ef-a3ed-f1de6d6392a7",
+     "owed": 11366
+    },
+    {
+     "place": "3614b94f-05ab-4923-a740-118618b55d60",
+     "owed": 6649
+    },
+    {
+     "place": "0a90df63-492f-4157-a25b-7d80b5b8fc2e",
+     "owed": 9847
+    }
+   ],
+   "fallback": "e56daae1-3723-4b1e-a6b4-1ac52cbb0f14",
+   "out": [
+    {
+     "place": "494ad8c0-3bf6-49ef-a3ed-f1de6d6392a7",
+     "minor": 9597,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2714,
+   "places": [],
+   "fallback": "014e3832-7995-46fc-aa42-fc5379a9333a",
+   "out": [
+    {
+     "place": "014e3832-7995-46fc-aa42-fc5379a9333a",
+     "minor": 2714,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6073,
+   "places": [
+    {
+     "place": "6be4ad95-fc06-4d59-a957-0c634b8d3a8f",
+     "owed": -4173
+    },
+    {
+     "place": "59dab8b5-7389-4ada-a02f-cafee5812fe5",
+     "owed": 13091
+    },
+    {
+     "place": "8456dcd5-275c-4bb6-a272-9a3095e23e48",
+     "owed": -198
+    },
+    {
+     "place": "d91e4a9d-cdb6-47db-ab2f-bec9b31890ff",
+     "owed": -4427
+    }
+   ],
+   "fallback": "6be4ad95-fc06-4d59-a957-0c634b8d3a8f",
+   "out": [
+    {
+     "place": "59dab8b5-7389-4ada-a02f-cafee5812fe5",
+     "minor": 13091,
+     "reverse": false
+    },
+    {
+     "place": "d91e4a9d-cdb6-47db-ab2f-bec9b31890ff",
+     "minor": 4427,
+     "reverse": true
+    },
+    {
+     "place": "6be4ad95-fc06-4d59-a957-0c634b8d3a8f",
+     "minor": 2393,
+     "reverse": true
+    },
+    {
+     "place": "8456dcd5-275c-4bb6-a272-9a3095e23e48",
+     "minor": 198,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 4133,
+   "places": [
+    {
+     "place": "a237a62b-2659-41a5-ac50-8b6e1e224f46",
+     "owed": -2540
+    }
+   ],
+   "fallback": "596a7957-19b7-49a2-aaca-5f7ffbc89704",
+   "out": [
+    {
+     "place": "596a7957-19b7-49a2-aaca-5f7ffbc89704",
+     "minor": 4133,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18705,
+   "places": [
+    {
+     "place": "adbbc3b1-8a2c-4098-ad85-601788a41ffa",
+     "owed": 8777
+    },
+    {
+     "place": "8e1ac869-c76c-40d7-a0cc-72f6587855bd",
+     "owed": 9928
+    }
+   ],
+   "fallback": "adbbc3b1-8a2c-4098-ad85-601788a41ffa",
+   "out": [
+    {
+     "place": "8e1ac869-c76c-40d7-a0cc-72f6587855bd",
+     "minor": 9928,
+     "reverse": false
+    },
+    {
+     "place": "adbbc3b1-8a2c-4098-ad85-601788a41ffa",
+     "minor": 8777,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 9261,
+   "places": [],
+   "fallback": "bf91fe2f-54ba-4bdc-a6d8-926415fef814",
+   "out": [
+    {
+     "place": "bf91fe2f-54ba-4bdc-a6d8-926415fef814",
+     "minor": 9261,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14527,
+   "places": [],
+   "fallback": "2935aa31-66b6-4cd7-ae11-bee6fb725c7e",
+   "out": [
+    {
+     "place": "2935aa31-66b6-4cd7-ae11-bee6fb725c7e",
+     "minor": 14527,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 993,
+   "places": [],
+   "fallback": "a4498e04-a287-46b3-a5f3-513c86793f90",
+   "out": [
+    {
+     "place": "a4498e04-a287-46b3-a5f3-513c86793f90",
+     "minor": 993,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 822,
+   "places": [
+    {
+     "place": "20158cbf-4828-4de2-a67f-1a1c8de25324",
+     "owed": -357
+    }
+   ],
+   "fallback": "20158cbf-4828-4de2-a67f-1a1c8de25324",
+   "out": [
+    {
+     "place": "20158cbf-4828-4de2-a67f-1a1c8de25324",
+     "minor": 822,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 27127,
+   "places": [
+    {
+     "place": "8b02befa-f015-45e4-a0f4-3267e460dadc",
+     "owed": 8384
+    },
+    {
+     "place": "d8a10a4d-88e5-4e1c-ab0c-1c9fea075a64",
+     "owed": 12973
+    },
+    {
+     "place": "6cf2e12a-0b25-4f51-a18b-9e56620944fa",
+     "owed": 11066
+    },
+    {
+     "place": "4b3036fb-6423-4ce0-a3f6-5366893f4d12",
+     "owed": -5296
+    }
+   ],
+   "fallback": "b7a2ca93-38b2-43d3-a58e-036818f5a00d",
+   "out": [
+    {
+     "place": "d8a10a4d-88e5-4e1c-ab0c-1c9fea075a64",
+     "minor": 12973,
+     "reverse": false
+    },
+    {
+     "place": "6cf2e12a-0b25-4f51-a18b-9e56620944fa",
+     "minor": 11066,
+     "reverse": false
+    },
+    {
+     "place": "8b02befa-f015-45e4-a0f4-3267e460dadc",
+     "minor": 8384,
+     "reverse": false
+    },
+    {
+     "place": "4b3036fb-6423-4ce0-a3f6-5366893f4d12",
+     "minor": 5296,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 1214,
+   "places": [
+    {
+     "place": "7f7f70a1-8a7f-446b-a51b-c043c444a785",
+     "owed": 1921
+    },
+    {
+     "place": "cfc72e1e-1818-4f91-a0c5-1f74b3d0ee4f",
+     "owed": 10489
+    },
+    {
+     "place": "bc0a5d6b-405c-4a90-a389-0c15540050d4",
+     "owed": 1686
+    },
+    {
+     "place": "09bedf17-4bc2-4656-a5ca-cd00260661ea",
+     "owed": 11473
+    }
+   ],
+   "fallback": "7f7f70a1-8a7f-446b-a51b-c043c444a785",
+   "out": [
+    {
+     "place": "09bedf17-4bc2-4656-a5ca-cd00260661ea",
+     "minor": 1214,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20034,
+   "places": [
+    {
+     "place": "efb2dfbf-38fb-4000-ac0f-9ad021151e21",
+     "owed": 3625
+    },
+    {
+     "place": "b0f9aa27-27c6-4758-a650-a22a53c70cff",
+     "owed": 7461
+    },
+    {
+     "place": "832c6f30-c101-4e51-a98b-beb24abd6d73",
+     "owed": 12340
+    }
+   ],
+   "fallback": "6a0e725d-0079-4893-abdf-b2fc818b8532",
+   "out": [
+    {
+     "place": "832c6f30-c101-4e51-a98b-beb24abd6d73",
+     "minor": 12340,
+     "reverse": false
+    },
+    {
+     "place": "b0f9aa27-27c6-4758-a650-a22a53c70cff",
+     "minor": 7461,
+     "reverse": false
+    },
+    {
+     "place": "efb2dfbf-38fb-4000-ac0f-9ad021151e21",
+     "minor": 233,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11547,
+   "places": [
+    {
+     "place": "82b0ce73-f311-4f9b-a90d-e9dfc2777824",
+     "owed": -5454
+    },
+    {
+     "place": "10bd7ba1-efad-49e9-a74a-5eb4fc2fea36",
+     "owed": -193
+    },
+    {
+     "place": "59c79931-8d5c-4e6b-a0de-8c1f6506463a",
+     "owed": -5201
+    }
+   ],
+   "fallback": "82b0ce73-f311-4f9b-a90d-e9dfc2777824",
+   "out": [
+    {
+     "place": "82b0ce73-f311-4f9b-a90d-e9dfc2777824",
+     "minor": 11547,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8911,
+   "places": [
+    {
+     "place": "5fc898c5-3268-46cf-a254-9b6b9f5340b3",
+     "owed": 3891
+    },
+    {
+     "place": "fda4c81b-7597-4a85-afdd-b3e8791b1b8e",
+     "owed": -3341
+    },
+    {
+     "place": "9b8e4e07-e17f-430d-af4b-2406b73bb9d2",
+     "owed": 5828
+    },
+    {
+     "place": "86c35fd4-bed0-4b10-a133-fdbba6a02991",
+     "owed": 3629
+    }
+   ],
+   "fallback": "3fd97b8b-3817-48bd-ade5-9477dc312315",
+   "out": [
+    {
+     "place": "9b8e4e07-e17f-430d-af4b-2406b73bb9d2",
+     "minor": 5828,
+     "reverse": false
+    },
+    {
+     "place": "5fc898c5-3268-46cf-a254-9b6b9f5340b3",
+     "minor": 3083,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5475,
+   "places": [],
+   "fallback": "f4a1c714-a973-4646-a151-f618fd90dd62",
+   "out": [
+    {
+     "place": "f4a1c714-a973-4646-a151-f618fd90dd62",
+     "minor": 5475,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11881,
+   "places": [
+    {
+     "place": "664f0127-11d2-4250-ab4e-59e0cba50676",
+     "owed": 4011
+    },
+    {
+     "place": "19f54178-8c53-4c7b-a8e6-cc672099f89d",
+     "owed": 7870
+    }
+   ],
+   "fallback": "43f6a2a7-60ef-4493-a0f7-afe0c4ceb755",
+   "out": [
+    {
+     "place": "19f54178-8c53-4c7b-a8e6-cc672099f89d",
+     "minor": 7870,
+     "reverse": false
+    },
+    {
+     "place": "664f0127-11d2-4250-ab4e-59e0cba50676",
+     "minor": 4011,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15779,
+   "places": [
+    {
+     "place": "2a4cae7a-8391-4c32-af23-fbcfaa26f521",
+     "owed": 13251
+    },
+    {
+     "place": "4d340c53-d950-475d-a5d3-56b21b2ff74e",
+     "owed": -2113
+    },
+    {
+     "place": "7f19f396-730f-4b70-aff4-43423980bc1f",
+     "owed": 2382
+    },
+    {
+     "place": "42015834-7996-44e1-ac2b-e668b84c59eb",
+     "owed": -1683
+    }
+   ],
+   "fallback": "7927f5ed-900c-432b-a102-7f9329339810",
+   "out": [
+    {
+     "place": "2a4cae7a-8391-4c32-af23-fbcfaa26f521",
+     "minor": 13251,
+     "reverse": false
+    },
+    {
+     "place": "7927f5ed-900c-432b-a102-7f9329339810",
+     "minor": 3942,
+     "reverse": false
+    },
+    {
+     "place": "7f19f396-730f-4b70-aff4-43423980bc1f",
+     "minor": 2382,
+     "reverse": false
+    },
+    {
+     "place": "4d340c53-d950-475d-a5d3-56b21b2ff74e",
+     "minor": 2113,
+     "reverse": true
+    },
+    {
+     "place": "42015834-7996-44e1-ac2b-e668b84c59eb",
+     "minor": 1683,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 987,
+   "places": [
+    {
+     "place": "14e8e1e0-c7c4-4aaf-a5b6-cb06398291d6",
+     "owed": -2653
+    },
+    {
+     "place": "94178f29-6fbf-45b2-acd8-b92e22e2c41f",
+     "owed": -3382
+    },
+    {
+     "place": "4b704adb-ccb9-4b38-ac00-0c2e539220a9",
+     "owed": 4779
+    }
+   ],
+   "fallback": "14e8e1e0-c7c4-4aaf-a5b6-cb06398291d6",
+   "out": [
+    {
+     "place": "4b704adb-ccb9-4b38-ac00-0c2e539220a9",
+     "minor": 987,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7010,
+   "places": [],
+   "fallback": "eb42c434-21aa-4e1e-a35d-8f7fca5d0907",
+   "out": [
+    {
+     "place": "eb42c434-21aa-4e1e-a35d-8f7fca5d0907",
+     "minor": 7010,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14247,
+   "places": [
+    {
+     "place": "1c642e2a-29a0-4a50-a2f5-c9bcf275d41b",
+     "owed": 12098
+    },
+    {
+     "place": "81e123fb-8be4-4051-ab2c-534674eeffd7",
+     "owed": -4924
+    },
+    {
+     "place": "18ef7a61-e554-4c60-a9a1-b9277266f2a8",
+     "owed": 7073
+    }
+   ],
+   "fallback": "14efab90-c07d-41c8-a9f7-ea9d91a7e67b",
+   "out": [
+    {
+     "place": "1c642e2a-29a0-4a50-a2f5-c9bcf275d41b",
+     "minor": 12098,
+     "reverse": false
+    },
+    {
+     "place": "18ef7a61-e554-4c60-a9a1-b9277266f2a8",
+     "minor": 7073,
+     "reverse": false
+    },
+    {
+     "place": "81e123fb-8be4-4051-ab2c-534674eeffd7",
+     "minor": 4924,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 21246,
+   "places": [
+    {
+     "place": "149808b3-65bf-497c-ab24-35639429f707",
+     "owed": 7838
+    },
+    {
+     "place": "ae969c8b-c9bf-4fb4-a31b-9b75e5e5386c",
+     "owed": 13408
+    }
+   ],
+   "fallback": "149808b3-65bf-497c-ab24-35639429f707",
+   "out": [
+    {
+     "place": "ae969c8b-c9bf-4fb4-a31b-9b75e5e5386c",
+     "minor": 13408,
+     "reverse": false
+    },
+    {
+     "place": "149808b3-65bf-497c-ab24-35639429f707",
+     "minor": 7838,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 1886,
+   "places": [
+    {
+     "place": "a5bcc012-37ff-41d2-afe9-303a13b35fee",
+     "owed": 7811
+    },
+    {
+     "place": "b283f1c5-ceee-46f2-a591-c10747ca9a70",
+     "owed": 12017
+    },
+    {
+     "place": "9fe45679-aff0-4cc1-a42b-95e18509f57c",
+     "owed": 6443
+    },
+    {
+     "place": "d64bb5d7-bcde-4659-abb6-dff861880807",
+     "owed": 9282
+    }
+   ],
+   "fallback": "b37fd390-f633-426f-a587-1bd30e508b52",
+   "out": [
+    {
+     "place": "b283f1c5-ceee-46f2-a591-c10747ca9a70",
+     "minor": 1886,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20103,
+   "places": [
+    {
+     "place": "d44de70e-5361-4989-ad18-6de396ad5e6c",
+     "owed": 6900
+    },
+    {
+     "place": "b86b9cdd-33dd-4b3c-a1ab-bffacc62d9c6",
+     "owed": 7854
+    },
+    {
+     "place": "6a25241a-a2b0-4520-aa9a-ffb81a0d2a96",
+     "owed": 5349
+    }
+   ],
+   "fallback": "a4604413-34a3-4dfb-a2df-97fd92a02bc3",
+   "out": [
+    {
+     "place": "b86b9cdd-33dd-4b3c-a1ab-bffacc62d9c6",
+     "minor": 7854,
+     "reverse": false
+    },
+    {
+     "place": "d44de70e-5361-4989-ad18-6de396ad5e6c",
+     "minor": 6900,
+     "reverse": false
+    },
+    {
+     "place": "6a25241a-a2b0-4520-aa9a-ffb81a0d2a96",
+     "minor": 5349,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19149,
+   "places": [
+    {
+     "place": "63a47926-58c4-44c2-a212-296e674678f4",
+     "owed": 2979
+    },
+    {
+     "place": "6eb1ef52-628a-4543-a09d-4fc9d2588be4",
+     "owed": 6470
+    }
+   ],
+   "fallback": "36b476b7-7007-4ad5-ab99-cbd0acf21b9f",
+   "out": [
+    {
+     "place": "36b476b7-7007-4ad5-ab99-cbd0acf21b9f",
+     "minor": 9700,
+     "reverse": false
+    },
+    {
+     "place": "6eb1ef52-628a-4543-a09d-4fc9d2588be4",
+     "minor": 6470,
+     "reverse": false
+    },
+    {
+     "place": "63a47926-58c4-44c2-a212-296e674678f4",
+     "minor": 2979,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 21389,
+   "places": [
+    {
+     "place": "faec0e60-1f2d-447b-ab5a-3476ae2e7d93",
+     "owed": 11945
+    }
+   ],
+   "fallback": "faec0e60-1f2d-447b-ab5a-3476ae2e7d93",
+   "out": [
+    {
+     "place": "faec0e60-1f2d-447b-ab5a-3476ae2e7d93",
+     "minor": 21389,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 30548,
+   "places": [
+    {
+     "place": "eb022906-a491-4bb5-a814-edd8fe7ee133",
+     "owed": 10430
+    },
+    {
+     "place": "f9f2eef1-c7bd-469c-add0-5438077a714e",
+     "owed": 4921
+    },
+    {
+     "place": "969b4568-c782-467a-a314-f2ec72a33610",
+     "owed": 3391
+    },
+    {
+     "place": "30b2ba24-964e-4d5a-ae3c-a6f3526f5a32",
+     "owed": 11806
+    }
+   ],
+   "fallback": "c6108976-d9ea-45e3-a6a6-868fc7766fe0",
+   "out": [
+    {
+     "place": "30b2ba24-964e-4d5a-ae3c-a6f3526f5a32",
+     "minor": 11806,
+     "reverse": false
+    },
+    {
+     "place": "eb022906-a491-4bb5-a814-edd8fe7ee133",
+     "minor": 10430,
+     "reverse": false
+    },
+    {
+     "place": "f9f2eef1-c7bd-469c-add0-5438077a714e",
+     "minor": 4921,
+     "reverse": false
+    },
+    {
+     "place": "969b4568-c782-467a-a314-f2ec72a33610",
+     "minor": 3391,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3293,
+   "places": [
+    {
+     "place": "9220e2f7-ba4e-4848-a9c0-13895d4fcad0",
+     "owed": -885
+    },
+    {
+     "place": "8a43a26a-824b-41a2-a77f-dce106b74fb8",
+     "owed": 13948
+    }
+   ],
+   "fallback": "9d419f24-9c09-4cc8-ae05-ced5e99e0a86",
+   "out": [
+    {
+     "place": "8a43a26a-824b-41a2-a77f-dce106b74fb8",
+     "minor": 3293,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23512,
+   "places": [
+    {
+     "place": "727367c0-b16e-4057-aae3-7f2f0579dd7a",
+     "owed": -3808
+    }
+   ],
+   "fallback": "727367c0-b16e-4057-aae3-7f2f0579dd7a",
+   "out": [
+    {
+     "place": "727367c0-b16e-4057-aae3-7f2f0579dd7a",
+     "minor": 23512,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 31594,
+   "places": [
+    {
+     "place": "1cacfb63-e828-41c4-abad-3a67efdff0be",
+     "owed": 7280
+    },
+    {
+     "place": "9e7ba938-532c-475e-a9e2-acb83ea8ad25",
+     "owed": 10427
+    },
+    {
+     "place": "076239d5-3746-42db-a7db-e2d3b11f008b",
+     "owed": 9757
+    },
+    {
+     "place": "903d723e-e768-469a-ab48-087f50eaf359",
+     "owed": 4130
+    }
+   ],
+   "fallback": "3a448851-5cf5-4eac-a17b-3698113d5fb7",
+   "out": [
+    {
+     "place": "9e7ba938-532c-475e-a9e2-acb83ea8ad25",
+     "minor": 10427,
+     "reverse": false
+    },
+    {
+     "place": "076239d5-3746-42db-a7db-e2d3b11f008b",
+     "minor": 9757,
+     "reverse": false
+    },
+    {
+     "place": "1cacfb63-e828-41c4-abad-3a67efdff0be",
+     "minor": 7280,
+     "reverse": false
+    },
+    {
+     "place": "903d723e-e768-469a-ab48-087f50eaf359",
+     "minor": 4130,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16930,
+   "places": [
+    {
+     "place": "1f1a4b74-493c-428a-a6c4-040a5fa423f9",
+     "owed": -4183
+    },
+    {
+     "place": "31cb5b1c-3cf9-4428-ae77-f8ab05dc35a8",
+     "owed": -1807
+    },
+    {
+     "place": "5d4947c7-4786-4c2d-a353-06ab79d51772",
+     "owed": 5027
+    }
+   ],
+   "fallback": "f064685a-23ed-44c9-a3ed-8e21e49a1802",
+   "out": [
+    {
+     "place": "f064685a-23ed-44c9-a3ed-8e21e49a1802",
+     "minor": 11903,
+     "reverse": false
+    },
+    {
+     "place": "5d4947c7-4786-4c2d-a353-06ab79d51772",
+     "minor": 5027,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20010,
+   "places": [
+    {
+     "place": "9edd397f-1311-4f4e-a71a-beca255c6c45",
+     "owed": 5206
+    }
+   ],
+   "fallback": "9edd397f-1311-4f4e-a71a-beca255c6c45",
+   "out": [
+    {
+     "place": "9edd397f-1311-4f4e-a71a-beca255c6c45",
+     "minor": 20010,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12826,
+   "places": [
+    {
+     "place": "56e4b4fd-1d6c-4388-a8f1-f59ccf05a846",
+     "owed": 3747
+    },
+    {
+     "place": "4d42d63c-80eb-4bbc-a2a0-7eaf6c2fde9a",
+     "owed": 11831
+    }
+   ],
+   "fallback": "56e4b4fd-1d6c-4388-a8f1-f59ccf05a846",
+   "out": [
+    {
+     "place": "4d42d63c-80eb-4bbc-a2a0-7eaf6c2fde9a",
+     "minor": 11831,
+     "reverse": false
+    },
+    {
+     "place": "56e4b4fd-1d6c-4388-a8f1-f59ccf05a846",
+     "minor": 995,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 22137,
+   "places": [],
+   "fallback": "2d62b19e-7663-4962-a510-999f22383968",
+   "out": [
+    {
+     "place": "2d62b19e-7663-4962-a510-999f22383968",
+     "minor": 22137,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24110,
+   "places": [
+    {
+     "place": "4f626ff8-58c3-4c46-ad78-c0b450dc7cdd",
+     "owed": -5313
+    },
+    {
+     "place": "cb30a08b-d103-48f5-aab8-dc8628783376",
+     "owed": 3540
+    },
+    {
+     "place": "9646bbad-4f09-4d32-ae9d-43ad7c4c0023",
+     "owed": -1902
+    }
+   ],
+   "fallback": "241578d0-d7a2-425e-a58a-63b1bf4ea474",
+   "out": [
+    {
+     "place": "241578d0-d7a2-425e-a58a-63b1bf4ea474",
+     "minor": 20570,
+     "reverse": false
+    },
+    {
+     "place": "cb30a08b-d103-48f5-aab8-dc8628783376",
+     "minor": 3540,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11276,
+   "places": [
+    {
+     "place": "1a1e1382-5fb9-4281-ae0b-5fe6551be0a1",
+     "owed": 1864
+    },
+    {
+     "place": "9feef555-2eb0-454b-a7ae-3cbce5e0f885",
+     "owed": 936
+    },
+    {
+     "place": "a83bc5a7-0e45-43c3-aa3a-ef5957c6eb3e",
+     "owed": 8476
+    }
+   ],
+   "fallback": "1a1e1382-5fb9-4281-ae0b-5fe6551be0a1",
+   "out": [
+    {
+     "place": "a83bc5a7-0e45-43c3-aa3a-ef5957c6eb3e",
+     "minor": 8476,
+     "reverse": false
+    },
+    {
+     "place": "1a1e1382-5fb9-4281-ae0b-5fe6551be0a1",
+     "minor": 1864,
+     "reverse": false
+    },
+    {
+     "place": "9feef555-2eb0-454b-a7ae-3cbce5e0f885",
+     "minor": 936,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24090,
+   "places": [
+    {
+     "place": "6fa60dc7-c1a6-4402-a06f-63ee79958e26",
+     "owed": 8933
+    },
+    {
+     "place": "f30c7880-f1a7-4ff0-a6fc-67cbdb9306f6",
+     "owed": 6352
+    },
+    {
+     "place": "a6eac48b-19cb-4017-a3a7-4e39600fb853",
+     "owed": -4059
+    },
+    {
+     "place": "cf36db4b-e040-40f2-a75f-f8f3f28d055c",
+     "owed": 12864
+    }
+   ],
+   "fallback": "6ce86432-8607-4bd1-aae2-7df0d3f07b17",
+   "out": [
+    {
+     "place": "cf36db4b-e040-40f2-a75f-f8f3f28d055c",
+     "minor": 12864,
+     "reverse": false
+    },
+    {
+     "place": "6fa60dc7-c1a6-4402-a06f-63ee79958e26",
+     "minor": 8933,
+     "reverse": false
+    },
+    {
+     "place": "f30c7880-f1a7-4ff0-a6fc-67cbdb9306f6",
+     "minor": 6352,
+     "reverse": false
+    },
+    {
+     "place": "a6eac48b-19cb-4017-a3a7-4e39600fb853",
+     "minor": 4059,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 24811,
+   "places": [
+    {
+     "place": "a6ddd739-6cf0-40ab-a24c-ca954bc59cd8",
+     "owed": 4142
+    },
+    {
+     "place": "c1c5fb74-d774-4b09-a3cc-8c58c37f8149",
+     "owed": 12853
+    },
+    {
+     "place": "945a3d6a-986d-45d8-aed4-7d32d854e8bf",
+     "owed": -5614
+    },
+    {
+     "place": "c72b3e89-43a8-4bd2-af82-894f567344af",
+     "owed": 13430
+    }
+   ],
+   "fallback": "a6ddd739-6cf0-40ab-a24c-ca954bc59cd8",
+   "out": [
+    {
+     "place": "c72b3e89-43a8-4bd2-af82-894f567344af",
+     "minor": 13430,
+     "reverse": false
+    },
+    {
+     "place": "c1c5fb74-d774-4b09-a3cc-8c58c37f8149",
+     "minor": 12853,
+     "reverse": false
+    },
+    {
+     "place": "945a3d6a-986d-45d8-aed4-7d32d854e8bf",
+     "minor": 5614,
+     "reverse": true
+    },
+    {
+     "place": "a6ddd739-6cf0-40ab-a24c-ca954bc59cd8",
+     "minor": 4142,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8816,
+   "places": [],
+   "fallback": "ebb533e4-aa84-42ef-a17e-4c754aa48524",
+   "out": [
+    {
+     "place": "ebb533e4-aa84-42ef-a17e-4c754aa48524",
+     "minor": 8816,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4264,
+   "places": [
+    {
+     "place": "39d28593-795a-488d-a03d-83c9ef6caba1",
+     "owed": 13001
+    }
+   ],
+   "fallback": "4a0f50cb-4835-4f47-a0e8-6643f7c74c8d",
+   "out": [
+    {
+     "place": "39d28593-795a-488d-a03d-83c9ef6caba1",
+     "minor": 4264,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3997,
+   "places": [
+    {
+     "place": "b1136a83-b257-4473-a625-32a1b33fa3a8",
+     "owed": 3997
+    }
+   ],
+   "fallback": "5c5cbace-8616-4708-ad83-c1230c32c255",
+   "out": [
+    {
+     "place": "b1136a83-b257-4473-a625-32a1b33fa3a8",
+     "minor": 3997,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12783,
+   "places": [
+    {
+     "place": "84789d02-8257-476b-af2f-7629af9ac670",
+     "owed": 12783
+    }
+   ],
+   "fallback": "98b441e0-38a7-40e6-acba-d4d1dc776ce3",
+   "out": [
+    {
+     "place": "84789d02-8257-476b-af2f-7629af9ac670",
+     "minor": 12783,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8504,
+   "places": [
+    {
+     "place": "95068273-2962-4fd7-ad8c-61ef47625864",
+     "owed": -5721
+    },
+    {
+     "place": "1bd1d417-8099-446e-aa35-2c78168dc7b5",
+     "owed": 2683
+    },
+    {
+     "place": "a10f3338-f24f-45b3-ad4b-524b8ee2a6df",
+     "owed": 6363
+    }
+   ],
+   "fallback": "95068273-2962-4fd7-ad8c-61ef47625864",
+   "out": [
+    {
+     "place": "a10f3338-f24f-45b3-ad4b-524b8ee2a6df",
+     "minor": 6363,
+     "reverse": false
+    },
+    {
+     "place": "1bd1d417-8099-446e-aa35-2c78168dc7b5",
+     "minor": 2683,
+     "reverse": false
+    },
+    {
+     "place": "95068273-2962-4fd7-ad8c-61ef47625864",
+     "minor": 542,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 4524,
+   "places": [
+    {
+     "place": "39628f8f-b8be-47ad-a7a8-200eb316fc70",
+     "owed": -190
+    },
+    {
+     "place": "f819fc06-0de5-48de-a060-c206105cc4ff",
+     "owed": -1800
+    }
+   ],
+   "fallback": "39628f8f-b8be-47ad-a7a8-200eb316fc70",
+   "out": [
+    {
+     "place": "39628f8f-b8be-47ad-a7a8-200eb316fc70",
+     "minor": 4524,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15816,
+   "places": [
+    {
+     "place": "e6b32784-a1d6-4497-ab3f-32221c63f877",
+     "owed": 10380
+    },
+    {
+     "place": "8d78ba27-3c63-4bb7-a3e2-e3ab735b9b90",
+     "owed": 7012
+    },
+    {
+     "place": "97c2b42f-0fd1-478d-a4a7-4efd39589730",
+     "owed": -1576
+    }
+   ],
+   "fallback": "e6b32784-a1d6-4497-ab3f-32221c63f877",
+   "out": [
+    {
+     "place": "e6b32784-a1d6-4497-ab3f-32221c63f877",
+     "minor": 10380,
+     "reverse": false
+    },
+    {
+     "place": "8d78ba27-3c63-4bb7-a3e2-e3ab735b9b90",
+     "minor": 7012,
+     "reverse": false
+    },
+    {
+     "place": "97c2b42f-0fd1-478d-a4a7-4efd39589730",
+     "minor": 1576,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 2783,
+   "places": [
+    {
+     "place": "ae2f759d-bc13-49b7-a583-36a97a3d95ba",
+     "owed": -2520
+    },
+    {
+     "place": "174df310-192a-4dff-a4d1-ee4901f85b9c",
+     "owed": 1941
+    },
+    {
+     "place": "2bfe0f59-1a81-4794-a61e-86b3056f9f53",
+     "owed": 3041
+    },
+    {
+     "place": "e807c4b0-bfc9-45d8-af81-c2ce34cf84ee",
+     "owed": -2362
+    }
+   ],
+   "fallback": "ae2f759d-bc13-49b7-a583-36a97a3d95ba",
+   "out": [
+    {
+     "place": "2bfe0f59-1a81-4794-a61e-86b3056f9f53",
+     "minor": 3041,
+     "reverse": false
+    },
+    {
+     "place": "e807c4b0-bfc9-45d8-af81-c2ce34cf84ee",
+     "minor": 2362,
+     "reverse": true
+    },
+    {
+     "place": "174df310-192a-4dff-a4d1-ee4901f85b9c",
+     "minor": 1941,
+     "reverse": false
+    },
+    {
+     "place": "ae2f759d-bc13-49b7-a583-36a97a3d95ba",
+     "minor": 163,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24972,
+   "places": [
+    {
+     "place": "3f558413-177c-4fa5-ae28-f2e4a6e0b026",
+     "owed": 8326
+    },
+    {
+     "place": "40d52545-de82-4acb-ac18-c27d50afe58e",
+     "owed": 3927
+    },
+    {
+     "place": "09f42fc0-e328-4812-ab8f-af74b62d0d4b",
+     "owed": 5321
+    },
+    {
+     "place": "7c24e286-a0e2-499c-a81c-e72129909f5e",
+     "owed": 7398
+    }
+   ],
+   "fallback": "74197de5-9d8a-400e-ad50-e02ba7dd0ef2",
+   "out": [
+    {
+     "place": "3f558413-177c-4fa5-ae28-f2e4a6e0b026",
+     "minor": 8326,
+     "reverse": false
+    },
+    {
+     "place": "7c24e286-a0e2-499c-a81c-e72129909f5e",
+     "minor": 7398,
+     "reverse": false
+    },
+    {
+     "place": "09f42fc0-e328-4812-ab8f-af74b62d0d4b",
+     "minor": 5321,
+     "reverse": false
+    },
+    {
+     "place": "40d52545-de82-4acb-ac18-c27d50afe58e",
+     "minor": 3927,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 10642,
+   "places": [
+    {
+     "place": "a0b055d9-28da-4eb0-a6d0-a471e0532ae9",
+     "owed": -473
+    }
+   ],
+   "fallback": "860ff4a9-c26b-43be-a679-4051f4fdbe74",
+   "out": [
+    {
+     "place": "860ff4a9-c26b-43be-a679-4051f4fdbe74",
+     "minor": 10642,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 2516,
+   "places": [],
+   "fallback": "caf70fda-0552-4b3f-a663-9d4cbc1597a5",
+   "out": [
+    {
+     "place": "caf70fda-0552-4b3f-a663-9d4cbc1597a5",
+     "minor": 2516,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 10669,
+   "places": [
+    {
+     "place": "10af5083-3a4c-41ab-a5ee-6a65a4de8388",
+     "owed": 5254
+    },
+    {
+     "place": "6cedbc20-a1ef-4524-a3f4-33de7e86c80c",
+     "owed": 10300
+    },
+    {
+     "place": "f1385187-f403-437a-aa5c-ead57207878f",
+     "owed": -4885
+    }
+   ],
+   "fallback": "10af5083-3a4c-41ab-a5ee-6a65a4de8388",
+   "out": [
+    {
+     "place": "6cedbc20-a1ef-4524-a3f4-33de7e86c80c",
+     "minor": 10300,
+     "reverse": false
+    },
+    {
+     "place": "10af5083-3a4c-41ab-a5ee-6a65a4de8388",
+     "minor": 5254,
+     "reverse": false
+    },
+    {
+     "place": "f1385187-f403-437a-aa5c-ead57207878f",
+     "minor": 4885,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 9598,
+   "places": [
+    {
+     "place": "760b1910-8949-4f46-ac9c-2d98399d4950",
+     "owed": -1307
+    },
+    {
+     "place": "421bc58a-5ec7-43a4-a5d3-bebea8d0d948",
+     "owed": 10905
+    }
+   ],
+   "fallback": "760b1910-8949-4f46-ac9c-2d98399d4950",
+   "out": [
+    {
+     "place": "421bc58a-5ec7-43a4-a5d3-bebea8d0d948",
+     "minor": 10905,
+     "reverse": false
+    },
+    {
+     "place": "760b1910-8949-4f46-ac9c-2d98399d4950",
+     "minor": 1307,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 18426,
+   "places": [],
+   "fallback": "a1e55b2c-6e09-460b-a5d1-4e26f07a8b39",
+   "out": [
+    {
+     "place": "a1e55b2c-6e09-460b-a5d1-4e26f07a8b39",
+     "minor": 18426,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12353,
+   "places": [
+    {
+     "place": "a3c93ee2-fd41-477b-a7d8-fd41d3a95826",
+     "owed": 7888
+    },
+    {
+     "place": "91d29ffd-3180-4134-a2f0-c87dde8e0945",
+     "owed": 13876
+    },
+    {
+     "place": "e443e337-8778-4b67-adc9-db5b0d6329df",
+     "owed": 2354
+    }
+   ],
+   "fallback": "76aa4a90-de50-4bc3-a792-1cd7646883d1",
+   "out": [
+    {
+     "place": "91d29ffd-3180-4134-a2f0-c87dde8e0945",
+     "minor": 12353,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15750,
+   "places": [
+    {
+     "place": "5e3cc264-61d4-42af-ac8d-adce5c9e672e",
+     "owed": 11415
+    },
+    {
+     "place": "16de0ade-f8e0-4245-a816-1fb1ae52bf80",
+     "owed": -1521
+    },
+    {
+     "place": "037f1f16-489a-4ca4-a19d-a907532395b7",
+     "owed": 9383
+    }
+   ],
+   "fallback": "58231f19-7e2b-4db9-af8b-5dcc5621fe4e",
+   "out": [
+    {
+     "place": "5e3cc264-61d4-42af-ac8d-adce5c9e672e",
+     "minor": 11415,
+     "reverse": false
+    },
+    {
+     "place": "037f1f16-489a-4ca4-a19d-a907532395b7",
+     "minor": 4335,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14168,
+   "places": [
+    {
+     "place": "e8300294-3dff-4f7d-ae76-325e91bd4308",
+     "owed": -1413
+    },
+    {
+     "place": "7df98f14-9273-4cd8-aec1-943f29814314",
+     "owed": -1689
+    },
+    {
+     "place": "13ebb41a-26e6-493a-aac4-40ee93b3b4c8",
+     "owed": -4713
+    },
+    {
+     "place": "c112565d-8c53-4296-a83f-2b461ae0e49b",
+     "owed": -5360
+    }
+   ],
+   "fallback": "81e52b20-dc32-437a-ae82-f61cbaed4bc2",
+   "out": [
+    {
+     "place": "81e52b20-dc32-437a-ae82-f61cbaed4bc2",
+     "minor": 14168,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5138,
+   "places": [
+    {
+     "place": "15de0b56-0445-4553-a08f-45a69d852980",
+     "owed": -1060
+    },
+    {
+     "place": "ba4b7fdc-f37f-4678-aa43-447d2e18bd13",
+     "owed": -3104
+    },
+    {
+     "place": "9a3e62c7-e6f2-434e-ae25-8c09d6cff34f",
+     "owed": 7652
+    },
+    {
+     "place": "a895bb61-63e8-4267-a995-f8fe11c42c07",
+     "owed": 1650
+    }
+   ],
+   "fallback": "15de0b56-0445-4553-a08f-45a69d852980",
+   "out": [
+    {
+     "place": "9a3e62c7-e6f2-434e-ae25-8c09d6cff34f",
+     "minor": 7652,
+     "reverse": false
+    },
+    {
+     "place": "ba4b7fdc-f37f-4678-aa43-447d2e18bd13",
+     "minor": 3104,
+     "reverse": true
+    },
+    {
+     "place": "a895bb61-63e8-4267-a995-f8fe11c42c07",
+     "minor": 1650,
+     "reverse": false
+    },
+    {
+     "place": "15de0b56-0445-4553-a08f-45a69d852980",
+     "minor": 1060,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 1819,
+   "places": [
+    {
+     "place": "786b0f3e-e4f1-4fda-af3a-3376c40b8535",
+     "owed": 1819
+    }
+   ],
+   "fallback": "c1237fe2-2017-4401-a82f-dce6ea4ddca5",
+   "out": [
+    {
+     "place": "786b0f3e-e4f1-4fda-af3a-3376c40b8535",
+     "minor": 1819,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23577,
+   "places": [
+    {
+     "place": "25d4a6ba-69fe-4e07-ae28-ab93ebd478aa",
+     "owed": 12274
+    }
+   ],
+   "fallback": "6eac104b-4ee3-4a64-a9c3-0bcc4ad189f1",
+   "out": [
+    {
+     "place": "25d4a6ba-69fe-4e07-ae28-ab93ebd478aa",
+     "minor": 12274,
+     "reverse": false
+    },
+    {
+     "place": "6eac104b-4ee3-4a64-a9c3-0bcc4ad189f1",
+     "minor": 11303,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6367,
+   "places": [
+    {
+     "place": "18d5bc08-ee07-490a-a4cc-54ffc59dd568",
+     "owed": 3534
+    },
+    {
+     "place": "7d8fa393-db0a-44c5-a4d9-af5bcb57a9f9",
+     "owed": 870
+    },
+    {
+     "place": "cfb06780-7160-4c78-a6ff-30290e028c8e",
+     "owed": 8113
+    },
+    {
+     "place": "165eabd5-e3b5-4ac2-a854-1b5470b4faf8",
+     "owed": 2714
+    }
+   ],
+   "fallback": "18d5bc08-ee07-490a-a4cc-54ffc59dd568",
+   "out": [
+    {
+     "place": "cfb06780-7160-4c78-a6ff-30290e028c8e",
+     "minor": 6367,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6576,
+   "places": [
+    {
+     "place": "ce1779ce-e995-4d02-a4f6-710b85dac68d",
+     "owed": 8977
+    },
+    {
+     "place": "4533f135-8bce-4799-a6ae-4dc4d1e0ae64",
+     "owed": -2401
+    }
+   ],
+   "fallback": "ce1779ce-e995-4d02-a4f6-710b85dac68d",
+   "out": [
+    {
+     "place": "ce1779ce-e995-4d02-a4f6-710b85dac68d",
+     "minor": 8977,
+     "reverse": false
+    },
+    {
+     "place": "4533f135-8bce-4799-a6ae-4dc4d1e0ae64",
+     "minor": 2401,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 5765,
+   "places": [
+    {
+     "place": "2f485ebd-9c39-43ab-a956-6cf81dc04f69",
+     "owed": 13571
+    },
+    {
+     "place": "a0b2c3f3-1c99-4044-ad38-49b5a7ec75e6",
+     "owed": 10291
+    },
+    {
+     "place": "b780d164-a038-4330-a41a-6471fd1ba1e0",
+     "owed": 958
+    },
+    {
+     "place": "74908c05-6201-4f76-a372-e24b9ba1726d",
+     "owed": 11529
+    }
+   ],
+   "fallback": "2f485ebd-9c39-43ab-a956-6cf81dc04f69",
+   "out": [
+    {
+     "place": "2f485ebd-9c39-43ab-a956-6cf81dc04f69",
+     "minor": 5765,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24668,
+   "places": [
+    {
+     "place": "c10c4155-1de3-4624-a5da-08e3eb8f5941",
+     "owed": 7146
+    }
+   ],
+   "fallback": "c10c4155-1de3-4624-a5da-08e3eb8f5941",
+   "out": [
+    {
+     "place": "c10c4155-1de3-4624-a5da-08e3eb8f5941",
+     "minor": 24668,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 18329,
+   "places": [
+    {
+     "place": "815320f5-6bf3-41a0-ac0a-853e561bcc5a",
+     "owed": 10759
+    },
+    {
+     "place": "c698e5c4-2aff-44be-a983-02f30c7078b6",
+     "owed": 11097
+    },
+    {
+     "place": "2605304e-cba1-48bf-ae4d-957c2c9641b3",
+     "owed": -3527
+    }
+   ],
+   "fallback": "05faee87-ad16-4a20-a5f5-f1a69c6d0e73",
+   "out": [
+    {
+     "place": "c698e5c4-2aff-44be-a983-02f30c7078b6",
+     "minor": 11097,
+     "reverse": false
+    },
+    {
+     "place": "815320f5-6bf3-41a0-ac0a-853e561bcc5a",
+     "minor": 10759,
+     "reverse": false
+    },
+    {
+     "place": "2605304e-cba1-48bf-ae4d-957c2c9641b3",
+     "minor": 3527,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 13084,
+   "places": [],
+   "fallback": "d0f7fe44-c19b-4ef3-a514-892ef5bc03a9",
+   "out": [
+    {
+     "place": "d0f7fe44-c19b-4ef3-a514-892ef5bc03a9",
+     "minor": 13084,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8794,
+   "places": [],
+   "fallback": "21de72dd-1817-4260-a9d1-f94c568636d9",
+   "out": [
+    {
+     "place": "21de72dd-1817-4260-a9d1-f94c568636d9",
+     "minor": 8794,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4590,
+   "places": [
+    {
+     "place": "2821aaa7-5743-4171-a859-5f847b445916",
+     "owed": 4428
+    }
+   ],
+   "fallback": "2821aaa7-5743-4171-a859-5f847b445916",
+   "out": [
+    {
+     "place": "2821aaa7-5743-4171-a859-5f847b445916",
+     "minor": 4590,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5750,
+   "places": [
+    {
+     "place": "6e832efa-1fa5-4e73-a5f6-95aa2f05521e",
+     "owed": 10682
+    },
+    {
+     "place": "280afd65-385c-4a5b-a7f9-f27e98886fae",
+     "owed": -1321
+    }
+   ],
+   "fallback": "6e832efa-1fa5-4e73-a5f6-95aa2f05521e",
+   "out": [
+    {
+     "place": "6e832efa-1fa5-4e73-a5f6-95aa2f05521e",
+     "minor": 5750,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24075,
+   "places": [],
+   "fallback": "8236ac73-9ae6-43b5-ad3c-4c8afbb14695",
+   "out": [
+    {
+     "place": "8236ac73-9ae6-43b5-ad3c-4c8afbb14695",
+     "minor": 24075,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24451,
+   "places": [
+    {
+     "place": "7191b700-9579-4e84-ae17-53c8efa7bd0b",
+     "owed": 10824
+    },
+    {
+     "place": "72e4319e-3433-4c96-a913-1dcccb3f3657",
+     "owed": 13627
+    }
+   ],
+   "fallback": "63b17f32-9da2-4605-a589-35513d09fdcc",
+   "out": [
+    {
+     "place": "72e4319e-3433-4c96-a913-1dcccb3f3657",
+     "minor": 13627,
+     "reverse": false
+    },
+    {
+     "place": "7191b700-9579-4e84-ae17-53c8efa7bd0b",
+     "minor": 10824,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 13449,
+   "places": [
+    {
+     "place": "174102c2-add8-4fbd-aa59-32aded558972",
+     "owed": 12064
+    },
+    {
+     "place": "567a627d-5715-45e2-a690-4f82cf99a00c",
+     "owed": 10710
+    },
+    {
+     "place": "c2c9f22f-42c8-4ede-a1f3-0a48ae4de7e5",
+     "owed": 10525
+    }
+   ],
+   "fallback": "5fb52412-a49c-48c5-a24f-aaac500803c4",
+   "out": [
+    {
+     "place": "174102c2-add8-4fbd-aa59-32aded558972",
+     "minor": 12064,
+     "reverse": false
+    },
+    {
+     "place": "567a627d-5715-45e2-a690-4f82cf99a00c",
+     "minor": 1385,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12272,
+   "places": [
+    {
+     "place": "801d0729-56ea-4caa-a8db-d109645b7a90",
+     "owed": -5843
+    },
+    {
+     "place": "ddf296b8-1201-4ed4-a350-75f5149853be",
+     "owed": 11929
+    },
+    {
+     "place": "3cb10e98-0b19-4c9e-a4c6-dcb2c4ee3192",
+     "owed": -830
+    }
+   ],
+   "fallback": "d1e9e279-8c1e-4dbf-a0c3-feb55a5fd498",
+   "out": [
+    {
+     "place": "ddf296b8-1201-4ed4-a350-75f5149853be",
+     "minor": 11929,
+     "reverse": false
+    },
+    {
+     "place": "d1e9e279-8c1e-4dbf-a0c3-feb55a5fd498",
+     "minor": 7016,
+     "reverse": false
+    },
+    {
+     "place": "801d0729-56ea-4caa-a8db-d109645b7a90",
+     "minor": 5843,
+     "reverse": true
+    },
+    {
+     "place": "3cb10e98-0b19-4c9e-a4c6-dcb2c4ee3192",
+     "minor": 830,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 16626,
+   "places": [
+    {
+     "place": "ab5d5348-3f5e-4b3b-a235-c40b6c3f7519",
+     "owed": 13852
+    },
+    {
+     "place": "0f1801ec-b25c-4cbd-a9f7-07141c9205ca",
+     "owed": 8678
+    }
+   ],
+   "fallback": "ab5d5348-3f5e-4b3b-a235-c40b6c3f7519",
+   "out": [
+    {
+     "place": "ab5d5348-3f5e-4b3b-a235-c40b6c3f7519",
+     "minor": 13852,
+     "reverse": false
+    },
+    {
+     "place": "0f1801ec-b25c-4cbd-a9f7-07141c9205ca",
+     "minor": 2774,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 5724,
+   "places": [
+    {
+     "place": "4cccc887-cfa9-45e0-afb7-aadeb39dbd10",
+     "owed": -753
+    }
+   ],
+   "fallback": "c3925b7c-7718-40ea-a4d7-4b1d124dc4d4",
+   "out": [
+    {
+     "place": "c3925b7c-7718-40ea-a4d7-4b1d124dc4d4",
+     "minor": 5724,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8498,
+   "places": [],
+   "fallback": "0783e2ba-3096-45dc-af60-d1df6f8cbc5a",
+   "out": [
+    {
+     "place": "0783e2ba-3096-45dc-af60-d1df6f8cbc5a",
+     "minor": 8498,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 19761,
+   "places": [
+    {
+     "place": "e5945176-6bf2-469b-af3a-f32c0ceecbbe",
+     "owed": -4673
+    },
+    {
+     "place": "f1eb90fa-a721-4515-a333-f5353e85726f",
+     "owed": 11732
+    },
+    {
+     "place": "b371f444-9609-4fff-a0dd-3d5a2d637e27",
+     "owed": 12702
+    }
+   ],
+   "fallback": "e5945176-6bf2-469b-af3a-f32c0ceecbbe",
+   "out": [
+    {
+     "place": "b371f444-9609-4fff-a0dd-3d5a2d637e27",
+     "minor": 12702,
+     "reverse": false
+    },
+    {
+     "place": "f1eb90fa-a721-4515-a333-f5353e85726f",
+     "minor": 11732,
+     "reverse": false
+    },
+    {
+     "place": "e5945176-6bf2-469b-af3a-f32c0ceecbbe",
+     "minor": 4673,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 9684,
+   "places": [
+    {
+     "place": "25051a6f-be39-4cc5-afaa-1a77607b81b9",
+     "owed": 9684
+    }
+   ],
+   "fallback": "7c82ef4a-2d19-4cb1-a0b1-a1b47b80ddce",
+   "out": [
+    {
+     "place": "25051a6f-be39-4cc5-afaa-1a77607b81b9",
+     "minor": 9684,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3214,
+   "places": [
+    {
+     "place": "4248b29a-0df3-4086-a988-01e439efea06",
+     "owed": 5041
+    }
+   ],
+   "fallback": "4248b29a-0df3-4086-a988-01e439efea06",
+   "out": [
+    {
+     "place": "4248b29a-0df3-4086-a988-01e439efea06",
+     "minor": 3214,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 15184,
+   "places": [
+    {
+     "place": "56c867f1-28b1-4fe6-adb3-75743ad80bb4",
+     "owed": 5911
+    },
+    {
+     "place": "7a710c19-2a96-4da5-a42a-d3546d666253",
+     "owed": -2152
+    },
+    {
+     "place": "05e8a541-6dc7-4b8b-ac9a-e0f888798602",
+     "owed": 11425
+    }
+   ],
+   "fallback": "ad45ca54-6a57-4ebc-aab3-b9fb635b662b",
+   "out": [
+    {
+     "place": "05e8a541-6dc7-4b8b-ac9a-e0f888798602",
+     "minor": 11425,
+     "reverse": false
+    },
+    {
+     "place": "56c867f1-28b1-4fe6-adb3-75743ad80bb4",
+     "minor": 5911,
+     "reverse": false
+    },
+    {
+     "place": "7a710c19-2a96-4da5-a42a-d3546d666253",
+     "minor": 2152,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 16502,
+   "places": [
+    {
+     "place": "30807f77-c78e-484f-a424-287f6f4f2798",
+     "owed": -5899
+    },
+    {
+     "place": "e2627594-6078-4453-a03c-3fd9dc5c5412",
+     "owed": 1511
+    },
+    {
+     "place": "a329cf7b-590a-43fc-ad45-308a1d97f056",
+     "owed": 12257
+    }
+   ],
+   "fallback": "30807f77-c78e-484f-a424-287f6f4f2798",
+   "out": [
+    {
+     "place": "a329cf7b-590a-43fc-ad45-308a1d97f056",
+     "minor": 12257,
+     "reverse": false
+    },
+    {
+     "place": "30807f77-c78e-484f-a424-287f6f4f2798",
+     "minor": 2734,
+     "reverse": false
+    },
+    {
+     "place": "e2627594-6078-4453-a03c-3fd9dc5c5412",
+     "minor": 1511,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6882,
+   "places": [
+    {
+     "place": "fd21da04-bb36-4419-a0d9-e5ed72e21e61",
+     "owed": 6882
+    }
+   ],
+   "fallback": "fd21da04-bb36-4419-a0d9-e5ed72e21e61",
+   "out": [
+    {
+     "place": "fd21da04-bb36-4419-a0d9-e5ed72e21e61",
+     "minor": 6882,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 20776,
+   "places": [
+    {
+     "place": "490211e2-833b-4004-a88a-b6b14eb062a2",
+     "owed": 9515
+    },
+    {
+     "place": "94d98097-5eb1-45bc-ad2f-120bc39e23da",
+     "owed": 5416
+    },
+    {
+     "place": "c88d7595-ae86-470a-a31b-0ab4fff19c49",
+     "owed": 5845
+    }
+   ],
+   "fallback": "490211e2-833b-4004-a88a-b6b14eb062a2",
+   "out": [
+    {
+     "place": "490211e2-833b-4004-a88a-b6b14eb062a2",
+     "minor": 9515,
+     "reverse": false
+    },
+    {
+     "place": "c88d7595-ae86-470a-a31b-0ab4fff19c49",
+     "minor": 5845,
+     "reverse": false
+    },
+    {
+     "place": "94d98097-5eb1-45bc-ad2f-120bc39e23da",
+     "minor": 5416,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 24571,
+   "places": [
+    {
+     "place": "6f1bb72f-8520-4db7-ae36-dd92101fd514",
+     "owed": 7655
+    },
+    {
+     "place": "cbfc6a1f-76b1-46d0-af09-744030044eda",
+     "owed": 8949
+    },
+    {
+     "place": "ae50f2fe-8e96-4467-a68d-b28153c0d118",
+     "owed": 8055
+    },
+    {
+     "place": "0a4c1c6e-abf1-4e6b-a3ea-85db12095ff8",
+     "owed": 1642
+    }
+   ],
+   "fallback": "37ab9a75-d2c6-49e0-afa8-6573d9624d3f",
+   "out": [
+    {
+     "place": "cbfc6a1f-76b1-46d0-af09-744030044eda",
+     "minor": 8949,
+     "reverse": false
+    },
+    {
+     "place": "ae50f2fe-8e96-4467-a68d-b28153c0d118",
+     "minor": 8055,
+     "reverse": false
+    },
+    {
+     "place": "6f1bb72f-8520-4db7-ae36-dd92101fd514",
+     "minor": 7567,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3034,
+   "places": [
+    {
+     "place": "7af36f2a-7766-4943-a4a9-82b425a12720",
+     "owed": 2595
+    },
+    {
+     "place": "28b16a68-eea4-4bbd-a753-21069c50e894",
+     "owed": 1482
+    },
+    {
+     "place": "906688bd-7e07-4cc5-aac1-44ab059a8b8f",
+     "owed": -4297
+    },
+    {
+     "place": "7615ee3b-c7f5-4089-ae6d-39867c180154",
+     "owed": 779
+    }
+   ],
+   "fallback": "7af36f2a-7766-4943-a4a9-82b425a12720",
+   "out": [
+    {
+     "place": "7af36f2a-7766-4943-a4a9-82b425a12720",
+     "minor": 5070,
+     "reverse": false
+    },
+    {
+     "place": "906688bd-7e07-4cc5-aac1-44ab059a8b8f",
+     "minor": 4297,
+     "reverse": true
+    },
+    {
+     "place": "28b16a68-eea4-4bbd-a753-21069c50e894",
+     "minor": 1482,
+     "reverse": false
+    },
+    {
+     "place": "7615ee3b-c7f5-4089-ae6d-39867c180154",
+     "minor": 779,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 4145,
+   "places": [
+    {
+     "place": "5befb7b9-9f49-43b1-ad36-40e68b017b55",
+     "owed": -1675
+    },
+    {
+     "place": "fc04f680-8a02-4220-a0b3-a238327d95dd",
+     "owed": 5820
+    }
+   ],
+   "fallback": "029dacf4-9bce-4e36-afea-08d46f5d2535",
+   "out": [
+    {
+     "place": "fc04f680-8a02-4220-a0b3-a238327d95dd",
+     "minor": 5820,
+     "reverse": false
+    },
+    {
+     "place": "5befb7b9-9f49-43b1-ad36-40e68b017b55",
+     "minor": 1675,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 7743,
+   "places": [
+    {
+     "place": "09647a49-a016-4fd8-af52-09fced2fe759",
+     "owed": 12784
+    },
+    {
+     "place": "747a82db-2eba-457d-a2f8-e97ec26afef0",
+     "owed": -5041
+    }
+   ],
+   "fallback": "de4b386c-6c50-4d34-a0db-8d66bba4b9da",
+   "out": [
+    {
+     "place": "09647a49-a016-4fd8-af52-09fced2fe759",
+     "minor": 12784,
+     "reverse": false
+    },
+    {
+     "place": "747a82db-2eba-457d-a2f8-e97ec26afef0",
+     "minor": 5041,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 19395,
+   "places": [
+    {
+     "place": "93511037-1cf0-4b5b-ab8e-cf0a395763a5",
+     "owed": -5977
+    }
+   ],
+   "fallback": "93511037-1cf0-4b5b-ab8e-cf0a395763a5",
+   "out": [
+    {
+     "place": "93511037-1cf0-4b5b-ab8e-cf0a395763a5",
+     "minor": 19395,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 1486,
+   "places": [
+    {
+     "place": "33d90705-39c2-40f9-ad39-525d2a1402b6",
+     "owed": 10190
+    }
+   ],
+   "fallback": "eac0f384-88c0-4b68-a126-a8f00ddfbf5d",
+   "out": [
+    {
+     "place": "33d90705-39c2-40f9-ad39-525d2a1402b6",
+     "minor": 1486,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11793,
+   "places": [
+    {
+     "place": "1c3aef84-62c4-4894-a6a8-dbe4b13341ff",
+     "owed": 8232
+    },
+    {
+     "place": "06005a99-3a97-4e1a-ac8c-0966091aef2d",
+     "owed": 10722
+    }
+   ],
+   "fallback": "1c3aef84-62c4-4894-a6a8-dbe4b13341ff",
+   "out": [
+    {
+     "place": "06005a99-3a97-4e1a-ac8c-0966091aef2d",
+     "minor": 10722,
+     "reverse": false
+    },
+    {
+     "place": "1c3aef84-62c4-4894-a6a8-dbe4b13341ff",
+     "minor": 1071,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 3612,
+   "places": [],
+   "fallback": "be447a56-db37-45a1-ad9e-0c6e2c16115b",
+   "out": [
+    {
+     "place": "be447a56-db37-45a1-ad9e-0c6e2c16115b",
+     "minor": 3612,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 16575,
+   "places": [
+    {
+     "place": "19be4d6c-2e17-4f9f-a8d4-06ecbaa9e99a",
+     "owed": 1185
+    },
+    {
+     "place": "041d243d-9a91-4da3-a9dd-7bef9237cf22",
+     "owed": -5365
+    },
+    {
+     "place": "b164e115-428c-4c5b-a585-5a2ed2a15f59",
+     "owed": 11931
+    },
+    {
+     "place": "bd3fc1ea-248c-4fbe-a33b-57cd8b779baa",
+     "owed": -2989
+    }
+   ],
+   "fallback": "c65b20dd-bf03-44b8-a525-9becec141d35",
+   "out": [
+    {
+     "place": "b164e115-428c-4c5b-a585-5a2ed2a15f59",
+     "minor": 11931,
+     "reverse": false
+    },
+    {
+     "place": "c65b20dd-bf03-44b8-a525-9becec141d35",
+     "minor": 11813,
+     "reverse": false
+    },
+    {
+     "place": "041d243d-9a91-4da3-a9dd-7bef9237cf22",
+     "minor": 5365,
+     "reverse": true
+    },
+    {
+     "place": "bd3fc1ea-248c-4fbe-a33b-57cd8b779baa",
+     "minor": 2989,
+     "reverse": true
+    },
+    {
+     "place": "19be4d6c-2e17-4f9f-a8d4-06ecbaa9e99a",
+     "minor": 1185,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 12620,
+   "places": [
+    {
+     "place": "60218cdf-4956-460c-a11d-9f0e572996f9",
+     "owed": 4017
+    },
+    {
+     "place": "c213ed3f-ba6c-468f-adfa-66631ea8393b",
+     "owed": 12638
+    },
+    {
+     "place": "8fed63ca-8df7-468c-ab65-4bfbbce39538",
+     "owed": -4035
+    }
+   ],
+   "fallback": "10f50a6e-a136-449a-aa5b-e14ba8814e40",
+   "out": [
+    {
+     "place": "c213ed3f-ba6c-468f-adfa-66631ea8393b",
+     "minor": 12638,
+     "reverse": false
+    },
+    {
+     "place": "8fed63ca-8df7-468c-ab65-4bfbbce39538",
+     "minor": 4035,
+     "reverse": true
+    },
+    {
+     "place": "60218cdf-4956-460c-a11d-9f0e572996f9",
+     "minor": 4017,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14498,
+   "places": [
+    {
+     "place": "1c9a8248-b4a0-4195-a0af-f4d3f7cbcd4e",
+     "owed": -5867
+    }
+   ],
+   "fallback": "1c9a8248-b4a0-4195-a0af-f4d3f7cbcd4e",
+   "out": [
+    {
+     "place": "1c9a8248-b4a0-4195-a0af-f4d3f7cbcd4e",
+     "minor": 14498,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14195,
+   "places": [
+    {
+     "place": "d9314755-d740-4493-ad33-4aa6995cca86",
+     "owed": 13082
+    },
+    {
+     "place": "0420588c-2e54-4bb4-aada-8f9469bb7dfd",
+     "owed": 20
+    },
+    {
+     "place": "a0b78719-9888-443b-ae50-83420cc23b98",
+     "owed": 4664
+    },
+    {
+     "place": "d360a674-5dbf-4e3e-a9ff-7059aefa281a",
+     "owed": 12159
+    }
+   ],
+   "fallback": "d9314755-d740-4493-ad33-4aa6995cca86",
+   "out": [
+    {
+     "place": "d9314755-d740-4493-ad33-4aa6995cca86",
+     "minor": 13082,
+     "reverse": false
+    },
+    {
+     "place": "d360a674-5dbf-4e3e-a9ff-7059aefa281a",
+     "minor": 1113,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8444,
+   "places": [
+    {
+     "place": "7b2d17ad-5837-4c7d-ac21-2c3d0796d02b",
+     "owed": 6594
+    },
+    {
+     "place": "8b59165a-fb9e-4be4-af5c-7448dbe65bb5",
+     "owed": -151
+    }
+   ],
+   "fallback": "a677d687-106f-4c5c-a897-2416e7742f09",
+   "out": [
+    {
+     "place": "7b2d17ad-5837-4c7d-ac21-2c3d0796d02b",
+     "minor": 6594,
+     "reverse": false
+    },
+    {
+     "place": "a677d687-106f-4c5c-a897-2416e7742f09",
+     "minor": 2001,
+     "reverse": false
+    },
+    {
+     "place": "8b59165a-fb9e-4be4-af5c-7448dbe65bb5",
+     "minor": 151,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 9297,
+   "places": [
+    {
+     "place": "edeeeadf-94cb-4df0-a82b-8a7dac68bfdf",
+     "owed": -3015
+    },
+    {
+     "place": "7d51b31c-bf9d-4a4c-ab76-02bcf3a55970",
+     "owed": 12312
+    }
+   ],
+   "fallback": "edeeeadf-94cb-4df0-a82b-8a7dac68bfdf",
+   "out": [
+    {
+     "place": "7d51b31c-bf9d-4a4c-ab76-02bcf3a55970",
+     "minor": 12312,
+     "reverse": false
+    },
+    {
+     "place": "edeeeadf-94cb-4df0-a82b-8a7dac68bfdf",
+     "minor": 3015,
+     "reverse": true
+    }
+   ]
+  },
+  {
+   "pay": 15998,
+   "places": [
+    {
+     "place": "8dfc3bac-1678-462c-a51b-ac081d30f024",
+     "owed": 12219
+    },
+    {
+     "place": "76f3e36a-f3af-4945-a9b2-31ca0d87c92d",
+     "owed": 3779
+    }
+   ],
+   "fallback": "a97531da-4500-441b-a5db-77098490be05",
+   "out": [
+    {
+     "place": "8dfc3bac-1678-462c-a51b-ac081d30f024",
+     "minor": 12219,
+     "reverse": false
+    },
+    {
+     "place": "76f3e36a-f3af-4945-a9b2-31ca0d87c92d",
+     "minor": 3779,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8401,
+   "places": [
+    {
+     "place": "009d22dc-178e-469d-a874-aa9c0e323c3d",
+     "owed": 2888
+    },
+    {
+     "place": "3270d189-998f-40f1-ac4a-934453a652d4",
+     "owed": 2722
+    }
+   ],
+   "fallback": "156dd54c-c05e-4d00-a7ab-f88fd239c200",
+   "out": [
+    {
+     "place": "009d22dc-178e-469d-a874-aa9c0e323c3d",
+     "minor": 2888,
+     "reverse": false
+    },
+    {
+     "place": "156dd54c-c05e-4d00-a7ab-f88fd239c200",
+     "minor": 2791,
+     "reverse": false
+    },
+    {
+     "place": "3270d189-998f-40f1-ac4a-934453a652d4",
+     "minor": 2722,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 7153,
+   "places": [
+    {
+     "place": "e642d4f2-8893-41f1-af2f-ffedb02766ea",
+     "owed": 5822
+    },
+    {
+     "place": "c8c540bb-e0e1-4d80-a614-bac0449e6620",
+     "owed": 3919
+    }
+   ],
+   "fallback": "e642d4f2-8893-41f1-af2f-ffedb02766ea",
+   "out": [
+    {
+     "place": "e642d4f2-8893-41f1-af2f-ffedb02766ea",
+     "minor": 5822,
+     "reverse": false
+    },
+    {
+     "place": "c8c540bb-e0e1-4d80-a614-bac0449e6620",
+     "minor": 1331,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 8230,
+   "places": [
+    {
+     "place": "015671e7-f5f0-4cee-a765-d395354412d5",
+     "owed": -1699
+    }
+   ],
+   "fallback": "8cd2344e-1b5c-4a9b-aeac-09d1e8c4c695",
+   "out": [
+    {
+     "place": "8cd2344e-1b5c-4a9b-aeac-09d1e8c4c695",
+     "minor": 8230,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 23637,
+   "places": [
+    {
+     "place": "c0ce79dd-a5cd-4d45-af44-9af7ff907d5c",
+     "owed": 4587
+    },
+    {
+     "place": "f093ce5f-e1d2-434f-a79a-9b5c87011f72",
+     "owed": 57
+    }
+   ],
+   "fallback": "f443ffd5-1f4b-4464-aa11-aefc346d2f70",
+   "out": [
+    {
+     "place": "f443ffd5-1f4b-4464-aa11-aefc346d2f70",
+     "minor": 18993,
+     "reverse": false
+    },
+    {
+     "place": "c0ce79dd-a5cd-4d45-af44-9af7ff907d5c",
+     "minor": 4587,
+     "reverse": false
+    },
+    {
+     "place": "f093ce5f-e1d2-434f-a79a-9b5c87011f72",
+     "minor": 57,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 11741,
+   "places": [
+    {
+     "place": "60910e5c-4e6a-4146-a429-5b3a75920176",
+     "owed": -3672
+    },
+    {
+     "place": "4334066e-07ae-4eb7-a005-89142e0494cc",
+     "owed": 5692
+    },
+    {
+     "place": "5754d1fb-875f-4c2c-a8a1-d264dddcd5e9",
+     "owed": 2087
+    }
+   ],
+   "fallback": "60910e5c-4e6a-4146-a429-5b3a75920176",
+   "out": [
+    {
+     "place": "4334066e-07ae-4eb7-a005-89142e0494cc",
+     "minor": 5692,
+     "reverse": false
+    },
+    {
+     "place": "60910e5c-4e6a-4146-a429-5b3a75920176",
+     "minor": 3962,
+     "reverse": false
+    },
+    {
+     "place": "5754d1fb-875f-4c2c-a8a1-d264dddcd5e9",
+     "minor": 2087,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 6225,
+   "places": [],
+   "fallback": "0018d1a9-283d-458f-a349-1d556033ff3f",
+   "out": [
+    {
+     "place": "0018d1a9-283d-458f-a349-1d556033ff3f",
+     "minor": 6225,
+     "reverse": false
+    }
+   ]
+  },
+  {
+   "pay": 14908,
+   "places": [
+    {
+     "place": "42e3232e-f8c1-4d0e-a3c7-d73044e39d8a",
+     "owed": 10903
+    },
+    {
+     "place": "913b8a0f-ebd3-45e0-ac0a-c261fde78f7f",
+     "owed": 4005
+    }
+   ],
+   "fallback": "5db84ce2-2196-44cc-ac0f-e566e2e241f5",
+   "out": [
+    {
+     "place": "42e3232e-f8c1-4d0e-a3c7-d73044e39d8a",
+     "minor": 10903,
+     "reverse": false
+    },
+    {
+     "place": "913b8a0f-ebd3-45e0-ac0a-c261fde78f7f",
+     "minor": 4005,
+     "reverse": false
+    }
+   ]
+  }
  ]
 }

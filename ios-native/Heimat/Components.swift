@@ -92,7 +92,7 @@ struct ExpenseRowView: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(m.fH(e.amount)).font(.body.weight(.semibold)).monospacedDigit()
+                Text(Fmt.money(e.amount, e.currency)).font(.body.weight(.semibold)).monospacedDigit()
                 let n = note
                 Text(n.0).font(.caption2.weight(.semibold)).foregroundStyle(n.1)
             }
