@@ -99,39 +99,8 @@ Every payment has a currency (filled with the flat's main currency when an app d
 `parseMinor` reads both conventions: `1.234,56`, `1,234.56`, `12,5`, `1 200`, `1'200.50`. A lone separator followed by exactly three digits is a thousands separator when the currency has < 3 decimals (`1.200` = 1200 €). More decimals than the currency has → refused, never rounded.
 
 ### Server-side rules
-- `flat_balance(flat, user)` — sums of stored postings in the flat's main currency; refuses non-members ("Not your flat"); used by `nudge()` (only above 0,50 € — a product rule, `Ledger.nudgeMinimum` in Swift) and `remove_member()`.
-- **An app that knows engine v2 must send `split_type`, `split` and `payers` with every expense update** (all three, even unchanged). That is how the server tells it from an app from before: a trigger named `expense_a_v2_write` (BEFORE triggers fire in name order) notes that the request set those columns, and `expense_postings` skips the old-app guard for it.
-- The old-app guard refuses, with "update Heimat to edit this expense" (`detail.code = update_required`), an app from before that: changes who is in a non-equal split (the same people in another order is fine — Build 8 sends a Set), changes the amount of an exact/adjust/itemized split, or changes the payer or amount of an expense several people paid. Everything else it can do still works.
-- Apps may write only: INSERT (id, flat_id, description, amount, currency, paid_by, split_among, split_type, split, payers, category, created_by, spent_on), UPDATE (description, amount, currency, paid_by, split_among, split_type, split, payers, category, spent_on). Deleting/restoring, occurrences and shares are server-side only; an expense can't be moved between flats or re-authored.
-- Settlements are capped at 10⁸ in amount (10¹¹ minor units at 3 decimals), like bills.
-- Server-side rewrites (claims, withdrawn invites) set `heimat.internal` with `set_config(..., true)` for their duration: no membership check, no "edited" entries in the feed, no author changes on templates. (A function's own `SET` clause can't carry a custom setting on Supabase — "permission denied to set parameter".)
-- Pushes carry the currency; an expense's push lists everyone in the split with their share, 0 included, in the currency's minor units — so nobody who owes nothing is told they owe an even share (`supabase/functions/push`).
 
-## Testing the database
-
-There is no local Postgres, no `psql`, and the local `supabase` CLI is logged into another account — SQL reaches Heimat's database only through the Supabase MCP connector (`execute_sql`, `apply_migration`).
-
-1. **Unit checks in `pg_temp`**: functions created as `pg_temp.*`, temp tables, the trigger attached to the temp table — nothing persistent, no locks on real tables.
-2. **Rehearsal**: `python3 supabase/tests/rehearse_engine_v2.py out.sql` writes one DO block that snapshots every balance, runs the real migration, builds throwaway users/flats/expenses, exercises ~70 scenarios (as the server and as signed-in members, through RLS and column grants), and ends in `RAISE EXCEPTION` so everything rolls back. Results come back as JSON in the error; `mig_md5` must equal the md5 the script prints (proves the text that ran is the file — it is pasted into the tool call by hand). It takes the migration's locks for a second or two.
-3. **After applying**: `backfill` fingerprint of `flat_balance` for every (flat, person) unchanged, every expense's shares add up to its amount, `engine_v2_vectors.sql`, Supabase advisors.
-
-## Rolling it out
-
-**Order matters** — the web app deploys on every push to `main` (GitHub Pages), and the working-tree apps call things that only exist after the migration (`rpc('delete_expense')`, `settlements.currency`):
-
-1. Apply `supabase/migrations/20260925000000_engine_v2.sql` (rehearse first: `supabase/tests/rehearse_engine_v2.py`).
-2. Check: every balance's fingerprint unchanged, every expense's shares add up, `engine_v2_vectors.sql`, advisors.
-3. Deploy `supabase/functions/push` (it reads the new payload — currency, payers, shares with zeros — and still works with the old one).
-4. Only then push the web and iOS changes to `main` / upload a build.
-
-Status (2026-09-27): reviewed adversarially three times (≈60 confirmed findings, all fixed), rehearsed on production 88/90 (the two misses were mistakes in the test, since fixed and re-checked on the live functions), **applied** (migration `engine_v2`). After applying: every balance unchanged (fingerprint `6009e767…` before and after), all 118 expenses' shares add up, amounts/payers/splits unchanged, function bodies identical to the file (md5 `247a9b55…`), `engine_v2_vectors.sql` 12/12 + 90/90, cron `5 6-21 * * *`. Push function v7 deployed. Web and iOS changes pushed as `8c39e0f` (web deployed); iOS Build 10 (split types and several payers in the expense form) archived 2026-09-27 for TestFlight.
-
-## Known follow-ups (for the screens that use v2)
-
-- The expense rows and "who paid" totals in both apps read `paid_by` only; once several payers can be entered they must use `postingsOf(e).paid` (web `ExpenseRow`, `analytics.byMember`; iOS `Components.note`, `FlatView.payers`).
-- Analytics totals (`total`, `byCategory`, `byMember`, `monthlyTotals`) add amounts across currencies; scope them to one book, as `myShareMinor` now is.
-- Both apps load a flat's expenses in one request (PostgREST caps rows, typically 1000); page with `.range()` ordered by `id` before a flat gets that big, or read balances from a server RPC built on `flat_balance_in`.
-- Map server refusals (`split: <code>`, JSON in DETAIL: `not_in_flat`, `update_required`, `sum_mismatch`, …) to readable messages on the field named in `who`.
-
-## Where the older engine went wrong (fixed)
-Float balances; ±0,50 € tolerance hiding debts; greedy settle-up (~31 % not minimal); iOS plan changing between launches; web and iOS rounding half-up vs half-even (308,63 vs 308,62); "1.200" parsed as 1,20; shares not adding up (3,33 × 3); per-row recomputation on iOS; the web Flat tab showing the simplification as debts; SQL `flat_balance` with no membership check; exchange rates rounded to 2 decimals (up to 5 % off); runway months counted from UTC; analytics month windows overflowing on the 31st.
+**Money guards** (`20261002030000_money_guards.sql`):
+- Every takeover of a place (`claim_member`) checks its own work: a snapshot of every balance in the place, in every currency, before and after. Everyone else must be exactly where they were and the account must hold what it held plus what the place held — a cent out anywhere and the claim is refused with `money_guard` and nothing changes. On a merge (the account already on the same expense) the two shares are added, never re-split.
+- `ledger_audit()` lists every inconsistency: a bill whose shares or payers don't add up to it, money booked to someone the place never had, a place whose balances don't come to zero in some currency. `run_ledger_audit()` runs it at 02:17 each night (cron `heimat-ledger-audit`), keeps what it finds in `ledger_audit_log`, and notifies `app_config.admin_user` when set. On 2026-10-01 it found nothing in the live books.
+- `supabase/tests/rehearse_money_guards.py` proves both: takeovers across every split type, several payers, payments and two currencies, a merge, the old re-splitting rule put back (the guard must refuse it) and a deliberately broken bill (the audit must find it).
