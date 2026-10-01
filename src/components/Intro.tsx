@@ -13,7 +13,7 @@ export default function Intro({ T, onClose }: { T: Theme; onClose: () => void })
       <div className="h-pagebody">
         <div className="h-pagebody-in" style={{ maxWidth: 460 }}>
           <AppMark T={T} />
-          <h1 style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1.1, marginTop: 20 }}>Welcome to Heimat</h1>
+          <h1 style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1.1, marginTop: 20 }}>Welcome to Splitlife</h1>
           <p style={{ fontSize: 16, color: T.txt2, margin: '8px 0 20px', lineHeight: 1.5 }}>Your money-and-life companion as an international student — in your currency.</p>
           <FeatureList T={T} />
           <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13.5, color: T.txt2, margin: '18px 6px 24px', lineHeight: 1.5 }}>

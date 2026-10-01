@@ -59,7 +59,16 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
         case .work: "clock.fill"
         }
     }
-    var index: Int { AppTab.allCases.firstIndex(of: self) ?? 0 }
+    /// the tabs this person sees: Work only with shifts, Groups unless everything in it is switched off
+    static func shown(_ p: Profile) -> [AppTab] {
+        allCases.filter {
+            switch $0 {
+            case .home: true
+            case .flat: p.on(.groups) || p.on(.bills) || p.on(.chores) || p.on(.list)
+            case .work: p.on(.work) || p.on(.limit)
+            }
+        }
+    }
 }
 enum AuthMode: String, Hashable { case signup, signin, forgot, password, email }
 enum FlatMode: Hashable { case create, join, group }
@@ -104,6 +113,10 @@ enum SheetRoute: Identifiable, Hashable {
     case shift(Shift?, String?)
     case settle(Calc.Suggestion?)
     case settlePerson(String)
+    /// a bill to edit, or a new one in a group (nil: one of your own)
+    case bill(Bill?, String?)
+    /// a chore to edit, or a new one in a group
+    case chore(Chore?, String)
     var id: String { String(describing: self) }
 }
 
@@ -126,6 +139,8 @@ struct SheetHost: View {
         case .shift(let s, let date): ShiftForm(editing: s, day: date)
         case .settle(let s): SettleForm(initial: s)
         case .settlePerson(let p): PersonSettleForm(person: p)
+        case .bill(let b, let flat): BillForm(editing: b, flatId: b?.flatId ?? flat)
+        case .chore(let c, let flat): ChoreForm(editing: c, flatId: c?.flatId ?? flat)
         }
     }
 }
@@ -171,7 +186,8 @@ struct MainTabs: View {
     @State private var origin: CGFloat?       // and how far the finger had come by then
     @State private var sideways: Bool?        // nil until the drag commits to an axis
 
-    private var tabs: [AppTab] { AppTab.allCases }
+    private var tabs: [AppTab] { AppTab.shown(m.profile) }
+    private func index(_ tab: AppTab) -> Double { Double(tabs.firstIndex(of: tab) ?? 0) }
     private var lastPage: Double { Double(tabs.count - 1) }
 
     var body: some View {
@@ -197,8 +213,13 @@ struct MainTabs: View {
         // a tap on the bar, or `m.tab` set from a card, glides the pager over;
         // while a finger is on it the drag is in charge instead.
         .onChange(of: m.tab) { _, tab in
-            guard sideways != true, abs(progress - Double(tab.index)) > 0.01 else { return }
-            withAnimation(.snappy(duration: 0.44, extraBounce: 0.18)) { progress = Double(tab.index) }
+            guard sideways != true, abs(progress - index(tab)) > 0.01 else { return }
+            withAnimation(.snappy(duration: 0.44, extraBounce: 0.18)) { progress = index(tab) }
+        }
+        // a part switched off in Settings: its tab goes, and the pager stays on a real page
+        .onChange(of: tabs) { _, now in
+            if !now.contains(m.tab) { m.tab = .home }
+            progress = index(m.tab)
         }
         .background { HeimatBackground() }
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -269,8 +290,9 @@ struct GlassTabBar: View {
     @Binding var selection: AppTab
     var progress: Double
     var badge: Int
+    @Environment(AppModel.self) private var m
 
-    private var tabs: [AppTab] { AppTab.allCases }
+    private var tabs: [AppTab] { AppTab.shown(m.profile) }
 
     /// How far the pill's two edges lag or lead each other mid-crossing.
     /// Both curves start at 0 and end at 1, so the pill always settles to an
@@ -325,7 +347,7 @@ struct GlassTabBar: View {
 
     private func item(_ tab: AppTab) -> some View {
         // 0 when this tab fills the screen, 1 once the next one does
-        let d = min(abs(progress - Double(tab.index)), 1)
+        let d = min(abs(progress - Double(tabs.firstIndex(of: tab) ?? 0)), 1)
         let on = d < 0.5
         return Button {
             if tab == selection { return }

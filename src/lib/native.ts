@@ -88,7 +88,7 @@ export async function openExternal(url: string) {
   window.open(url, '_blank', 'noopener')
 }
 
-export async function shareText(text: string, title = 'Heimat'): Promise<boolean> {
+export async function shareText(text: string, title = 'Splitlife'): Promise<boolean> {
   if (isNative) {
     try { await Share.share({ title, text, dialogTitle: title }); return true } catch { return false }
   }

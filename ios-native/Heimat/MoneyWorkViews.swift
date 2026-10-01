@@ -15,7 +15,7 @@ struct WorkView: View {
                     hero(ws)
                     logButton
                     smallStats(ws)
-                    compliance(ws)
+                    if m.profile.on(.limit) { compliance(ws) }
                     history
                     if !ws.byEmployer.isEmpty { byEmployer(ws) }
                     recentShifts
@@ -202,7 +202,7 @@ struct WorkView: View {
             SectionLabel("Recent shifts").padding(.bottom, 10)
             HeimatCard(radius: 24, padding: 0) {
                 if recent.isEmpty {
-                    Text("No shifts logged yet. Log your first one and Heimat keeps count of your hours and pay.")
+                    Text("No shifts logged yet. Log your first one and Splitlife keeps count of your hours and pay.")
                         .font(.system(size: 14)).foregroundStyle(.secondary)
                         .padding(18)
                 } else {

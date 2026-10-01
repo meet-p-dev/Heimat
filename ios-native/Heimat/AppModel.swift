@@ -32,6 +32,14 @@ final class AppModel {
     /// your groups (flats included). The hidden circles behind non-group expenses are kept apart, in `circles`
     var flats: [Flat] = []
     var circles: [Flat] = []
+    /// bills you can see (your groups' and your own) and where each stands today (my_bills)
+    var bills: [Bill] = []
+    var billStatus: [String: BillStatus] = [:]
+    /// chores in your groups, this and next period's turns, open swap requests, and this month's done turns (points)
+    var chores: [Chore] = []
+    var choreTurns: [ChoreTurn] = []
+    var choreSwaps: [ChoreSwap] = []
+    var choresDone: [ChoreTurn] = []
     /// pages pushed inside the Groups tab
     var groupsPath: [GroupsRoute] = []
     var flatId: String? { didSet { UserDefaults.standard.set(flatId, forKey: "flatId") } }
@@ -274,7 +282,7 @@ final class AppModel {
         guard everywhere == nil, let uid else { return }
         let ch = client.channel("mine-\(uid)")
         everywhere = ch
-        let streams = ["expenses", "settlements", "flat_members"].map {
+        let streams = ["expenses", "settlements", "flat_members", "bills", "bill_payments", "chores", "chore_turns", "chore_swaps"].map {
             ch.postgresChange(AnyAction.self, schema: "public", table: $0)
         }
         everywhereTask = Task { [weak self] in
@@ -335,6 +343,8 @@ final class AppModel {
         #if DEBUG
         if Self.fixtureMode { return }
         #endif
+        await loadBills()
+        await loadChores()
         let ids = flats.map(\.id) + circles.map(\.id)
         guard !ids.isEmpty else { allMembers = []; allExpenses = []; allSettles = []; return }
         do {

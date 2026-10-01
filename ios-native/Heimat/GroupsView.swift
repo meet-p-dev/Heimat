@@ -16,6 +16,7 @@ struct GroupsView: View {
                 VStack(spacing: 12) {
                     ForEach(m.flats) { GroupCard(flat: $0) }
                     NonGroupCard()
+                    if m.profile.on(.bills) { MyBillsCard() }
                     HStack(spacing: 10) {
                         Button { m.sheet = .flat(.group) } label: {
                             Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
@@ -48,6 +49,7 @@ struct GroupsView: View {
                 switch route {
                 case .group(let id): GroupPage(id: id)
                 case .nonGroup: NonGroupView()
+                case .myBills: MyBillsView()
                 case .person(let p): PersonView(person: p)
                 }
             }
@@ -110,6 +112,24 @@ struct GroupCard: View {
                     Spacer(minLength: 6)
                     StandingText(minor: mine.minor, currency: mine.currency)
                     Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                }
+                // a chore that is yours now, or someone asking you to take theirs
+                if m.profile.on(.chores) {
+                    let mine = m.myTurns(in: flat.id)
+                    let asks = m.choreSwaps.filter { $0.flatId == flat.id && $0.toUser == m.uid }.count
+                    if !mine.isEmpty || asks > 0 {
+                        Label(asks > 0 ? "\(asks) swap \(asks == 1 ? "request" : "requests") for you" : "Your turn: " + mine.map(\.name).joined(separator: ", "),
+                              systemImage: "sparkles")
+                            .font(.system(size: 12.5, weight: .medium)).foregroundStyle(Color.accentColor).lineLimit(1)
+                    }
+                }
+                // the bill that needs someone soonest: "Rent due in 3 days", "Internet overdue since 1 Oct"
+                if m.profile.on(.bills), let next = m.nextBill(in: flat.id), next.status.state != "paid" {
+                    let line = m.billLine(next.bill, next.status)
+                    Label("\(next.bill.name): \(line.text)", systemImage: "doc.text.fill")
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(line.urgent ? Color.orange : Color.secondary)
+                        .lineLimit(1)
                 }
             }
         }
@@ -247,7 +267,7 @@ struct NonGroupView: View {
         HeimatCard(radius: 24, padding: 20) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Split anything with anyone").font(.system(size: 17, weight: .bold))
-                Text("A dinner, a taxi, concert tickets. Search a friend by name or email above — they don't need Heimat yet.")
+                Text("A dinner, a taxi, concert tickets. Search a friend by name or email above — they don't need Splitlife yet.")
                     .font(.system(size: 14)).foregroundStyle(.secondary)
             }
         }
@@ -359,12 +379,12 @@ struct PersonSearch: View {
     @ViewBuilder private func emailRow(_ email: String) -> some View {
         if let l = looked, l.email == email {
             if l.onHeimat {
-                row(symbol: nil, name: l.name ?? email, seed: email, sub: "on Heimat · \(email)") {
+                row(symbol: nil, name: l.name ?? email, seed: email, sub: "on Splitlife · \(email)") {
                     pick(PersonPick(email: email, name: l.name ?? email))
                 }
             } else {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("\(email) isn't on Heimat yet — they'll get an email with the expense.")
+                    Text("\(email) isn't on Splitlife yet — they'll get an email with the expense.")
                         .font(.system(size: 13)).foregroundStyle(.secondary)
                     HStack {
                         TextField("Their name", text: $newName).textFieldStyle(.roundedBorder)
@@ -456,7 +476,7 @@ struct PersonView: View {
                     VStack(spacing: 6) {
                         AvatarView(name: m.personName(person), seed: person, size: 56)
                         Text(m.personName(person)).font(.system(size: 20, weight: .bold))
-                        if pending { Text("invited — not on Heimat yet").font(.system(size: 12.5)).foregroundStyle(.secondary) }
+                        if pending { Text("invited — not on Splitlife yet").font(.system(size: 12.5)).foregroundStyle(.secondary) }
                         if let main {
                             Text(main.minor > 0 ? "owes you" : "you owe").font(.system(size: 13)).foregroundStyle(.secondary).padding(.top, 4)
                             Text(Fmt.money(Money.toMajor(abs(main.minor), main.currency), main.currency))
@@ -491,7 +511,7 @@ struct PersonView: View {
                 // invited by name from contacts: nobody emails them, so the link is yours to send
                 if pending, let link = m.allMembers.first(where: { $0.userId == person && $0.claimedAt == nil && $0.inviteEmail == nil })?.inviteLink,
                    let url = URL(string: link) {
-                    ShareLink(item: url, message: Text("I added what we split on Heimat — open this to see it and join: ")) {
+                    ShareLink(item: url, message: Text("I added what we split on Splitlife — open this to see it and join: ")) {
                         Label("Send \(m.personName(person)) their link", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.glassProminent).controlSize(.large)

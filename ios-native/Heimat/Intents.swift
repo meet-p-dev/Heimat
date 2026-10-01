@@ -69,7 +69,7 @@ struct AddExpenseIntent: AppIntent {
     var note: String?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Add \(\.$amount) for \(\.$category) to Heimat") { \.$note }
+        Summary("Add \(\.$amount) for \(\.$category) to Splitlife") { \.$note }
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
@@ -82,7 +82,7 @@ struct AddExpenseIntent: AppIntent {
 
         let client = IntentStore.client()
         guard let uid = try? await client.auth.session.user.id.uuidString else {
-            return .result(dialog: "Open Heimat and sign in first.")
+            return .result(dialog: "Open Splitlife and sign in first.")
         }
 
         // split with everyone in the flat, which is what the app does by default —
@@ -92,7 +92,7 @@ struct AddExpenseIntent: AppIntent {
             .select("user_id").eq("flat_id", value: flatId).is("left_at", value: nil).execute().value) ?? []
         let among = members.map(\.user_id)
         guard !among.isEmpty else {
-            return .result(dialog: "Couldn't read your flat. Open Heimat once and try again.")
+            return .result(dialog: "Couldn't read your flat. Open Splitlife once and try again.")
         }
 
         let profile = IntentStore.profile
@@ -132,7 +132,7 @@ struct LogShiftIntent: AppIntent {
     var employer: String?
 
     static var parameterSummary: some ParameterSummary {
-        Summary("Log \(\.$hours) hours in Heimat") { \.$employer }
+        Summary("Log \(\.$hours) hours in Splitlife") { \.$employer }
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {

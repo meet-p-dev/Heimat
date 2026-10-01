@@ -129,7 +129,7 @@ struct AuthView: View {
                         switch mode {
                         case .signin:
                             Button("Forgot password?") { mode = .forgot }
-                            if m.isAnon { Button("New to Heimat? Create an account") { mode = .signup } }
+                            if m.isAnon { Button("New to Splitlife? Create an account") { mode = .signup } }
                         case .signup:
                             Button("Already have an account? Sign in") { mode = .signin }
                         case .forgot:

@@ -176,7 +176,7 @@ export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, o
       <SectionLabel T={T}>Recent shifts</SectionLabel>
       <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>
         {recent.length === 0 ? (
-          <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No shifts logged yet. Log your first one and Heimat keeps count of your hours and pay.</div>
+          <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No shifts logged yet. Log your first one and Splitlife keeps count of your hours and pay.</div>
         ) : recent.map((s) => {
           const d = deriveShift(s)
           return (

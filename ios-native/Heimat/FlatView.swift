@@ -26,6 +26,8 @@ struct GroupPage: View {
                 header(flat)
                 balances()
                 actions
+                if m.profile.on(.bills) { BillsSection(flatId: id) }
+                if m.profile.on(.chores) { ChoresSection(flatId: id) }
                 shortcuts
                 if m.expenses.isEmpty { emptyExpenses } else { months }
                 leave(flat)
@@ -210,9 +212,11 @@ struct GroupPage: View {
     private var shortcuts: some View {
         HeimatCard(radius: 22, padding: 0) {
             VStack(spacing: 0) {
-                HeimatRow(symbol: "cart.fill", tint: Tint.pink, label: "Shopping list",
-                          sub: m.openItems > 0 ? "\(m.openItems) to buy" : "Nothing to buy") { m.sheet = .list }
-                RowDivider()
+                if m.profile.on(.list) {
+                    HeimatRow(symbol: "cart.fill", tint: Tint.pink, label: "Shopping list",
+                              sub: m.openItems > 0 ? "\(m.openItems) to buy" : "Nothing to buy") { m.sheet = .list }
+                    RowDivider()
+                }
                 HeimatRow(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "Analytics",
                           sub: "Spend trend, categories and who paid") { m.sheet = .analytics }
                 RowDivider()
@@ -227,7 +231,7 @@ struct GroupPage: View {
             VStack(spacing: 10) {
                 Image(systemName: "receipt").font(.system(size: 34)).foregroundStyle(.tertiary)
                 Text("No shared expenses yet").font(.system(size: 17, weight: .bold))
-                Text("Add rent, groceries or the internet bill — Heimat splits it and keeps score for everyone.")
+                Text("Add rent, groceries or the internet bill — Splitlife splits it and keeps score for everyone.")
                     .font(.system(size: 14)).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 Button("Add the first expense") { m.startAddExpense() }
                     .buttonStyle(.glassProminent).controlSize(.large).padding(.top, 4)

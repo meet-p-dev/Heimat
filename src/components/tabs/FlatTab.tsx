@@ -13,12 +13,14 @@ import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, TINT } from '
 import ExpenseRow from '../ExpenseRow'
 
 /* One group's page (a flat is a group), pushed from its card on the Groups tab. */
-export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson }: {
+export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra }: {
   T: Theme; flat: Flat; members: Member[]; ledger: Ledger; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
   items: ListItem[]; openList: () => void; cats: Cat[]
   startAddExpense: () => void; openAnalytics: () => void
+  /* whether the shopping list is switched on, and what goes above the shortcuts (Bills) */
+  showList?: boolean; extra?: React.ReactNode
   showToast: (m: string) => void; onPerson: (id: string) => void
 }) {
   /* Who owes whom, as it actually stands — not the shortest way to square up.
@@ -109,14 +111,15 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
         <Btn size="md" icon={Plus} onClick={startAddExpense} style={{ flex: 1 }}>Add expense</Btn>
       </div>
 
+      {extra}
       <Group T={T}>
-        <Item T={T} icon={ShoppingCart} tint={TINT.pink} label="Shopping list" sub={open ? `${open} to buy` : 'Nothing to buy'} onClick={() => { haptic(8); openList() }} />
+        {showList && <Item T={T} icon={ShoppingCart} tint={TINT.pink} label="Shopping list" sub={open ? `${open} to buy` : 'Nothing to buy'} onClick={() => { haptic(8); openList() }} />}
         <Item T={T} icon={LineChart} tint={TINT.blue} label="Analytics" sub="Spend trend, categories and who paid" onClick={openAnalytics} />
       </Group>
 
       {months.length === 0 ? (
         <Card T={T} style={{ borderRadius: 26, marginBottom: 22 }}>
-          <EmptyState T={T} icon={Receipt} title="No shared expenses yet" body="Add rent, groceries or the internet bill — Heimat splits it and keeps score for everyone.">
+          <EmptyState T={T} icon={Receipt} title="No shared expenses yet" body="Add rent, groceries or the internet bill — Splitlife splits it and keeps score for everyone.">
             <Btn icon={Plus} onClick={startAddExpense}>Add the first expense</Btn>
           </EmptyState>
         </Card>

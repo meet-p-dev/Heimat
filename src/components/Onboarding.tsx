@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Users, Wallet, Clock, ChevronLeft, ShieldCheck, Cloud, Smartphone, RefreshCw } from 'lucide-react'
+import { Users, FileText, Clock, ChevronLeft, ShieldCheck, Cloud, Smartphone, RefreshCw } from 'lucide-react'
 import type { Theme, Profile } from '../lib/types'
 import { COUNTRIES, HOSTS } from '../lib/data'
 import { haptic } from '../lib/haptic'
@@ -8,11 +8,12 @@ import { fetchRate } from '../lib/rates'
 import { openExternal, webOrigin } from '../lib/native'
 import { Field, Btn, IconBtn, TINT, Card } from './ui'
 import CountrySelect from './CountrySelect'
+import { LifeQuestions } from './Life'
 
 const FEATURES = [
-  { Icon: Users, tint: TINT.green, title: 'Split flat bills', body: 'Log a bill once — Heimat keeps score of who owes whom, live on every phone.' },
-  { Icon: Wallet, tint: TINT.blue, title: 'See how long your money lasts', body: 'Your blocked account or budget, as months left at your real spending.' },
-  { Icon: Clock, tint: TINT.orange, title: 'Stay under your work limit', body: 'Log shifts and get a clear “still within the rules” check for the week and year.' },
+  { Icon: Users, tint: TINT.green, title: 'Split with anyone', body: 'Flatmates, a partner, friends — Splitlife keeps score of who owes whom, live on every phone.' },
+  { Icon: FileText, tint: TINT.blue, title: 'Bills and chores, on time', body: 'Rent day, the cleaning rota, the contract to cancel — reminded, then ticked.' },
+  { Icon: Clock, tint: TINT.orange, title: 'Shifts and your work limit', body: "Log shifts, see your pay and stay under a student visa's hours." },
 ]
 
 /* the "H" mark from the app icon, as a glass tile */
@@ -48,7 +49,7 @@ const Legal = ({ T }: { T: Theme }) => (
   </div>
 )
 
-/* First run: welcome → about you → keep it safe (account). Someone who signs in
+/* First run: welcome → about you → your life (two questions) → keep it safe (account). Someone who signs in
    from the welcome screen skips the account step — they already have one. */
 export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }: {
   T: Theme; isAnon: boolean; accountName: string | null
@@ -60,6 +61,8 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
   const [host, setHost] = useState(HOSTS[0].n)
   const [rate, setRate] = useState('')
   const [fetching, setFetching] = useState(false)
+  const [share, setShare] = useState<string[]>([])
+  const [doing, setDoing] = useState<string[]>(['study'])
   const homeObj = COUNTRIES.find((c) => c.n === home) || COUNTRIES[0]
   const hostObj = HOSTS.find((c) => c.n === host) || HOSTS[0]
   const diff = homeObj.c !== hostObj.c
@@ -76,14 +79,14 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
   }
   useEffect(() => { if (step === 1 && diff) { setRate(''); live() } }, [step, homeObj.c, hostObj.c])
 
-  const draft = (): Profile => ({ name: name.trim(), homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: numVal(rate) || (diff ? 0 : 1), rateAt: undefined, onboarded: true })
+  const draft = (): Profile => ({ name: name.trim(), homeCountry: homeObj.n, homeCur: homeObj.c, homeIso: homeObj.iso, hostCountry: hostObj.n, hostCur: hostObj.c, hostIso: hostObj.iso, rate: numVal(rate) || (diff ? 0 : 1), rateAt: undefined, onboarded: true, share, doing })
 
   const shell = (children: React.ReactNode, back?: () => void, progress?: number) => (
     <div className="h-page h-aurora" style={{ zIndex: 1000 }}>
       <div className="h-pagehdr" style={{ minHeight: 58 }}>
         {back ? <IconBtn label="Back" onClick={back}><ChevronLeft size={23} /></IconBtn> : <span style={{ width: 42 }} />}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 6 }}>
-          {progress != null && [1, 2].map((i) => <span key={i} style={{ width: i === progress ? 26 : 8, height: 8, borderRadius: 99, background: i <= progress ? T.acc : T.border, transition: 'width .3s' }} />)}
+          {progress != null && [1, 2, 3].map((i) => <span key={i} style={{ width: i === progress ? 26 : 8, height: 8, borderRadius: 99, background: i <= progress ? T.acc : T.border, transition: 'width .3s' }} />)}
         </div>
         <span style={{ width: 42 }} />
       </div>
@@ -96,8 +99,8 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
       <>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', paddingTop: 8 }}>
           <AppMark T={T} />
-          <h1 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.4, marginTop: 22, lineHeight: 1.05 }}>Heimat</h1>
-          <p style={{ fontSize: 17, color: T.txt2, marginTop: 8, lineHeight: 1.45, marginBottom: 22 }}>Money & life, sorted — for students living abroad.</p>
+          <h1 style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.4, marginTop: 22, lineHeight: 1.05 }}>Splitlife</h1>
+          <p style={{ fontSize: 17, color: T.txt2, marginTop: 8, lineHeight: 1.45, marginBottom: 22 }}>Bills, chores and money, shared — for life abroad.</p>
           <FeatureList T={T} />
         </div>
         <div style={{ paddingTop: 22, display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -114,7 +117,7 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
     return shell(
       <>
         <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.8 }}>About you</h1>
-        <p style={{ fontSize: 15, color: T.txt2, margin: '6px 0 20px', lineHeight: 1.5 }}>So Heimat can greet you and show every amount in both currencies.</p>
+        <p style={{ fontSize: 15, color: T.txt2, margin: '6px 0 20px', lineHeight: 1.5 }}>So Splitlife can greet you and show every amount in both currencies.</p>
         <Card T={T} style={{ padding: '18px 16px 4px', borderRadius: 26 }}>
           <Field T={T} label="Your first name" htmlFor="ob-name"><input id="ob-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Aarav" autoComplete="given-name" /></Field>
           <Field T={T} label="Home country" htmlFor="ob-home" hint={`Your home currency is ${homeObj.c}.`}><CountrySelect id="ob-home" label="Home country" value={home} onChange={setHome} options={COUNTRIES} /></Field>
@@ -130,11 +133,27 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
         </Card>
         <div style={{ flex: 1 }} />
         <div style={{ paddingTop: 22 }}>
-          <Btn full disabled={!ok} onClick={() => { haptic(12); if (isAnon) setStep(2); else onDone(draft(), 'app') }}>{isAnon ? 'Continue' : 'Start using Heimat'}</Btn>
+          <Btn full disabled={!ok} onClick={() => { haptic(12); setStep(2) }}>Continue</Btn>
         </div>
       </>,
       isAnon ? () => setStep(0) : undefined,
-      isAnon ? 1 : undefined,
+      1,
+    )
+  }
+
+  if (step === 2) {
+    return shell(
+      <>
+        <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.8 }}>Your life</h1>
+        <p style={{ fontSize: 15, color: T.txt2, margin: '6px 0 20px', lineHeight: 1.5 }}>Splitlife shows only what you need. You can change it any time in Settings.</p>
+        <LifeQuestions T={T} share={share} doing={doing} setShare={setShare} setDoing={setDoing} />
+        <div style={{ flex: 1 }} />
+        <div style={{ paddingTop: 22 }}>
+          <Btn full onClick={() => { haptic(12); if (isAnon) setStep(3); else onDone(draft(), 'app') }}>{isAnon ? 'Continue' : 'Start using Splitlife'}</Btn>
+        </div>
+      </>,
+      () => setStep(1),
+      2,
     )
   }
 
@@ -162,7 +181,7 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
         <div style={{ fontSize: 12, color: T.txt3, textAlign: 'center' }}>You can create an account any time from Settings.</div>
       </div>
     </>,
-    () => setStep(1),
-    2,
+    () => setStep(2),
+    3,
   )
 }

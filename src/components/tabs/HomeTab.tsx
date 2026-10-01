@@ -17,10 +17,12 @@ function QuickAction({ icon: I, tint, label, onClick, badge }: { icon: LucideIco
   )
 }
 
-export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth }: {
+export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth }: {
   T: Theme; flat: Flat | null
   /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
   scope: string; hasMoney: boolean
+  /* the parts this person has switched on (src/lib/life.ts) */
+  show: { work: boolean; list: boolean; limit: boolean; runway: boolean }
   uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
   fH: (v: number) => string; fHome: (v: number) => string | null
   setModal: (m: ModalId) => void; setTab: (t: TabId) => void
@@ -34,17 +36,18 @@ export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, 
   const home = fHome(Math.abs(myNet))
   const toneC = ws.tone === 'red' ? T.red : ws.tone === 'amber' ? T.amber : WORK
 
-  const actions = flat
+  const shift = { icon: Clock, tint: TINT.orange, label: 'Log shift', onClick: onLogShift }
+  const actions = (flat
     ? [
         { icon: Plus, tint: TINT.green, label: 'Expense', onClick: startAddExpense },
-        { icon: Clock, tint: TINT.orange, label: 'Log shift', onClick: onLogShift },
-        { icon: ShoppingCart, tint: TINT.pink, label: 'List', onClick: openList, badge: openCount },
+        show.work && shift,
+        show.list && { icon: ShoppingCart, tint: TINT.pink, label: 'List', onClick: openList, badge: openCount },
         { icon: LineChart, tint: TINT.blue, label: 'Analytics', onClick: () => setModal('analytics') },
       ]
     : [
-        { icon: Clock, tint: TINT.orange, label: 'Log shift', onClick: onLogShift },
-        { icon: Wallet, tint: TINT.blue, label: 'Runway', onClick: () => setModal('runway') },
-      ]
+        show.work && shift,
+        show.runway && { icon: Wallet, tint: TINT.blue, label: 'Runway', onClick: () => setModal('runway') },
+      ]).filter(Boolean) as { icon: typeof Clock; tint: string; label: string; onClick: () => void; badge?: number }[]
 
   return (
     <>
@@ -77,12 +80,12 @@ export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, 
         </Card>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${actions.length > 2 ? 4 : 2}, 1fr)`, gap: 10, marginBottom: 14 }}>
+      {actions.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: `repeat(${actions.length > 2 ? 4 : 2}, 1fr)`, gap: 10, marginBottom: 14 }}>
         {actions.map((a) => <QuickAction key={a.label} {...a} />)}
-      </div>
+      </div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <Card T={T} onClick={() => setTab('money')} ariaLabel="Funds runway" style={{ padding: 14, borderRadius: 24 }}>
+      {(show.runway || show.limit) && <div style={{ display: 'grid', gridTemplateColumns: show.runway && show.limit ? '1fr 1fr' : '1fr', gap: 12 }}>
+        {show.runway && <Card T={T} onClick={() => setTab('money')} ariaLabel="Funds runway" style={{ padding: 14, borderRadius: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, marginBottom: 10 }}>Funds runway</div>
           {runwayCalc ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -95,8 +98,8 @@ export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, 
           ) : (
             <div style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.4 }}>How long will your money last? <span style={{ color: T.acc }}>Set up</span></div>
           )}
-        </Card>
-        <Card T={T} onClick={() => setTab('work')} ariaLabel="Work limit" style={{ padding: 14, borderRadius: 24 }}>
+        </Card>}
+        {show.limit && <Card T={T} onClick={() => setTab('work')} ariaLabel="Work limit" style={{ padding: 14, borderRadius: 24 }}>
           <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, marginBottom: 10 }}>Work limit</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Ring pct={ws.daysUsed / ws.budget} size={54} stroke={6} color={toneC} track={T.border}><span style={{ fontSize: 14, fontWeight: 800 }}>{fixDe(ws.daysUsed, ws.daysUsed % 1 ? 1 : 0)}</span><span style={{ fontSize: 9, color: T.txt2 }}>days</span></Ring>
@@ -105,8 +108,8 @@ export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, 
               <div style={{ fontSize: 12, color: ws.weekH > ws.weekCap ? T.red : T.txt3, whiteSpace: 'nowrap' }}>of {ws.weekCap} h / week</div>
             </div>
           </div>
-        </Card>
-      </div>
+        </Card>}
+      </div>}
 
       {flat && isAnon && (
         <Card T={T} onClick={() => onAuth('signup')} style={{ marginTop: 12, padding: '13px 14px', borderRadius: 22, display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -124,7 +127,7 @@ export default function HomeTab({ T, flat, scope, hasMoney, uid, isAnon, myNet, 
           <SectionLabel T={T} right={expenses.length > 0 && <button type="button" className="h-link" style={{ fontSize: 13.5 }} onClick={() => setTab('flat')}>See all</button>}>Recent activity</SectionLabel>
           <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>
             {expenses.length === 0
-              ? <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Heimat splits it.</div>
+              ? <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.</div>
               : expenses.slice(0, 5).map((e) => <ExpenseRow key={e.id} {...{ T, e, cats, uid, nameOf, fH }} onClick={() => onOpenExpense(e)} />)}
           </div>
         </>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { partOn } from './lib/life'
 import type { Dispatch, SetStateAction } from 'react'
 import { Settings as SettingsIcon, WifiOff } from 'lucide-react'
 import { sb, friendlyAuthError } from './lib/supabase'
@@ -51,6 +52,14 @@ import { touchAppUser, appUserName } from './lib/appUser'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
 import { myShareTotal } from './lib/analytics'
+import { loadBills as fetchBills, billError } from './lib/bills'
+import type { Bill, BillStatus, BillRow } from './lib/bills'
+import { BillsSection, BillModal } from './components/Bills'
+import type { BillsCtx } from './components/Bills'
+import { loadChores as fetchChores, choreError, EMPTY_CHORES } from './lib/chores'
+import type { Chore, ChoreData, ChoreRow } from './lib/chores'
+import { ChoresSection, ChoreModal } from './components/Chores'
+import type { ChoresCtx } from './components/Chores'
 
 const TABS: [TabId, string][] = [['home', 'Home'], ['flat', 'Groups'], ['money', 'Money'], ['work', 'Work']]
 
@@ -103,6 +112,22 @@ export default function App() {
   const [allMembers, setAllMembers] = useState<Member[]>([])
   const [allExpenses, setAllExpenses] = useState<Expense[]>([])
   const [allSettles, setAllSettles] = useState<Settlement[]>([])
+  // bills you can see (your groups' and your own) and where each stands today
+  const [bills, setBills] = useState<Bill[]>([])
+  const [billStatus, setBillStatus] = useState<Record<string, BillStatus>>({})
+  const [billEdit, setBillEdit] = useState<{ bill: Bill | null; flat: string | null }>({ bill: null, flat: null })
+  const [choreData, setChoreData] = useState<ChoreData>(EMPTY_CHORES)
+  const [choreEdit, setChoreEdit] = useState<{ chore: Chore | null; flat: string }>({ chore: null, flat: '' })
+  const reloadChores = async () => {
+    if (!sb || !uid) return
+    const r = await fetchChores(sb, tod())
+    if (r) setChoreData(r)
+  }
+  const reloadBills = async () => {
+    if (!sb || !uid) return
+    const r = await fetchBills(sb)
+    if (r) { setBills(r.bills); setBillStatus(r.status) }
+  }
 
   function save<Tv>(setter: Dispatch<SetStateAction<Tv>>, key: string) {
     return (v: Tv) => { setter(v); LS.s(key, v) }
@@ -149,6 +174,8 @@ export default function App() {
   const loadOverview = async (ids?: string[]) => {
     if (!sb) return
     const list = ids || [...myFlats, ...circles].map((f) => f.id)
+    reloadBills()
+    reloadChores()
     if (!list.length) { setAllMembers([]); setAllExpenses([]); setAllSettles([]); return }
     const [m, e, st] = await Promise.all([
       sb.from('flat_members').select('*').in('flat_id', list),
@@ -273,6 +300,11 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, changed)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settlements' }, changed)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'flat_members' }, changed)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bills' }, () => reloadBills())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bill_payments' }, () => reloadBills())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chores' }, () => reloadChores())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chore_turns' }, () => reloadChores())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chore_swaps' }, () => reloadChores())
       .subscribe()
     return () => { clearTimeout(t); try { client.removeChannel(ch) } catch {} }
   }, [uid, placeIds])
@@ -431,7 +463,7 @@ export default function App() {
      itself; the flat's shared history stays, unattributed. */
   const deleteAccount = async () => {
     if (!sb) return showToast('Offline')
-    if (!confirm('Delete your Heimat account?\n\nYou leave every flat you are in, and everything stored about you on the server is removed. Shared expenses stay with the flat, without your name on them. This cannot be undone.')) return
+    if (!confirm('Delete your Splitlife account?\n\nYou leave every flat you are in, and everything stored about you on the server is removed. Shared expenses stay with the flat, without your name on them. This cannot be undone.')) return
     setBusy(true)
     const { error } = await sb.functions.invoke('delete-account')
     setBusy(false)
@@ -626,8 +658,8 @@ export default function App() {
     LS.s('mt-h-notif-asked', true)
     setNotifPrompt(null)
     if (r.ok) showToast('Notifications on')
-    else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Heimat in Settings → Notifications' : 'Blocked — allow Heimat in your browser settings')
-    else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
+    else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Splitlife in Settings → Notifications' : 'Blocked — allow Splitlife in your browser settings')
+    else if (r.reason === 'install') showToast('Add Splitlife to your Home Screen first')
     else showToast("Couldn't turn on notifications")
   }
 
@@ -648,8 +680,51 @@ export default function App() {
 
   const inFlat = !!flat
   const firstName = (profile.name || '').trim().split(/\s+/)[0]
-  const [kicker, title] = tab === 'home' ? [greeting(), firstName || 'Heimat'] : tab === 'flat' ? [longToday(), 'Groups'] : [longToday(), tab === 'money' ? 'Money' : 'Work']
+  const [kicker, title] = tab === 'home' ? [greeting(), firstName || 'Splitlife'] : tab === 'flat' ? [longToday(), 'Groups'] : [longToday(), tab === 'money' ? 'Money' : 'Work']
+  const billsCtx: BillsCtx = {
+    T, uid, hostCur, bills, status: billStatus, members: allMembers, who: nameOf,
+    edit: (bill, flat) => { setBillEdit({ bill, flat }); setModal('bill') },
+    tick: async (bill, due, paid) => {
+      if (!sb) return
+      const { error } = await sb.rpc('tick_bill', { p_bill: bill.id, p_due: due, p_paid: paid })
+      if (error) showToast(billError(error)); else { if (paid) haptic(14); await reloadBills() }
+    },
+  }
+  const saveBill = async (id: string | null, row: BillRow): Promise<string | null> => {
+    if (!sb) return 'Not connected'
+    const { error } = id ? await sb.from('bills').update(row).eq('id', id) : await sb.from('bills').insert(row)
+    if (error) return billError(error)
+    haptic(14); await reloadBills(); return null
+  }
+  const removeBill = async (bill: Bill) => {
+    if (!sb) return
+    const { error } = await sb.from('bills').update({ archived_at: new Date().toISOString() }).eq('id', bill.id)
+    if (error) showToast(billError(error)); else { setBills((x) => x.filter((y) => y.id !== bill.id)); showToast(`${bill.name} removed`) }
+  }
+  const choresCtx: ChoresCtx = {
+    T, uid, d: choreData, members: allMembers, who: nameOf,
+    edit: (chore, flat) => { setChoreEdit({ chore, flat }); setModal('chore') },
+    call: async (fn, args, ok) => {
+      if (!sb) return
+      const { error } = await sb.rpc(fn, args)
+      if (error) showToast(choreError(error)); else { haptic(12); if (ok) showToast(ok) }
+      await reloadChores()
+    },
+  }
+  const saveChore = async (id: string | null, row: ChoreRow): Promise<string | null> => {
+    if (!sb) return 'Not connected'
+    const { error } = id ? await sb.from('chores').update(row).eq('id', id) : await sb.from('chores').insert(row)
+    if (error) return choreError(error)
+    haptic(14); await reloadChores(); return null
+  }
+  const removeChore = async (x: Chore) => {
+    if (!sb) return
+    const { error } = await sb.from('chores').update({ archived_at: new Date().toISOString() }).eq('id', x.id)
+    if (error) showToast(choreError(error)); else { await reloadChores(); showToast(`${x.name} removed`) }
+  }
   const fc: FriendsCtx = {
+    chores: partOn(profile, 'chores') ? choresCtx : null,
+    bills: partOn(profile, 'bills') ? billsCtx : null,
     T, uid, hostCur, main: mainCur, groups: myFlats, circles, members: allMembers, expenses: allExpenses, books, cats,
     openPage, openGroup, invite: (id) => { setFlatIdP(id); setModal('invite') }, openExpense, addWith,
     settlePerson: (id) => { setSettlePersonId(id); setModal('settleperson') }, remindPerson,
@@ -657,7 +732,13 @@ export default function App() {
   }
   const placesCount = myFlats.length + (circles.length ? 1 : 0)
   const scope = placesCount > 1 ? `Across ${myFlats.length} ${myFlats.length === 1 ? 'group' : 'groups'}${circles.length ? ' and friends' : ''}` : flat ? `Your balance · ${flat.name}` : 'Your balance'
-  const tabIdx = TABS.findIndex(([id]) => id === tab)
+  // the tabs that fit this person (Settings → Your Splitlife); hiding one never deletes anything
+  const shownTabs = TABS.filter(([id]) => id === 'home'
+    || (id === 'flat' && (['groups', 'bills', 'chores', 'list'] as const).some((p) => partOn(profile, p)))
+    || (id === 'money' && partOn(profile, 'runway'))
+    || (id === 'work' && (partOn(profile, 'work') || partOn(profile, 'limit'))))
+  useEffect(() => { if (!shownTabs.some(([id]) => id === tab)) setTab('home') }, [shownTabs.map(([id]) => id).join(), tab])
+  const tabIdx = Math.max(0, shownTabs.findIndex(([id]) => id === tab))
   const openSettings = () => openPage('settings')
 
   return (
@@ -666,7 +747,7 @@ export default function App() {
 
       <main ref={mainRef} className="h-main">
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth }} />}
+          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings }} />}
@@ -688,8 +769,8 @@ export default function App() {
 
       <nav className="h-tabbar" aria-label="Sections">
         <LiquidGlass radius={33} className="h-tabbar-in">
-          <span className="h-tab-ind" style={{ width: `calc((100% - 12px) / ${TABS.length})`, transform: `translateX(${tabIdx * 100}%)` }} />
-          {TABS.map(([id, label]) => {
+          <span className="h-tab-ind" style={{ width: `calc((100% - 12px) / ${shownTabs.length})`, transform: `translateX(${tabIdx * 100}%)` }} />
+          {shownTabs.map(([id, label]) => {
             const NIcon = NAV_ICON[id]
             const on = tab === id
             return (
@@ -708,17 +789,24 @@ export default function App() {
         ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal }} />
         : p === 'nongroup'
         ? <NonGroupPage key={p} c={fc} onBack={closePage} />
+        : p === 'mybills'
+        ? <Page key={p} T={T} title="My bills" onBack={closePage}>
+            <BillsSection b={billsCtx} flatId={null} />
+            <div style={{ fontSize: 13, color: T.txt3, margin: '-10px 4px 0', lineHeight: 1.5 }}>Only you see these. On the day one is due you get a reminder; tick it once it's paid.</div>
+          </Page>
         : p.startsWith('person:')
         ? <PersonPage key={p} c={fc} person={p.slice(7)} onBack={closePage} />
         : (
           <Page key={p} T={T} title={myFlats.find((f) => f.id === p.slice(6))?.name || ''} onBack={closePage}>
             {flat && flat.id === p.slice(6)
-              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`) }} />
+              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
               : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
           </Page>
         ))}
 
       <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, c: fc, start: flatId, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, cats, openCategories: () => setModal('cats'), save: saveExpense, resolve: resolveCircle }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
+      <ChoreModal c={choresCtx} open={modal === 'chore'} onClose={closeModal} editing={choreEdit.chore} flatId={choreEdit.chore ? choreEdit.chore.flat_id : choreEdit.flat} save={saveChore} remove={removeChore} />
+      <BillModal b={billsCtx} open={modal === 'bill'} onClose={closeModal} editing={billEdit.bill} flatId={billEdit.bill ? billEdit.bill.flat_id : billEdit.flat} save={saveBill} remove={removeBill} />
       <PersonSettle c={fc} open={modal === 'settleperson'} person={settlePersonId} onClose={closeModal} record={recordSettle} />
       <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, ledger, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />

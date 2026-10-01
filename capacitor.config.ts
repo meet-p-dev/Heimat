@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
    `npx cap sync` copies it into ios/ and android/. */
 const config: CapacitorConfig = {
   appId: 'app.heimat.mobile',
-  appName: 'Heimat',
+  appName: 'Splitlife',
   webDir: 'dist',
   backgroundColor: '#0c1110',
   ios: {

@@ -20,7 +20,7 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
   if (!flat) return null
   // inside the app shells location.origin is capacitor://localhost, so links always point at the public web address
   const url = webOrigin()
-  const msg = `Join my group “${flat.name}” on Heimat\nCode: ${flat.join_code}\nOpen ${url} → tap “Join with code”.`
+  const msg = `Join my group “${flat.name}” on Splitlife\nCode: ${flat.join_code}\nOpen ${url} → tap “Join with code”.`
   const mailOK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim())
   const pending = members.filter((m) => m.flat_id === flat.id && isPending(m) && !m.left_at)
   const send = async () => {
@@ -35,7 +35,7 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
   return (
     <Sheet open={open} onClose={onClose} title="Add people" T={T}>
       <form onSubmit={(e) => { e.preventDefault(); send() }}>
-        <Field T={T} label="Add by email" hint="They don't need Heimat yet. Their share counts from the moment you add them, and we'll email them a link to claim it — the history is waiting when they sign up.">
+        <Field T={T} label="Add by email" hint="They don't need Splitlife yet. Their share counts from the moment you add them, and we'll email them a link to claim it — the history is waiting when they sign up.">
           <input className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" aria-label="Name" autoComplete="off" style={{ marginBottom: 8 }} />
           <input className="fld" value={mail} onChange={(e) => setMail(e.target.value)} placeholder="Email" aria-label="Email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} />
         </Field>
@@ -72,7 +72,7 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
         </Field>
       )}
 
-      <Field T={T} label="Or share a code" hint="Anyone with an account can type this in — Heimat → Join with code." style={{ marginTop: 20, marginBottom: 4 }}>
+      <Field T={T} label="Or share a code" hint="Anyone with an account can type this in — Splitlife → Join with code." style={{ marginTop: 20, marginBottom: 4 }}>
         <div className="h-well" style={{ textAlign: 'center', padding: '16px 12px 14px', borderRadius: 20, marginBottom: 10 }}>
           <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: 6, color: T.acc, fontVariantNumeric: 'tabular-nums' }}>{flat.join_code}</div>
         </div>

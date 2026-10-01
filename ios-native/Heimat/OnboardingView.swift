@@ -1,11 +1,13 @@
 import SwiftUI
 
-/// First run: welcome → about you → keep it safe. Someone who signs in from the
-/// welcome screen skips the account step — they already have an account.
+/// First run: welcome → about you → your life (two questions) → keep it safe. Someone
+/// who signs in from the welcome screen skips the account step — they already have an account.
 struct OnboardingView: View {
     @Environment(AppModel.self) private var m
     @State private var step = 0
     @State private var draft = Profile()
+    @State private var share: Set<String> = []
+    @State private var doing: Set<String> = ["study"]
     @State private var rate = ""
     @State private var fetching = false
     @State private var sheet: SheetRoute?
@@ -16,6 +18,7 @@ struct OnboardingView: View {
                 switch step {
                 case 0: welcome
                 case 1: aboutYou
+                case 2: yourLife
                 default: account
                 }
             }
@@ -35,12 +38,12 @@ struct OnboardingView: View {
                     .frame(width: 76, height: 76)
                     .glassEffect(.regular, in: .rect(cornerRadius: 24))
                     .padding(.top, 24)
-                Text("Heimat").font(.system(size: 46, weight: .bold, design: .rounded))
-                Text("Money & life, sorted — for students living abroad.").font(.title3).foregroundStyle(.secondary)
+                Text("Splitlife").font(.system(size: 46, weight: .bold, design: .rounded))
+                Text("Bills, chores and money, shared — for life abroad.").font(.title3).foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 18) {
-                    feature("person.2.fill", .green, "Split flat bills", "Log a bill once — Heimat keeps score of who owes whom, live on every phone.")
-                    feature("wallet.bifold.fill", .blue, "See how long your money lasts", "Your blocked account or budget, as months left at your real spending.")
-                    feature("clock.fill", .orange, "Stay under your work limit", "Log shifts and get a clear check for the week and the year.")
+                    feature("person.2.fill", .green, "Split with anyone", "Flatmates, a partner, friends — Splitlife keeps score of who owes whom, live on every phone.")
+                    feature("doc.text.fill", .blue, "Bills and chores, on time", "Rent day, the cleaning rota, the contract to cancel — reminded, then ticked.")
+                    feature("clock.fill", .orange, "Shifts and your work limit", "Log shifts, see your pay and stay under a student visa's hours.")
                 }
                 .padding(.top, 8)
             }
@@ -102,13 +105,35 @@ struct OnboardingView: View {
         .safeAreaInset(edge: .bottom) {
             Button {
                 Haptic.tap()
-                if m.isAnon { step = 2 } else { finish(signup: false) }
-            } label: { Text(m.isAnon ? "Continue" : "Start using Heimat").frame(maxWidth: .infinity) }
+                step = 2
+            } label: { Text("Continue").frame(maxWidth: .infinity) }
             .buttonStyle(.glassProminent).controlSize(.large)
             .disabled(draft.name.trimmingCharacters(in: .whitespaces).isEmpty)
             .padding(.horizontal, 24).padding(.bottom, 8)
         }
         .task(id: "\(home.cur)\(host.cur)") { if home.cur != host.cur { await live(host.cur, home.cur) } }
+    }
+
+    /// Two questions; the app shows only the parts that fit (Settings → Your Splitlife changes it later).
+    private var yourLife: some View {
+        Form {
+            Section {
+                LifeChoices(options: Life.Share.allCases.map { ($0.rawValue, $0.label, $0.symbol) }, chosen: $share)
+            } header: { Text("Who do you share costs with?") } footer: { Text("Pick all that fit — or none if you live on your own.") }
+            Section {
+                LifeChoices(options: Life.Doing.allCases.map { ($0.rawValue, $0.label, $0.symbol) }, chosen: $doing)
+            } header: { Text("What do you do?") } footer: { Text("Splitlife shows only what you need. You can change it any time in Settings.") }
+        }
+        .navigationTitle("Your life")
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button { step = 1 } label: { Image(systemName: "chevron.left") } } }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                Haptic.tap()
+                if m.isAnon { step = 3 } else { finish(signup: false) }
+            } label: { Text(m.isAnon ? "Continue" : "Start using Splitlife").frame(maxWidth: .infinity) }
+            .buttonStyle(.glassProminent).controlSize(.large)
+            .padding(.horizontal, 24).padding(.bottom, 8)
+        }
     }
 
     private var account: some View {
@@ -127,7 +152,7 @@ struct OnboardingView: View {
             }
             .padding(.horizontal, 24)
         }
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button { step = 1 } label: { Image(systemName: "chevron.left") } } }
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button { step = 2 } label: { Image(systemName: "chevron.left") } } }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 10) {
                 Button { finish(signup: true) } label: { Text("Create account").frame(maxWidth: .infinity) }
@@ -155,8 +180,36 @@ struct OnboardingView: View {
         p.homeCur = home.cur; p.homeIso = home.iso; p.hostCur = host.cur; p.hostIso = host.iso
         p.rate = home.cur == host.cur ? 1 : max(Fmt.parse(rate), 0)
         p.rateAt = home.cur == host.cur || Fmt.parse(rate) == 0 ? nil : Fmt.today()
+        p.share = Life.Share.allCases.map(\.rawValue).filter(share.contains)
+        p.doing = Life.Doing.allCases.map(\.rawValue).filter(doing.contains)
         p.onboarded = true
         m.saveProfile(p)
         if signup { m.sheet = .auth(.signup) }
+    }
+}
+
+/// Tick-boxes for one of the questions, in a Form section: a row each.
+struct LifeChoices: View {
+    let options: [(id: String, label: String, symbol: String)]
+    @Binding var chosen: Set<String>
+
+    var body: some View {
+        ForEach(options, id: \.id) { o in
+            Button {
+                Haptic.tap()
+                if chosen.contains(o.id) { chosen.remove(o.id) } else { chosen.insert(o.id) }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: o.symbol).foregroundStyle(.tint).frame(width: 24)
+                    Text(o.label).foregroundStyle(.primary)
+                    Spacer()
+                    Image(systemName: chosen.contains(o.id) ? "checkmark.circle.fill" : "circle")
+                        .font(.title3).foregroundStyle(chosen.contains(o.id) ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(chosen.contains(o.id) ? .isSelected : [])
+        }
     }
 }

@@ -48,7 +48,7 @@ function shell(title: string, body: string) {
     <div style="max-width:420px;margin:0 auto;padding:48px 20px 40px;box-sizing:border-box">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
         <div style="width:34px;height:34px;border-radius:11px;background:${T.acc};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px">H</div>
-        <div style="font-size:17px;font-weight:700;letter-spacing:-0.2px">Heimat</div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-0.2px">Splitlife</div>
       </div>
       <h1 style="font-size:23px;font-weight:700;letter-spacing:-0.4px;margin:0 0 10px">${title}</h1>
       ${body}
@@ -76,15 +76,15 @@ function ask(p: Preview) {
   shell(
     isDirect(p) ? `${esc(p.inviter || 'Someone')} added an expense with you` : `${esc(p.inviter || 'Someone')} wants to split with you`,
     (isDirect(p)
-      ? `<p style="${pStyle}">They're using Heimat to keep track of what you share — who paid for what, and who owes whom.</p>
+      ? `<p style="${pStyle}">They're using Splitlife to keep track of what you share — who paid for what, and who owes whom.</p>
      <p style="${pStyle}">Your share is already counted. Join to see it.</p>`
-      : `<p style="${pStyle}">They've added you to the ${noun} <strong style="color:${T.txt}">${esc(p.flat_name || 'a group')}</strong> on Heimat, where a few people keep track of what they've paid for and who owes what.</p>
+      : `<p style="${pStyle}">They've added you to the ${noun} <strong style="color:${T.txt}">${esc(p.flat_name || 'a group')}</strong> on Splitlife, where a few people keep track of what they've paid for and who owes what.</p>
      <p style="${pStyle}">Your share of anything they've already added is counted from now. Join to see it.</p>`) +
     `
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <button id="yes" style="${btnStyle(true)}">Accept and join</button>
      <button id="no" style="${ghostStyle}">No thanks</button>
-     <a href="heimat://invite/${encodeURIComponent(token)}" style="${linkStyle}">Already have the Heimat app? Open it there</a>
+     <a href="heimat://invite/${encodeURIComponent(token)}" style="${linkStyle}">Already have the Splitlife app? Open it there</a>
      <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">${isDirect(p) ? 'Saying no takes you out of what they split with you.' : `Saying no removes you from the ${noun} and from anything you were split into.`} Nobody is told.</p>`,
   )
   const err = document.getElementById('err') as HTMLDivElement
@@ -121,7 +121,7 @@ function signUp(p: Preview) {
      <input id="pw" type="password" autocomplete="new-password" placeholder="Password, at least 8 characters" style="${inputStyle}"/>
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <button id="go" style="${btnStyle(true)}">Create account</button>
-     <a href="${appUrl}" style="${linkStyle}">I already have a Heimat account</a>
+     <a href="${appUrl}" style="${linkStyle}">I already have a Splitlife account</a>
      <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">Use the address this invite was sent to and ${esc(p.flat_name || 'the ' + noun)} will be waiting the moment you sign up.</p>`,
   )
 
@@ -170,7 +170,7 @@ function confirmFirst(email: string, p: Preview) {
   shell(
     'Check your inbox',
     `<p style="${pStyle}">We've sent a link to <strong style="color:${T.txt}">${esc(email)}</strong>. Open it to confirm your account, and ${place(p)} will be there when you sign in.</p>
-     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Heimat</a>`,
+     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Splitlife</a>`,
   )
   homeScreen()
 }
@@ -180,7 +180,7 @@ function installed(p: Preview) {
   shell(
     isDirect(p) ? 'You’re all set' : `You’re in ${esc(p.flat_name || 'the group')}`,
     `<p style="${pStyle}">Everything they've split with you is there now.</p>
-     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Heimat</a>`,
+     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Splitlife</a>`,
   )
   homeScreen()
 }
@@ -210,7 +210,7 @@ function homeScreen() {
       ? ['Tap the <strong>⋮</strong> menu, top right in Chrome', 'Tap <strong>Add to Home screen</strong> (or <strong>Install app</strong>)', 'Tap <strong>Install</strong>']
       : ['Open this page on your phone', 'Use your browser’s menu to add it to the home screen']
 
-  const title = ios ? 'Keep Heimat on your home screen' : android ? 'Install Heimat' : 'Get it on your phone'
+  const title = ios ? 'Keep Splitlife on your home screen' : android ? 'Install Splitlife' : 'Get it on your phone'
   const why = ios
     ? 'It opens like a normal app, and on iPhone it can only send you notifications once it’s there.'
     : 'It opens like a normal app and works offline.'
@@ -232,12 +232,12 @@ function homeScreen() {
 /* ── boot ── */
 async function main() {
   if (!sb) {
-    shell('Heimat isn’t configured', `<p style="${pStyle}">This copy of Heimat has no database connection. Ask whoever sent the invite to check it.</p>`)
+    shell('Splitlife isn’t configured', `<p style="${pStyle}">This copy of Splitlife has no database connection. Ask whoever sent the invite to check it.</p>`)
     return
   }
   if (!/^[a-f0-9]{32}$/.test(token)) {
     shell('That link is incomplete', `<p style="${pStyle}">The invite code is missing from the address. Ask whoever invited you to send it again.</p>
-      <a href="${appUrl}" style="${linkStyle}">Go to Heimat</a>`)
+      <a href="${appUrl}" style="${linkStyle}">Go to Splitlife</a>`)
     return
   }
 
@@ -248,12 +248,12 @@ async function main() {
 
   if (error || !p || !p.flat_name) {
     shell('That invite has expired', `<p style="${pStyle}">It may have been used already, or taken back. Ask whoever invited you to send a new one.</p>
-      <a href="${appUrl}" style="${linkStyle}">Go to Heimat</a>`)
+      <a href="${appUrl}" style="${linkStyle}">Go to Splitlife</a>`)
     return
   }
   if (!p.open) {
     shell('You’ve already joined', `<p style="${pStyle}">This invite to ${esc(p.flat_name)} has been used. Sign in and it'll be there.</p>
-      <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Heimat</a>`)
+      <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;box-sizing:border-box">Open Splitlife</a>`)
     return
   }
   ask(p)

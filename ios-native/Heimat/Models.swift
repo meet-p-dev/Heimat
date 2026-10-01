@@ -103,6 +103,7 @@ struct PersonPick: Hashable, Identifiable {
 enum GroupsRoute: Hashable {
     case group(String)
     case nonGroup
+    case myBills
     case person(String)
 }
 
@@ -179,6 +180,11 @@ struct Profile: Codable, Equatable {
     var rate: Double = 1
     var rateAt: String?
     var onboarded = false
+    /// the three questions (Life): who you share costs with, what you do — nil until answered
+    var share: [String]?
+    var doing: [String]?
+    /// parts switched on or off by hand in Settings, over what the answers suggest
+    var parts: [String: Bool]?
 
     init() {}
     // tolerant: rows written by the web app may miss any field
@@ -191,6 +197,68 @@ struct Profile: Codable, Equatable {
         rate = c.v(.rate, 1.0)
         rateAt = try? c.decodeIfPresent(String.self, forKey: .rateAt)
         onboarded = c.v(.onboarded, false)
+        share = try? c.decodeIfPresent([String].self, forKey: .share)
+        doing = try? c.decodeIfPresent([String].self, forKey: .doing)
+        parts = try? c.decodeIfPresent([String: Bool].self, forKey: .parts)
+    }
+
+    /// whether a part of the app is shown: a hand-made choice first, else what the answers suggest
+    func on(_ part: Life.Part) -> Bool { parts?[part.rawValue] ?? Life.suggested(part, share: share, doing: doing) }
+}
+
+/// Who someone is, in three questions, and the parts of the app that follows from it
+/// (docs: the same rules as src/lib/life.ts). Hiding a part never deletes anything.
+enum Life {
+    enum Share: String, CaseIterable, Identifiable {
+        case flatmates, partner, family, friends
+        var id: Self { self }
+        var label: String { switch self { case .flatmates: "Flatmates"; case .partner: "Partner"; case .family: "Family & kids"; case .friends: "Friends" } }
+        var symbol: String { switch self { case .flatmates: "house.fill"; case .partner: "heart.fill"; case .family: "figure.2.and.child.holdinghands"; case .friends: "person.2.fill" } }
+    }
+    enum Doing: String, CaseIterable, Identifiable {
+        case study, shifts, salaried, looking
+        var id: Self { self }
+        var label: String { switch self { case .study: "Studying"; case .shifts: "Job with shifts or hours"; case .salaried: "Salaried job"; case .looking: "Looking for work" } }
+        var symbol: String { switch self { case .study: "graduationcap.fill"; case .shifts: "clock.fill"; case .salaried: "briefcase.fill"; case .looking: "magnifyingglass" } }
+    }
+    enum Part: String, CaseIterable, Identifiable {
+        case groups, bills, chores, list, work, limit
+        var id: Self { self }
+        var label: String {
+            switch self {
+            case .groups: "Shared expenses"; case .bills: "Bills"; case .chores: "Chores rota"
+            case .list: "Shopping list"; case .work: "Shifts & pay"; case .limit: "Work limit"
+            }
+        }
+        var sub: String {
+            switch self {
+            case .groups: "Groups, friends and settling up"
+            case .bills: "Rent, phone, insurance — reminders and ticks"
+            case .chores: "Whose turn it is, and points"
+            case .list: "One list for the household"
+            case .work: "Log shifts and see your pay"
+            case .limit: "Stay under a student visa's hours"
+            }
+        }
+        var symbol: String {
+            switch self {
+            case .groups: "person.3.fill"; case .bills: "doc.text.fill"; case .chores: "sparkles"
+            case .list: "cart.fill"; case .work: "clock.fill"; case .limit: "gauge.with.needle.fill"
+            }
+        }
+    }
+
+    /// Before the questions were asked (everyone from before them) everything stays on.
+    static func suggested(_ part: Part, share: [String]?, doing: [String]?) -> Bool {
+        guard let share, let doing else { return true }
+        let home = share.contains { ["flatmates", "partner", "family"].contains($0) }
+        switch part {
+        case .groups: return !share.isEmpty
+        case .bills: return true
+        case .chores, .list: return home
+        case .work: return doing.contains("shifts")
+        case .limit: return doing.contains("study") && doing.contains("shifts")
+        }
     }
 }
 
@@ -339,5 +407,104 @@ enum AvatarColors {
         var h: UInt32 = 0
         for u in seed.unicodeScalars { h = h &* 31 &+ u.value }
         return all[Int(h % UInt32(all.count))]
+    }
+}
+
+// MARK: - Bills
+
+/// Something paid again and again (supabase/migrations/20261002000000_bills_and_chores.sql):
+/// a group's (flatId) or your own (ownerId). Ticking a due date only says "paid".
+struct Bill: Codable, Identifiable, Hashable {
+    let id: String
+    var flatId: String?
+    var ownerId: String?
+    var name: String
+    var amount: Double?
+    var currency: String
+    var category: String
+    var cadence: String
+    var anchorOn: String
+    var payer: String?
+    var contractEndsOn: String?
+    var noticeAmount: Int?
+    var noticeUnit: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, amount, currency, category, cadence, payer
+        case flatId = "flat_id", ownerId = "owner_id", anchorOn = "anchor_on"
+        case contractEndsOn = "contract_ends_on", noticeAmount = "notice_amount", noticeUnit = "notice_unit"
+    }
+
+    static let cadences: [(String, String)] = [("weekly", "Every week"), ("biweekly", "Every 2 weeks"), ("monthly", "Every month"), ("quarterly", "Every 3 months"), ("yearly", "Every year")]
+    var cadenceLabel: String { Self.cadences.first { $0.0 == cadence }?.1 ?? cadence }
+}
+
+/// Where a bill stands today: the due date to act on (the oldest unpaid one, or the
+/// next when all are paid) and the latest tick.
+struct BillStatus: Codable, Hashable {
+    let billId: String
+    let dueOn: String
+    let state: String          // upcoming · due · overdue · paid
+    let paidOn: String?
+    let paidBy: String?
+    let cancelBy: String?
+
+    enum CodingKeys: String, CodingKey {
+        case state
+        case billId = "bill_id", dueOn = "due_on", paidOn = "paid_on", paidBy = "paid_by", cancelBy = "cancel_by"
+    }
+}
+
+// MARK: - Chores
+
+/// A rota in a group (docs/chores-screens.md): each period the chore is one person's.
+struct Chore: Codable, Identifiable, Hashable {
+    let id: String
+    var flatId: String
+    var name: String
+    var cadence: String
+    var anchorOn: String
+    var points: Int
+    var rota: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, cadence, points, rota
+        case flatId = "flat_id", anchorOn = "anchor_on"
+    }
+    static let cadences: [(String, String)] = [("weekly", "Every week"), ("biweekly", "Every 2 weeks"), ("monthly", "Every month")]
+    static let sizes: [(Int, String)] = [(1, "Small"), (2, "Medium"), (3, "Big")]
+}
+
+/// One period of a chore: whose it is, and whether it was done (and the points it earned).
+struct ChoreTurn: Codable, Hashable {
+    let choreId: String
+    let n: Int
+    let flatId: String
+    let startsOn: String
+    let endsOn: String
+    let assignee: String?
+    let state: String          // open · done · missed
+    let doneBy: String?
+    let doneAt: String?
+    let points: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case n, assignee, state, points
+        case choreId = "chore_id", flatId = "flat_id", startsOn = "starts_on", endsOn = "ends_on", doneBy = "done_by", doneAt = "done_at"
+    }
+}
+
+/// "Can you take my turn?" — waiting for an answer.
+struct ChoreSwap: Codable, Identifiable, Hashable {
+    let id: String
+    let choreId: String
+    let n: Int
+    let flatId: String
+    let fromUser: String
+    let toUser: String
+
+    enum CodingKeys: String, CodingKey {
+        case id, n
+        case choreId = "chore_id", flatId = "flat_id", fromUser = "from_user", toUser = "to_user"
     }
 }

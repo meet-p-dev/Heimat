@@ -21,7 +21,7 @@ export default function CreateJoinModal({ open, mode, onClose, T, createFlat, jo
         </form>
       ) : (
         <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) createFlat(name.trim()) }}>
-          <Field T={T} label="Group name" htmlFor="cj-name" hint="Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Heimat account first.">
+          <Field T={T} label="Group name" htmlFor="cj-name" hint="Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Splitlife account first.">
             <input id="cj-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. WG Hauptstraße, Sicily trip" />
           </Field>
           <Btn full type="submit" busy={busy} disabled={!name.trim()}>Create group</Btn>

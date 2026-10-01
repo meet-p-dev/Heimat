@@ -17,8 +17,8 @@ export default function NotifPrompt({ T, mode, busy, onEnable, onDismiss }: {
         <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.5, marginBottom: 6 }}>Stay in the loop</div>
         <div style={{ fontSize: 15, color: T.txt2, lineHeight: 1.55, marginBottom: 20 }}>
           {installing
-            ? <>Get a notification when a flatmate adds an expense or pays you back — even when Heimat is closed. First add Heimat to your Home Screen: tap <Share size={14} style={{ display: 'inline', verticalAlign: -2 }} /> <b>Share</b> → <b>Add to Home Screen</b>, then open it from that icon.</>
-            : <>Get a notification when a flatmate adds a shared expense or records a payment to you — even when Heimat is closed.</>}
+            ? <>Get a notification when a flatmate adds an expense or pays you back — even when Splitlife is closed. First add Splitlife to your Home Screen: tap <Share size={14} style={{ display: 'inline', verticalAlign: -2 }} /> <b>Share</b> → <b>Add to Home Screen</b>, then open it from that icon.</>
+            : <>Get a notification when a flatmate adds a shared expense or records a payment to you — even when Splitlife is closed.</>}
         </div>
         {installing ? (
           <Btn full onClick={onDismiss}>Got it</Btn>

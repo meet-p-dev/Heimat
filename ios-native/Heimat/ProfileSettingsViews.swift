@@ -71,6 +71,12 @@ struct ProfileView: View {
             } header: { Text("Your flats") } footer: { Text("Flats sync live with your flatmates. Everything else here stays on this phone.") }
             .tint(.primary)
 
+            Section {
+                NavigationLink { LifeSettingsView() } label: {
+                    Label { Text("Your Splitlife") } icon: { SettingIcon(symbol: "slider.horizontal.3", color: .indigo) }
+                }
+            } footer: { Text("Who you share with and what you do — and the parts of the app that shows.") }
+
             Section("Home & money") {
                 LabeledContent("Home", value: "\(p.homeCountry) · \(p.homeCur)")
                 LabeledContent("Studying in", value: "\(p.hostCountry) · \(p.hostCur)")
@@ -196,7 +202,7 @@ struct SettingsView: View {
             Section {
                 if m.isAnon {
                     Button { sheet = .auth(.signup) } label: { row("person.crop.circle.badge.plus", .green, "Create account", sub: "Free — keeps your flat if you change phone") }
-                    Button { sheet = .auth(.signin) } label: { row("person.crop.circle", .blue, "Sign in", sub: "Already have a Heimat account") }
+                    Button { sheet = .auth(.signin) } label: { row("person.crop.circle", .blue, "Sign in", sub: "Already have a Splitlife account") }
                 } else {
                     Button { sheet = .auth(.email) } label: {
                         Label { LabeledContent("Email", value: m.email ?? "") } icon: { SettingIcon(symbol: "envelope.fill", color: .blue) }
@@ -206,7 +212,7 @@ struct SettingsView: View {
                 }
             } header: { Text("Account") } footer: {
                 if let pending = m.pendingEmail { Text("Waiting for you to confirm \(pending).") }
-                else if m.isAnon { Text("You're using Heimat as a guest. An account keeps your flat if you change phone or reinstall.") }
+                else if m.isAnon { Text("You're using Splitlife as a guest. An account keeps your flat if you change phone or reinstall.") }
             }
             .tint(.primary)
 
@@ -234,7 +240,7 @@ struct SettingsView: View {
                 .disabled(pushDenied)
             } header: { Text("Notifications") } footer: {
                 Text(pushDenied
-                     ? "Blocked in iOS Settings — turn Heimat's notifications back on there."
+                     ? "Blocked in iOS Settings — turn Splitlife's notifications back on there."
                      : "A nudge when a flatmate adds an expense or settles up.")
             }
             .task { pushOn = await pushState(); pushDenied = await Push.shared.permission() == .denied }
@@ -274,7 +280,7 @@ struct SettingsView: View {
                 }
             } header: { Text("iCloud") } footer: {
                 Text(CloudBackup.shared.available
-                     ? "Your profile and shifts are copied to your own iCloud so a new phone can pick them up. Nothing goes to Heimat's servers."
+                     ? "Your profile and shifts are copied to your own iCloud so a new phone can pick them up. Nothing goes to Splitlife's servers."
                      : "Sign in to iCloud on this phone to back up your profile and shifts.")
             }
             .task { lastBackup = CloudBackup.shared.lastBackup }
@@ -364,7 +370,7 @@ struct SettingsView: View {
         .confirmationDialog("Clear the shifts stored on this phone? Your account, profile and flats aren't affected.", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Clear data", role: .destructive) { m.clearLocal() }
         }
-        .confirmationDialog("Delete your Heimat account? You leave every flat and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
+        .confirmationDialog("Delete your Splitlife account? You leave every flat and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete account", role: .destructive) { Task { if let e = await m.deleteAccount() { m.show(e) } } }
         }
     }
@@ -376,5 +382,61 @@ struct SettingsView: View {
                 if let sub { Text(sub).font(.caption).foregroundStyle(.secondary) }
             }
         } icon: { SettingIcon(symbol: symbol, color: color) }
+    }
+}
+
+/// The three questions again, and every part of the app with its switch. A switch
+/// flipped by hand stays that way; "Show what fits me" goes back to the answers.
+struct LifeSettingsView: View {
+    @Environment(AppModel.self) private var m
+
+    var body: some View {
+        let p = m.profile
+        Form {
+            Section {
+                LifeChoices(options: Life.Share.allCases.map { ($0.rawValue, $0.label, $0.symbol) }, chosen: binding(\.share))
+            } header: { Text("Who do you share costs with?") }
+            Section {
+                LifeChoices(options: Life.Doing.allCases.map { ($0.rawValue, $0.label, $0.symbol) }, chosen: binding(\.doing))
+            } header: { Text("What do you do?") }
+            Section {
+                ForEach(Life.Part.allCases) { part in
+                    Toggle(isOn: Binding(get: { m.profile.on(part) }, set: { v in
+                        var q = m.profile
+                        var o = q.parts ?? [:]
+                        // the same as the answers suggest: no need to remember it
+                        if v == Life.suggested(part, share: q.share, doing: q.doing) { o[part.rawValue] = nil } else { o[part.rawValue] = v }
+                        q.parts = o.isEmpty ? nil : o
+                        m.saveProfile(q)
+                    })) {
+                        Label { VStack(alignment: .leading, spacing: 1) { Text(part.label); Text(part.sub).font(.caption).foregroundStyle(.secondary) } }
+                            icon: { SettingIcon(symbol: part.symbol, color: .indigo) }
+                    }
+                }
+            } header: { Text("Show in the app") } footer: {
+                Text("Hiding a part never deletes anything — switch it back on and it is all there.")
+            }
+            if p.parts != nil {
+                Section {
+                    Button("Show what fits me") { var q = m.profile; q.parts = nil; m.saveProfile(q) }
+                }
+            }
+        }
+        .navigationTitle("Your Splitlife")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// one question's answers as a set, saved on every change
+    private func binding(_ key: WritableKeyPath<Profile, [String]?>) -> Binding<Set<String>> {
+        Binding(get: { Set(m.profile[keyPath: key] ?? []) }, set: { v in
+            var q = m.profile
+            // someone from before the questions answering one of them: the other starts as
+            // what Splitlife was made for (a student with a job, in a shared flat)
+            if q.share == nil { q.share = ["flatmates"] }
+            if q.doing == nil { q.doing = ["study", "shifts"] }
+            let order = key == \Profile.share ? Life.Share.allCases.map(\.rawValue) : Life.Doing.allCases.map(\.rawValue)
+            q[keyPath: key] = order.filter(v.contains)
+            m.saveProfile(q)
+        })
     }
 }

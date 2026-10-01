@@ -22,6 +22,11 @@ export interface Profile {
   rate?: number
   rateAt?: string
   onboarded: boolean
+  /* the questions (src/lib/life.ts): who you share costs with, what you do — absent until answered */
+  share?: string[]
+  doing?: string[]
+  /* parts switched on or off by hand in Settings */
+  parts?: Partial<Record<string, boolean>>
 }
 
 export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean }
@@ -36,7 +41,7 @@ export interface Member {
   claimed_at?: string | null; invite_email?: string | null
 }
 export const hasLeft = (m: Member) => !!m.left_at
-/* invited, not on Heimat yet — by email, or by a link sent to them */
+/* invited, not on Splitlife yet — by email, or by a link sent to them */
 export const isPending = (m: Member) => !m.claimed_at && (!!m.invite_email || !!m.invite_token)
 
 export type SplitType = 'equal' | 'exact' | 'percent' | 'shares' | 'adjust' | 'itemized'
@@ -97,6 +102,6 @@ export interface Derived { paidHours: number; legalHours: number; pay: number; w
 
 export type TabId = 'home' | 'flat' | 'money' | 'work'
 /* pushed pages: the personal ones, and inside Groups a group, Non-group expenses or one person */
-export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}`
+export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills'
 export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats' | 'settleperson'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'profile' | 'cats' | 'settleperson' | 'bill' | 'chore'

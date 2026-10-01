@@ -12,6 +12,8 @@ import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } fro
 import { isNative, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, TINT } from '../ui'
+import { LifeSettingsItem } from '../Life'
+import { partOn } from '../../lib/life'
 
 const THEMES: [ThemeMode, string][] = [['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']]
 
@@ -39,7 +41,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
 
   const toggleNotif = async () => {
     if (notifBusy) return
-    if (needsInstall()) { showToast('Add Heimat to your Home Screen first'); return }
+    if (needsInstall()) { showToast('Add Splitlife to your Home Screen first'); return }
     if (!pushSupported()) { showToast('Notifications aren’t supported on this device'); return }
     setNotifBusy(true)
     if (notif) {
@@ -47,8 +49,8 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
     } else {
       const r = await subscribe()
       if (r.ok) { setNotif(true); showToast('Notifications on') }
-      else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Heimat in Settings → Notifications' : 'Blocked — allow notifications in your browser settings')
-      else if (r.reason === 'install') showToast('Add Heimat to your Home Screen first')
+      else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Splitlife in Settings → Notifications' : 'Blocked — allow notifications in your browser settings')
+      else if (r.reason === 'install') showToast('Add Splitlife to your Home Screen first')
       else showToast("Couldn't turn on notifications")
     }
     setNotifBusy(false)
@@ -90,11 +92,11 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
 
   return (
     <Page T={T} title="Settings" onBack={onBack} z={210}>
-      <Group T={T} title="Account" footer={isAnon ? 'You are using Heimat as a guest. An account keeps your flat if you change phone or clear your browser.' : pendingEmail ? `Waiting for you to confirm ${pendingEmail}.` : undefined}>
+      <Group T={T} title="Account" footer={isAnon ? 'You are using Splitlife as a guest. An account keeps your flat if you change phone or clear your browser.' : pendingEmail ? `Waiting for you to confirm ${pendingEmail}.` : undefined}>
         {isAnon ? (
           <>
             <Item T={T} icon={UserPlus} tint={TINT.green} label="Create account" sub="Free — takes 20 seconds" onClick={() => onAuth('signup')} />
-            <Item T={T} icon={LogIn} tint={TINT.blue} label="Sign in" sub="Already have a Heimat account" onClick={() => onAuth('signin')} />
+            <Item T={T} icon={LogIn} tint={TINT.blue} label="Sign in" sub="Already have a Splitlife account" onClick={() => onAuth('signin')} />
           </>
         ) : (
           <>
@@ -105,6 +107,9 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
         )}
       </Group>
 
+      <Group T={T} title="Your Splitlife" footer="Only the parts that fit you are shown. Hiding one never deletes anything.">
+        <LifeSettingsItem T={T} profile={profile} sProfile={sProfile} />
+      </Group>
       <Group T={T} title="Appearance" footer="Reduce transparency swaps the glass for solid surfaces — easier to read in bright light, and lighter on the battery.">
         <div className="h-item" style={{ display: 'block', paddingTop: 13, paddingBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 12 }}>
@@ -117,7 +122,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       </Group>
 
       <Group T={T} title="Notifications">
-        <Item T={T} icon={Bell} tint={TINT.red} label="Push notifications" sub={needsInstall() ? 'Add Heimat to your Home Screen to enable' : 'New shared expenses, list items and payments to you'}
+        <Item T={T} icon={Bell} tint={TINT.red} label="Push notifications" sub={needsInstall() ? 'Add Splitlife to your Home Screen to enable' : 'New shared expenses, list items and payments to you'}
           right={<Toggle label="Push notifications" on={notif} disabled={notifBusy} onChange={toggleNotif} />} />
       </Group>
 
@@ -131,11 +136,11 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
         )}
       </Group>
 
-      <Group T={T} title="Work limits" footer={<>Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.</>}>
+      {partOn(profile, 'limit') && <Group T={T} title="Work limits" footer={<>Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.</>}>
         <Item T={T} icon={CalendarDays} tint={TINT.orange} label="Days per year" right={<Stepper label="days per year" value={prefs.yearDays} onChange={(v) => set('yearDays', v)} min={10} max={365} step={5} />} />
         <Item T={T} icon={Timer} tint={TINT.orange} label="Hours per week" right={<Stepper label="hours per week" value={prefs.weekCap} onChange={(v) => set('weekCap', v)} min={1} max={60} format={(n) => `${n} h`} />} />
         {!germanLimits && <Item T={T} icon={RotateCcw} tint={TINT.gray} label="Reset to Germany's limits" chevron={false} onClick={() => setPrefs({ ...prefs, weekCap: DEFAULT_PREFS.weekCap, yearDays: DEFAULT_PREFS.yearDays })} />}
-      </Group>
+      </Group>}
 
       <Group T={T} title="General">
         {canVibrate && <Item T={T} icon={Vibrate} tint={TINT.pink} label="Haptic feedback" right={<Toggle label="Haptic feedback" on={prefs.haptics} onChange={(v) => set('haptics', v)} />} />}
@@ -151,7 +156,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       </Group>
 
       <Group T={T} title="About">
-        <Item T={T} icon={Info} tint={TINT.gray} label="Version" value={`Heimat ${version}`} />
+        <Item T={T} icon={Info} tint={TINT.gray} label="Version" value={`Splitlife ${version}`} />
         <Item T={T} icon={Fingerprint} tint={TINT.gray} label="Account ID" value={uid ? uid.slice(0, 8) + '…' : '—'} chevron={false} onClick={uid ? async () => { if (await copyText(uid)) showToast('Account ID copied') } : undefined} />
       </Group>
 

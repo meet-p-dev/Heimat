@@ -33,7 +33,7 @@ function shell(title: string, body: string) {
     <div style="max-width:420px;margin:0 auto;padding:48px 20px 40px;box-sizing:border-box">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
         <div style="width:34px;height:34px;border-radius:11px;background:${T.acc};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:17px">H</div>
-        <div style="font-size:17px;font-weight:700;letter-spacing:-0.2px">Heimat</div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-0.2px">Splitlife</div>
       </div>
       <h1 style="font-size:23px;font-weight:700;letter-spacing:-0.4px;margin:0 0 10px">${title}</h1>
       ${body}
@@ -55,7 +55,7 @@ function askForNewPassword(email: string | null) {
      <input id="pw2" type="password" autocomplete="new-password" placeholder="Repeat it" style="${inputStyle}"/>
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <button id="go" style="${btnStyle(true)}">Save new password</button>
-     <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">This password is for your Heimat account. It does not change anything on your device — your work shifts and runway never leave it.</p>`,
+     <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">This password is for your Splitlife account. It does not change anything on your device — your work shifts and runway never leave it.</p>`,
   )
 
   const pw = document.getElementById('pw') as HTMLInputElement
@@ -90,8 +90,8 @@ function askForNewPassword(email: string | null) {
 function done() {
   shell(
     'Password changed',
-    `<p style="${pStyle}">You are signed in on this browser. Open Heimat and your flat, its expenses and its balances are where you left them.</p>
-     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;line-height:1.2">Open Heimat</a>
+    `<p style="${pStyle}">You are signed in on this browser. Open Splitlife and your flat, its expenses and its balances are where you left them.</p>
+     <a href="${appUrl}" style="${btnStyle(true)};display:block;text-align:center;text-decoration:none;line-height:1.2">Open Splitlife</a>
      <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">Using the phone app? Go back to it and sign in with your new password.</p>`,
   )
 }
@@ -100,12 +100,12 @@ function done() {
 function askForANewLink(reason: string) {
   shell(
     'This reset link has expired',
-    `<p style="${pStyle}">${esc(reason)} Reset links are single-use and last an hour. Enter your email and Heimat will send a fresh one.</p>
+    `<p style="${pStyle}">${esc(reason)} Reset links are single-use and last an hour. Enter your email and Splitlife will send a fresh one.</p>
      <input id="mail" type="email" inputmode="email" autocapitalize="none" autocomplete="email" placeholder="you@example.com" style="${inputStyle}"/>
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <div id="ok" style="${noteStyle(T.green)};display:none"></div>
      <button id="go" style="${btnStyle(true)}">Send a new link</button>
-     <a href="${appUrl}" style="${linkStyle}">Back to Heimat</a>`,
+     <a href="${appUrl}" style="${linkStyle}">Back to Splitlife</a>`,
   )
 
   const mail = document.getElementById('mail') as HTMLInputElement
@@ -125,7 +125,7 @@ function askForANewLink(reason: string) {
     if (error) { err.textContent = authErrorText(error, "Couldn't send the email right now. Please try again in a few minutes."); err.style.display = 'block'; return }
     // said the same way whether or not the address has an account, so the page
     // can't be used to find out who has one
-    ok.textContent = `If ${mail.value.trim()} has a Heimat account, a new link is on its way. Open it on this device.`
+    ok.textContent = `If ${mail.value.trim()} has a Splitlife account, a new link is on its way. Open it on this device.`
     ok.style.display = 'block'
   }
   go.onclick = submit
@@ -143,7 +143,7 @@ function askForANewLink(reason: string) {
 async function start() {
   shell('Checking your link…', `<p style="${pStyle}">One moment.</p>`)
 
-  if (!sb) return askForANewLink('Heimat could not reach the server.')
+  if (!sb) return askForANewLink('Splitlife could not reach the server.')
 
   const arrived = new URL((window as any).__heimatResetUrl || location.href)
   const hash = new URLSearchParams(arrived.hash.replace(/^#/, ''))

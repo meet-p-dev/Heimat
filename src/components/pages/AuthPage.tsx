@@ -140,7 +140,7 @@ export default function AuthPage({ T, mode, setMode, onClose, busy, isAnon, inFl
             <Btn full type="submit" busy={busy} disabled={!valid}>{c.cta}</Btn>
 
             {mode === 'signup' && <div style={{ fontSize: 14, color: T.txt2, textAlign: 'center', marginTop: 18 }}>Already have an account? <button type="button" className="h-link" onClick={() => setMode('signin')}>Sign in</button></div>}
-            {mode === 'signin' && isAnon && <div style={{ fontSize: 14, color: T.txt2, textAlign: 'center', marginTop: 18 }}>New to Heimat? <button type="button" className="h-link" onClick={() => setMode('signup')}>Create an account</button></div>}
+            {mode === 'signin' && isAnon && <div style={{ fontSize: 14, color: T.txt2, textAlign: 'center', marginTop: 18 }}>New to Splitlife? <button type="button" className="h-link" onClick={() => setMode('signup')}>Create an account</button></div>}
             {mode === 'forgot' && <div style={{ fontSize: 14, color: T.txt2, textAlign: 'center', marginTop: 18 }}>Remembered it? <button type="button" className="h-link" onClick={() => setMode('signin')}>Back to sign in</button></div>}
             {mode === 'signup' && (
               <div style={{ fontSize: 12, color: T.txt3, textAlign: 'center', lineHeight: 1.55, marginTop: 14 }}>

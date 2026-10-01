@@ -98,9 +98,9 @@ const directHtml = (p: Payload, link: string) => {
       <div style="font-size:15px;color:#0b6b4f;font-weight:600;margin-top:10px">${esc(yourPart(p))}</div>
     </div>
     <p style="font-size:15px;line-height:1.55;color:#5d6b65;margin:0 0 22px">
-      ${who} keeps track of what you share on Heimat, a small app for splitting costs with friends and flatmates.
+      ${who} keeps track of what you share on Splitlife, a small app for splitting costs with friends and flatmates.
     </p>
-    <a href="${link}" style="display:block;text-align:center;background:#0b6b4f;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px;border-radius:14px">See it on Heimat</a>
+    <a href="${link}" style="display:block;text-align:center;background:#0b6b4f;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px;border-radius:14px">See it on Splitlife</a>
     <p style="font-size:13px;line-height:1.5;color:#8b968f;margin:18px 0 0">
       Sign up with this email address and everything they split with you will be waiting. If you don't know ${who}, ignore this — nothing is shared with you until you do.
     </p>
@@ -109,7 +109,7 @@ const directHtml = (p: Payload, link: string) => {
 }
 
 const directPlain = (p: Payload, link: string) =>
-  `${p.inviter || 'Someone'} added an expense with you on Heimat.\n\n` +
+  `${p.inviter || 'Someone'} added an expense with you on Splitlife.\n\n` +
   `${p.description || 'An expense'}: ${money(Number(p.amount || 0), p.currency)} in all\n${yourPart(p)}\n\n` +
   `See it here:\n${link}\n\n` +
   `Sign up with this email address and everything they split with you will be waiting. If you don't know them, ignore this.`
@@ -123,7 +123,7 @@ const html = (p: Payload, link: string) => {
   <div style="background:#fff;border-radius:22px;padding:28px 24px">
     <h1 style="font-size:21px;margin:0 0 12px;color:#0c1110;letter-spacing:-.3px">${who} split an expense with you</h1>
     <p style="font-size:15px;line-height:1.55;color:#5d6b65;margin:0 0 22px">
-      You've been added to the ${noun} <strong style="color:#0c1110">${place}</strong> on Heimat, a small app for sharing flat and trip costs.
+      You've been added to the ${noun} <strong style="color:#0c1110">${place}</strong> on Splitlife, a small app for sharing flat and trip costs.
       Your share is already counted — open the link to see what it is.
     </p>
     <a href="${link}" style="display:block;text-align:center;background:#0b6b4f;color:#fff;text-decoration:none;font-weight:600;font-size:16px;padding:14px;border-radius:14px">See the expense</a>
@@ -135,7 +135,7 @@ const html = (p: Payload, link: string) => {
 }
 
 const plain = (p: Payload, link: string) =>
-  `${p.inviter || 'Someone'} added you to ${p.flat || 'a group'} on Heimat and split an expense with you.\n\n` +
+  `${p.inviter || 'Someone'} added you to ${p.flat || 'a group'} on Splitlife and split an expense with you.\n\n` +
   `Your share is already counted. Open this to see it:\n${link}\n\n` +
   `Sign up with this email address and it will be waiting for you. If you weren't expecting this, ignore it.`
 
@@ -162,8 +162,8 @@ Deno.serve(async (req) => {
     const link = `${base}invite.html?t=${encodeURIComponent(p.invite)}`
     const direct = p.kind === 'direct'
     const subject = direct
-      ? `${p.inviter || 'Someone'} added “${p.description || 'an expense'}” with you on Heimat`
-      : `${p.inviter || 'Someone'} split an expense with you on Heimat`
+      ? `${p.inviter || 'Someone'} added “${p.description || 'an expense'}” with you on Splitlife`
+      : `${p.inviter || 'Someone'} split an expense with you on Splitlife`
     const body = direct ? directHtml(p, link) : html(p, link)
     const text = direct ? directPlain(p, link) : plain(p, link)
 
@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
         method: 'POST',
         headers: { Authorization: `Bearer ${c.resend_key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: c.invite_from || 'Heimat <onboarding@resend.dev>',
+          from: c.invite_from || 'Splitlife <onboarding@resend.dev>',
           to: [p.email],
           subject,
           html: body,

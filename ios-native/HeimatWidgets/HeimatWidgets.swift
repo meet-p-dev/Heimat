@@ -18,7 +18,7 @@ enum MetricChoice: String, AppEnum {
 }
 
 struct HeimatWidgetConfig: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Heimat widget"
+    static var title: LocalizedStringResource = "Splitlife widget"
     static var description = IntentDescription("Pick what this widget shows.")
 
     @Parameter(title: "Show", default: .balance)
@@ -100,7 +100,7 @@ private struct BalanceView: View {
     let d: WidgetData
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Heading(text: d.inFlat ? d.flatName : "Heimat")
+            Heading(text: d.inFlat ? d.flatName : "Splitlife")
             if d.inFlat {
                 Text((d.net < 0 ? "−" : d.net > 0 ? "+" : "") + money(abs(d.net), d.currency))
                     .font(.system(size: 24, weight: .heavy)).minimumScaleFactor(0.5).lineLimit(1)
@@ -241,7 +241,7 @@ struct HeimatWidget: Widget {
             HeimatWidgetView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Heimat")
+        .configurationDisplayName("Splitlife")
         .description("Your flat balance or work limit — and a way straight into a new expense.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular])
     }

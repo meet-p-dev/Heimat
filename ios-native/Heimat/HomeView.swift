@@ -13,7 +13,7 @@ struct HomeView: View {
                 VStack(spacing: 14) {
                     if m.flat != nil || !m.circles.isEmpty { balance() } else { noFlat }
                     quickActions
-                    tiles
+                    if m.profile.on(.limit) { tiles }
                     if m.flat != nil && m.isAnon { guest }
                     if m.flat != nil { recent }
                 }
@@ -24,7 +24,7 @@ struct HomeView: View {
             .refreshable { await m.reload() }
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top) {
-                HeimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Heimat" : m.firstName)
+                HeimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Splitlife" : m.firstName)
             }
             .heimatScreen()
         }
@@ -138,10 +138,10 @@ struct HomeView: View {
         HStack(spacing: 10) {
             if m.flat != nil {
                 QuickAction(symbol: "plus", tint: Tint.green, label: "Expense") { m.startAddExpense() }
-                QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) }
-                QuickAction(symbol: "cart.fill", tint: Tint.pink, label: "List", badge: m.openItems) { m.sheet = .list }
+                if m.profile.on(.work) { QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) } }
+                if m.profile.on(.list) { QuickAction(symbol: "cart.fill", tint: Tint.pink, label: "List", badge: m.openItems) { m.sheet = .list } }
                 QuickAction(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "Analytics") { m.sheet = .analytics }
-            } else {
+            } else if m.profile.on(.work) {
                 QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) }
             }
         }
@@ -212,7 +212,7 @@ struct HomeView: View {
 
             HeimatCard(radius: 24, padding: 0) {
                 if m.expenses.isEmpty {
-                    Text("No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Heimat splits it.")
+                    Text("No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.")
                         .font(.system(size: 14)).foregroundStyle(.secondary)
                         .padding(18)
                 } else {

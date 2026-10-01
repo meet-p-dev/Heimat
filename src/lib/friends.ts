@@ -22,7 +22,7 @@ export function friendsMessage(error: { message?: string } | null | undefined, f
   return fallback
 }
 
-/* whether an address is on Heimat, and the name they use (shown, as Splitwise does) */
+/* whether an address is on Splitlife, and the name they use (shown, as Splitwise does) */
 export async function findPerson(email: string): Promise<{ onHeimat: boolean; name: string | null } | string> {
   if (!sb) return 'Offline'
   const { data, error } = await sb.rpc('find_person', { p_email: email.trim() })

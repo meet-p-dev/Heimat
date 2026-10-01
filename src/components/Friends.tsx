@@ -2,6 +2,10 @@
   Groups, Non-group expenses and one person's page — the web's copy of
   ios-native/Heimat/GroupsView.swift (docs/friends-screens.md).
 */
+import { NextBillLine, MyBillsCard } from './Bills'
+import type { BillsCtx } from './Bills'
+import { ChoreCardLine } from './Chores'
+import type { ChoresCtx } from './Chores'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { ChevronRight, ChevronDown, Plus, UserPlus, KeyRound, Search, X, Mail, Link2, ArrowRightLeft, Bell, Users, Share2 } from 'lucide-react'
@@ -19,6 +23,9 @@ import { Card, Btn, Avatar, SectionLabel, Page, Sheet, Field, SegmentedControl, 
 import ExpenseRow from './ExpenseRow'
 
 export interface FriendsCtx {
+  /* bills, when that part is switched on (src/components/Bills.tsx) */
+  bills: BillsCtx | null
+  chores: ChoresCtx | null
   T: Theme; uid: string | null; hostCur: string; main: string
   groups: Flat[]; circles: Flat[]; members: Member[]; expenses: Expense[]; books: Map<string, Ledger>; cats: Cat[]
   openPage: (p: PageId) => void; openGroup: (id: string) => void; invite: (flatId: string) => void
@@ -59,7 +66,7 @@ export function GroupsTab({ c }: { c: FriendsCtx }) {
   const { T } = c
   const friends = useMemo(() => friendLines(c.circles, c.members, c.books, c.uid, c.main), [c.circles, c.members, c.books, c.uid, c.main])
   const ng = totals(friends.flatMap((f) => linesWith(c.books, c.uid, f.userId, c.circles.map((x) => x.id))), c.main)[0]
-  const card = (key: string, title: string, people: { id: string; name: string }[], count: string, bal: Amount | undefined, open: () => void, action: { label: string; icon: typeof Plus; on: () => void }) => (
+  const card = (key: string, title: string, people: { id: string; name: string }[], count: string, bal: Amount | undefined, open: () => void, action: { label: string; icon: typeof Plus; on: () => void }, below?: React.ReactNode) => (
     <div key={key} style={{ position: 'relative', marginBottom: 12 }}>
       <Card T={T} onClick={() => { haptic(8); open() }} ariaLabel={`Open ${title}`} style={{ padding: 16, borderRadius: 24 }}>
         <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: -0.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 96 }}>{title}</div>
@@ -69,6 +76,7 @@ export function GroupsTab({ c }: { c: FriendsCtx }) {
           {bal !== undefined && <Standing T={T} a={bal} />}
           <ChevronRight size={18} color={T.txt3} />
         </div>
+        {below}
       </Card>
       <div style={{ position: 'absolute', top: 12, right: 12 }}>
         <Btn size="sm" icon={action.icon} onClick={() => { haptic(8); action.on() }}>{action.label}</Btn>
@@ -82,11 +90,13 @@ export function GroupsTab({ c }: { c: FriendsCtx }) {
         const waiting = people.filter(isPending).length
         return card(g.id, g.name, people.map((m) => ({ id: m.user_id, name: m.display_name })),
           `${people.length} ${people.length === 1 ? 'person' : 'people'}${waiting ? ` · ${waiting} invited` : ''}`,
-          myBalance(c.books, c.uid, g.id), () => c.openGroup(g.id), { label: 'Invite', icon: UserPlus, on: () => c.invite(g.id) })
+          myBalance(c.books, c.uid, g.id), () => c.openGroup(g.id), { label: 'Invite', icon: UserPlus, on: () => c.invite(g.id) },
+          <>{c.chores && <ChoreCardLine c={c.chores} flatId={g.id} />}{c.bills && <NextBillLine b={c.bills} flatId={g.id} />}</>)
       })}
       {card('nongroup', 'Non-group expenses', friends.map((f) => ({ id: f.userId, name: f.name })),
         friends.length ? `${friends.length} ${friends.length === 1 ? 'friend' : 'friends'}` : 'Split anything with anyone',
         friends.length ? ng || { currency: c.main, minor: 0 } : undefined, () => c.openPage('nongroup'), { label: 'Add', icon: Plus, on: () => c.addWith([]) })}
+      {c.bills && <MyBillsCard b={c.bills} open={() => c.openPage('mybills')} />}
       <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
         <Btn size="md" kind="secondary" icon={Plus} disabled={!c.uid} onClick={c.newGroup} style={{ flex: 1 }}>New group</Btn>
         <Btn size="md" kind="secondary" icon={KeyRound} disabled={!c.uid} onClick={c.join} style={{ flex: 1 }}>Join with code</Btn>
@@ -137,10 +147,10 @@ export function PersonSearch({ c, query, setQuery, pick, placeholder = 'Add an e
           {matches.map((k) => row(k.userId, <Avatar name={k.name} seed={k.userId} size={30} />, k.name, k.pending ? (k.email ? `invited · ${k.email}` : 'invited') : null, () => pick({ userId: k.userId, name: k.name })))}
           {email && !matches.some((k) => k.email === email) && (looked && looked.email === email ? (
             looked.onHeimat
-              ? row('found', <Avatar name={looked.name || email} seed={email} size={30} />, looked.name || email, `on Heimat · ${email}`, () => pick({ email, name: looked.name || email }))
+              ? row('found', <Avatar name={looked.name || email} seed={email} size={30} />, looked.name || email, `on Splitlife · ${email}`, () => pick({ email, name: looked.name || email }))
               : (
                 <div style={{ padding: '12px 16px' }}>
-                  <div style={{ fontSize: 13, color: T.txt2, marginBottom: 8 }}>{email} isn't on Heimat yet — they'll get an email with the expense.</div>
+                  <div style={{ fontSize: 13, color: T.txt2, marginBottom: 8 }}>{email} isn't on Splitlife yet — they'll get an email with the expense.</div>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input className="fld" style={{ flex: 1 }} placeholder="Their name" aria-label="Their name" value={newName} onChange={(e) => setNewName(e.target.value)} />
                     <Btn size="md" onClick={() => pick({ email, name: newName.trim() || email.split('@')[0] })}>Add</Btn>
@@ -230,7 +240,7 @@ export function NonGroupPage({ c, onBack }: { c: FriendsCtx; onBack: () => void 
       <PersonSearch c={c} query={query} setQuery={setQuery} pick={(p) => { setQuery(''); c.addWith([p]) }} />
       {!query && (friends.length === 0 ? (
         <Card T={T} style={{ borderRadius: 24 }}>
-          <EmptyState T={T} icon={Users} title="Split anything with anyone" body="A dinner, a taxi, concert tickets. Search a friend by name or email above — they don't need Heimat yet." />
+          <EmptyState T={T} icon={Users} title="Split anything with anyone" body="A dinner, a taxi, concert tickets. Search a friend by name or email above — they don't need Splitlife yet." />
         </Card>
       ) : (
         <>
@@ -282,7 +292,7 @@ export function PersonPage({ c, person, onBack }: { c: FriendsCtx; person: strin
   const sendLink = async () => {
     if (!link) return
     const url = `${webOrigin()}invite.html?t=${encodeURIComponent(link)}`
-    const msg = `I added what we split on Heimat — open this to see it and join: ${url}`
+    const msg = `I added what we split on Splitlife — open this to see it and join: ${url}`
     if (await shareText(msg)) return
     if (await copyText(url)) c.showToast('Link copied')
   }
@@ -291,7 +301,7 @@ export function PersonPage({ c, person, onBack }: { c: FriendsCtx; person: strin
       <Card T={T} grad style={{ borderRadius: 28, padding: 18, textAlign: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'center' }}><Avatar name={name} seed={person} size={56} /></div>
         <div style={{ fontSize: 20, fontWeight: 800, marginTop: 8 }}>{name}</div>
-        {pending && <div style={{ fontSize: 12.5, color: T.txt2 }}>invited — not on Heimat yet</div>}
+        {pending && <div style={{ fontSize: 12.5, color: T.txt2 }}>invited — not on Splitlife yet</div>}
         {main ? (
           <>
             <div style={{ fontSize: 13, color: T.txt2, marginTop: 6 }}>{main.minor > 0 ? 'owes you' : 'you owe'}</div>

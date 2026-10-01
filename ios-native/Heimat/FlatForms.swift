@@ -348,7 +348,7 @@ struct CreateJoinForm: View {
                     Section {
                         TextField("e.g. WG Hauptstraße, Sicily trip", text: $text)
                     } header: { Text("Group name") } footer: {
-                        Text("Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Heimat account first.")
+                        Text("Your flat, a trip, a team — anyone you split with. Invite them with the code or by email; they don't need a Splitlife account first.")
                     }
                 } else {
                     Section {
@@ -394,7 +394,7 @@ struct InviteView: View {
     var body: some View {
         NavigationStack {
             if let flat = m.flat {
-                let msg = "Join my \(flat.noun) “\(flat.name)” on Heimat\nCode: \(flat.joinCode)\nOpen \(Secrets.publicURL) → tap “Join with a code”."
+                let msg = "Join my \(flat.noun) “\(flat.name)” on Splitlife\nCode: \(flat.joinCode)\nOpen \(Secrets.publicURL) → tap “Join with a code”."
                 Form {
                     Section {
                         TextField("Name", text: $name).textContentType(.givenName)
@@ -408,7 +408,7 @@ struct InviteView: View {
                     } header: {
                         Text("Add by email")
                     } footer: {
-                        Text("They don't need Heimat yet. Their share counts from the moment you add them, and we'll email them a link to claim it — the history is waiting when they sign up.")
+                        Text("They don't need Splitlife yet. Their share counts from the moment you add them, and we'll email them a link to claim it — the history is waiting when they sign up.")
                     }
 
                     if let err {
@@ -466,7 +466,7 @@ struct InviteView: View {
                     } header: {
                         Text("Or share a code")
                     } footer: {
-                        Text("Anyone with an account can type this in — Heimat → Join with a code.")
+                        Text("Anyone with an account can type this in — Splitlife → Join with a code.")
                     }
                 }
                 .navigationTitle(flat.isGroup ? "Add people" : "Invite flatmates")

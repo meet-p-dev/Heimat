@@ -61,6 +61,39 @@ extension AppModel {
         members = allMembers.filter { $0.flatId == flat }
         expenses = allExpenses.filter { $0.flatId == flat }
         settles = allSettles.filter { $0.flatId == flat }
+        bills = [
+            Bill(id: "b1", flatId: flat, ownerId: nil, name: "Rent", amount: 2_340, currency: "EUR", category: "bills", cadence: "monthly", anchorOn: "2026-01-01", payer: alex),
+            Bill(id: "b2", flatId: flat, ownerId: nil, name: "Electricity", amount: nil, currency: "EUR", category: "bills", cadence: "monthly", anchorOn: "2026-01-15", payer: me),
+            Bill(id: "b3", flatId: flat, ownerId: nil, name: "Internet", amount: 39.99, currency: "EUR", category: "bills", cadence: "monthly", anchorOn: "2026-01-12",
+                 payer: me, contractEndsOn: "2026-12-31", noticeAmount: 1, noticeUnit: "month"),
+            Bill(id: "b4", flatId: nil, ownerId: me, name: "Phone", amount: 20, currency: "EUR", category: "bills", cadence: "monthly", anchorOn: "2026-01-03", payer: me),
+            Bill(id: "b5", flatId: nil, ownerId: me, name: "Gym", amount: 29.9, currency: "EUR", category: "bills", cadence: "monthly", anchorOn: "2026-01-28", payer: me),
+        ]
+        billStatus = Dictionary(uniqueKeysWithValues: [
+            BillStatus(billId: "b1", dueOn: "2026-10-01", state: "due", paidOn: "2026-09-01", paidBy: alex, cancelBy: nil),
+            BillStatus(billId: "b2", dueOn: "2026-09-15", state: "overdue", paidOn: nil, paidBy: nil, cancelBy: nil),
+            BillStatus(billId: "b3", dueOn: "2026-10-12", state: "upcoming", paidOn: "2026-09-12", paidBy: me, cancelBy: "2026-11-30"),
+            BillStatus(billId: "b4", dueOn: "2026-10-03", state: "upcoming", paidOn: nil, paidBy: nil, cancelBy: nil),
+            BillStatus(billId: "b5", dueOn: "2026-10-28", state: "paid", paidOn: "2026-09-28", paidBy: me, cancelBy: nil),
+        ].map { ($0.billId, $0) })
+        let rota = [me, alex, ben, dana, kim, nina]
+        chores = [
+            Chore(id: "c1", flatId: flat, name: "Bathroom", cadence: "weekly", anchorOn: "2026-09-07", points: 3, rota: rota),
+            Chore(id: "c2", flatId: flat, name: "Kitchen", cadence: "weekly", anchorOn: "2026-09-07", points: 2, rota: rota),
+            Chore(id: "c3", flatId: flat, name: "Trash", cadence: "weekly", anchorOn: "2026-09-07", points: 1, rota: rota),
+            Chore(id: "c4", flatId: flat, name: "Vacuuming", cadence: "biweekly", anchorOn: "2026-09-21", points: 2, rota: rota),
+        ]
+        func turn(_ c: String, _ n: Int, _ s: String, _ e: String, _ who: String, _ state: String = "open", by: String? = nil, pts: Int? = nil) -> ChoreTurn {
+            ChoreTurn(choreId: c, n: n, flatId: flat, startsOn: s, endsOn: e, assignee: who, state: state, doneBy: by, doneAt: by == nil ? nil : "2026-09-30T18:00:00Z", points: pts)
+        }
+        choreTurns = [
+            turn("c1", 3, "2026-09-28", "2026-10-04", me), turn("c1", 4, "2026-10-05", "2026-10-11", alex),
+            turn("c2", 3, "2026-09-28", "2026-10-04", nina, "done", by: nina, pts: 2), turn("c2", 4, "2026-10-05", "2026-10-11", me),
+            turn("c3", 3, "2026-09-28", "2026-10-04", ben), turn("c3", 4, "2026-10-05", "2026-10-11", dana),
+            turn("c4", 0, "2026-09-21", "2026-10-04", dana), turn("c4", 1, "2026-10-05", "2026-10-18", kim),
+        ]
+        choreSwaps = [ChoreSwap(id: "w1", choreId: "c4", n: 0, flatId: flat, fromUser: dana, toUser: me)]
+        choresDone = [turn("c2", 3, "2026-09-28", "2026-10-04", nina, "done", by: nina, pts: 2)]
         tab = .flat
     }
 

@@ -4,7 +4,7 @@
 self.addEventListener('push', (event) => {
   let d = {}
   try { d = event.data ? event.data.json() : {} } catch { d = {} }
-  const title = d.title || 'Heimat'
+  const title = d.title || 'Splitlife'
   const options = {
     body: d.body || '',
     icon: d.icon || 'icon-192.png',

@@ -51,8 +51,8 @@ export default defineConfig({
         importScripts: ['push-sw.js'],
       },
       manifest: {
-        name: 'Heimat',
-        short_name: 'Heimat',
+        name: 'Splitlife',
+        short_name: 'Splitlife',
         description: 'Money & life companion for international students abroad',
         theme_color: '#0c1110',
         background_color: '#0c1110',

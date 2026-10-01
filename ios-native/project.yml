@@ -33,7 +33,7 @@ targets:
     info:
       path: Heimat/Info.plist
       properties:
-        CFBundleDisplayName: Heimat
+        CFBundleDisplayName: Splitlife
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         ITSAppUsesNonExemptEncryption: false
@@ -71,7 +71,7 @@ targets:
     info:
       path: HeimatWidgets/Info.plist
       properties:
-        CFBundleDisplayName: Heimat
+        CFBundleDisplayName: Splitlife
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:

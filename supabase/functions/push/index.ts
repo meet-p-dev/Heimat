@@ -13,7 +13,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 type Payload = {
   token: string
-  event: 'item_added' | 'settlement' | 'expense_added' | 'nudge' | 'broadcast'
+  event: 'item_added' | 'settlement' | 'expense_added' | 'nudge' | 'broadcast' | 'reminder'
   flat_id?: string
   actor?: string          // who did it — never notified
   to_user?: string        // settlement recipient
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
     }
 
     // work out who to notify, and what each of them should read
-    let title = 'Heimat'
+    let title = 'Splitlife'
     let recipients: string[] = []
     let bodyFor: (uid: string) => string = () => ''
 
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       bodyFor = () => `${who} added “${body.title}”`
     } else if (body.event === 'expense_added' && body.flat_id) {
       // no actor: a recurring expense whose author has since deleted their account
-      const who = body.actor ? await nameOf(body.actor, body.flat_id) : 'Heimat'
+      const who = body.actor ? await nameOf(body.actor, body.flat_id) : 'Splitlife'
       const parts = body.split_among || []
       // each person's share, split by the database exactly as the apps split it
       // (10 € between three is 3,34 + 3,33 + 3,33; by percentage, shares or items
@@ -143,9 +143,16 @@ Deno.serve(async (req) => {
       recipients = [body.to_user]
       title = 'A nudge from ' + who
       bodyFor = () => `${who} is still waiting on ${money(Number(body.amount || 0), body.currency)}`
+    } else if (body.event === 'reminder' && body.to_user) {
+      // bills due, contracts to cancel, chore turns and swaps: one person, written by
+      // the database (run_reminders and the chore functions); flat_id is null for a
+      // personal bill
+      recipients = [body.to_user]
+      title = body.title || 'Splitlife'
+      bodyFor = () => body.message || ''
     } else if (body.event === 'broadcast' && body.flat_id) {
       recipients = await members(body.flat_id)
-      title = body.title || 'Heimat'
+      title = body.title || 'Splitlife'
       bodyFor = () => body.message || ''
     } else {
       return new Response('bad request', { status: 400 })
@@ -158,6 +165,9 @@ Deno.serve(async (req) => {
 
     const apns = apnsConfig(c)
     const fcm = fcmConfig(c)
+    // one tag per kind replaces the last of that kind on the lock screen; reminders are
+    // each their own (rent today must not replace your chore turn)
+    const tag = body.event === 'reminder' ? undefined : body.event
 
     let sent = 0
     const dead: string[] = []
@@ -169,7 +179,7 @@ Deno.serve(async (req) => {
         try {
           if (endpoint.startsWith('apns:')) {
             if (!apns) return console.warn('ios device but APNs is not configured')
-            const r = await sendApns(apns, endpoint.slice(5), { title, body: text, tag: body.event })
+            const r = await sendApns(apns, endpoint.slice(5), { title, body: text, tag })
             if (r.ok) sent++
             else if (r.gone) dead.push(endpoint)
             else console.error('apns failed', r.status, r.reason)
@@ -177,7 +187,7 @@ Deno.serve(async (req) => {
           }
           if (endpoint.startsWith('fcm:')) {
             if (!fcm) return console.warn('android device but FCM is not configured')
-            const r = await sendFcm(fcm, endpoint.slice(4), { title, body: text, tag: body.event })
+            const r = await sendFcm(fcm, endpoint.slice(4), { title, body: text, tag })
             if (r.ok) sent++
             else if (r.gone) dead.push(endpoint)
             else console.error('fcm failed', r.status, r.reason)
@@ -185,7 +195,7 @@ Deno.serve(async (req) => {
           }
           await webpush.sendNotification(
             { endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-            JSON.stringify({ title, body: text, url: './', tag: body.event })
+            JSON.stringify({ title, body: text, url: './', ...(tag ? { tag } : {}) })
           )
           sent++
         } catch (e: any) {
