@@ -1,0 +1,25 @@
+{
+  "builtin": [
+    ["Rewe", "groceries"], ["REWE SAGT DANKE", "groceries"], ["Lidl Wocheneinkauf", "groceries"], ["Penny", "groceries"],
+    ["Norma Müller", null], ["Einkauf", "groceries"], ["milk and bread", "groceries"],
+    ["Miete Oktober", "rent"], ["Rent", "rent"], ["Kaution", "rent"], ["Miete und Strom", "rent"],
+    ["Strom", "utilities"], ["Stadtwerke München", "utilities"], ["Rundfunkbeitrag", "utilities"], ["GEZ", "utilities"],
+    ["Internet", "internet"], ["Vodafone Rechnung", "internet"], ["WLAN router", "internet"],
+    ["Döner", "eatout"], ["Pizza night", "eatout"], ["Uber Eats", "eatout"], ["Burger King", "eatout"], ["Dinner at Thai Park", "eatout"], ["Kaffee", "eatout"],
+    ["Uber", "transport"], ["Deutschlandticket", "transport"], ["Flixbus to Berlin", "transport"], ["Tanken", "transport"], ["Bolt", "transport"], ["Bolt Schmidt", null],
+    ["IKEA", "household"], ["dm", "household"], ["Putzmittel", "household"], ["toilet paper", "household"], ["Müllbeutel", "household"],
+    ["Concert tickets", null], ["Geschenk für Anna", null], ["xy", null], ["Current account", null], ["Barbara", null]
+  ],
+  "learned": {
+    "history": [
+      {"description": "Döner Kebab Haus", "category": "groceries"},
+      {"description": "Netflix", "category": "internet"},
+      {"description": "Spätkauf beer", "category": "other"},
+      {"description": "Netflix", "category": "eatout"}
+    ],
+    "cases": [
+      ["Döner Kebab Haus", "groceries"], ["netflix", "internet"], ["NETFLIX!", "internet"], ["Spätkauf chips", "other"],
+      ["Döner", "groceries"], ["Rewe", "groceries"], ["Ne", null]
+    ]
+  }
+}

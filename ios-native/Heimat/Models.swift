@@ -185,6 +185,9 @@ struct Profile: Codable, Equatable {
     var doing: [String]?
     /// parts switched on or off by hand in Settings, over what the answers suggest
     var parts: [String: Bool]?
+    /// tax details for the monthly estimate, and each employer's kind (TaxViews.swift)
+    var tax: TaxDetails?
+    var jobs: [String: JobSetting]?
 
     init() {}
     // tolerant: rows written by the web app may miss any field
@@ -200,6 +203,8 @@ struct Profile: Codable, Equatable {
         share = try? c.decodeIfPresent([String].self, forKey: .share)
         doing = try? c.decodeIfPresent([String].self, forKey: .doing)
         parts = try? c.decodeIfPresent([String: Bool].self, forKey: .parts)
+        tax = try? c.decodeIfPresent(TaxDetails.self, forKey: .tax)
+        jobs = try? c.decodeIfPresent([String: JobSetting].self, forKey: .jobs)
     }
 
     /// whether a part of the app is shown: a hand-made choice first, else what the answers suggest

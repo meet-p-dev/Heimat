@@ -30,6 +30,9 @@ struct ExpenseForm: View {
     @State private var payer = ""
     @State private var split = SplitState()
     @State private var cat = "groceries"
+    /// once you pick a category yourself, typing stops suggesting one
+    @State private var catTouched = false
+    @State private var learned = Suggest.Learned()
     @State private var date = Date()
     @State private var confirmDelete = false
     /// lowercased because the database hands uuids back lowercase, and the id
@@ -86,7 +89,11 @@ struct ExpenseForm: View {
                     }
                     .disabled(editing.map { !m.isCircle($0.flatId) } ?? false)
                     TextField("What for? e.g. Rewe groceries", text: $desc)
-                    Picker("Category", selection: $cat) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
+                        .onChange(of: desc) { _, d in
+                            guard !catTouched, let s = Suggest.category(d, learned, known: { id in m.cats.contains { $0.id == id } }) else { return }
+                            cat = s
+                        }
+                    Picker("Category", selection: Binding(get: { cat }, set: { cat = $0; catTouched = true })) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                     Picker("Paid by", selection: payerChoice) {
                         ForEach(people) { Text(m.nameOf($0.userId, in: target)).tag($0.userId) }
@@ -144,8 +151,14 @@ struct ExpenseForm: View {
                     target = e.flatId
                     amount = Money.input(Money.toMinor(e.amount, e.currency) ?? 0, e.currency); desc = e.description ?? ""; payer = e.paidBy
                     split = SplitState.from(e); cat = e.category ?? "other"; date = Fmt.date(e.spentOn) ?? Date()
+                    catTouched = true
                 } else {
                     desc = prefill?.desc ?? ""; cat = prefill?.category ?? "groceries"
+                    catTouched = prefill?.category != nil
+                    // what you filed things under before, newest first (Suggest.swift)
+                    learned = Suggest.learn(m.allExpenses.filter { $0.createdBy == m.uid || $0.paidBy == m.uid }
+                        .sorted { $0.spentOn > $1.spentOn }
+                        .compactMap { e in e.category.map { (description: e.description ?? "", category: $0) } })
                     if let picks = prefill?.people {
                         // from Non-group expenses or a person's page: those people, or choose them now
                         if picks.isEmpty { choosing = true } else { Task { await choose(.people(picks)) } }

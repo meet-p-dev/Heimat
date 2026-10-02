@@ -15,6 +15,7 @@ struct WorkView: View {
                     hero(ws)
                     logButton
                     smallStats(ws)
+                    if m.profile.hostIso == "de" { TaxCard() }
                     if m.profile.on(.limit) { compliance(ws) }
                     history
                     if !ws.byEmployer.isEmpty { byEmployer(ws) }

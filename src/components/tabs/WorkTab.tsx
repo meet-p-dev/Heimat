@@ -1,7 +1,8 @@
 import { useState, useMemo, Fragment } from 'react'
+import { TaxCard } from '../TaxCard'
 import type { CSSProperties } from 'react'
 import { Clock, Calendar, ChevronLeft, ChevronRight, Plus } from 'lucide-react'
-import type { Theme, Shift } from '../../lib/types'
+import type { Theme, Shift, Profile } from '../../lib/types'
 import type { WorkStats } from '../../lib/derive'
 import { deriveShift } from '../../lib/shift'
 import { tod, fixDe, relDay } from '../../lib/format'
@@ -13,8 +14,8 @@ import { Ring, Card, SegmentedControl, SectionLabel, IconBtn } from '../ui'
 type Hist = Gran | 'cal'
 const PERIODS: [Gran, string][] = [['day', 'Day'], ['week', 'Week'], ['month', 'Month'], ['year', 'Year']]
 
-export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, onEditShift, openSettings }: {
-  T: Theme; workStats: WorkStats; shifts: Shift[]
+export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, onEditShift, openSettings, profile, sProfile }: {
+  T: Theme; workStats: WorkStats; shifts: Shift[]; profile: Profile; sProfile: (p: Profile) => void
   fH: (v: number) => string; fHome: (v: number) => string | null
   onLogShift: (date: string | null) => void; onEditShift: (s: Shift) => void; openSettings: () => void
 }) {
@@ -58,6 +59,9 @@ export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, o
         <Card T={T} style={{ padding: '13px 14px', borderRadius: 22 }}><div style={{ fontSize: 12.5, color: T.txt2, fontWeight: 600 }}>This year</div><div style={{ fontSize: 20, fontWeight: 800, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{fH(ws.earnYear)}</div></Card>
         <Card T={T} style={{ padding: '13px 14px', borderRadius: 22 }}><div style={{ fontSize: 12.5, color: T.txt2, fontWeight: 600 }}>Average rate</div><div style={{ fontSize: 20, fontWeight: 800, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{ws.avgRate > 0 ? `${fH(ws.avgRate)}/h` : '—'}</div></Card>
       </div>
+
+      {/* this month after tax and contributions (Germany) */}
+      {(profile.hostIso || 'de') === 'de' && <TaxCard T={T} shifts={shifts} profile={profile} sProfile={sProfile} fH={fH} />}
 
       {/* compliance */}
       <Card T={T} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 22 }}>

@@ -26,7 +26,7 @@ import type { ExpenseSave, ExpensePrefill } from './components/modals/ExpenseMod
 import { GroupsTab, NonGroupPage, PersonPage, PersonSettle } from './components/Friends'
 import type { FriendsCtx } from './components/Friends'
 import { Page } from './components/ui'
-import { placeBooks, personName, isDirect } from './lib/places'
+import { placeBooks, personName, isDirect, linesWith } from './lib/places'
 import type { PersonPick, PlaceLine } from './lib/places'
 import { friendCircle, saveFriendExpense, settleWithPerson, remind as remindRpc, friendsMessage } from './lib/friends'
 import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
@@ -81,6 +81,16 @@ export default function App() {
   const [editExpense, setEditExpense] = useState<Expense | null>(null)
   const [expensePrefill, setExpensePrefill] = useState<ExpensePrefill | null>(null)
   const [settlePersonId, setSettlePersonId] = useState<string | null>(null)
+  const [settlePrefill, setSettlePrefill] = useState<{ amount: string; iPay: boolean } | null>(null)
+  /* MoneyTrack's "Record it in Splitlife too": ?settle=<person>&amount=12.50&dir=out|in opens
+     settling up with that person, the amount filled in — nothing is recorded until you tap Record */
+  const settleLink = useRef<{ person: string; amount: string; iPay: boolean } | null>((() => {
+    const q = new URLSearchParams(window.location.search), person = q.get('settle')
+    if (!person) return null
+    window.history.replaceState(null, '', window.location.pathname + window.location.hash)
+    const a = Number(q.get('amount'))
+    return { person, amount: Number.isFinite(a) && a > 0 ? a.toFixed(2).replace('.', ',') : '', iPay: q.get('dir') !== 'in' }
+  })())
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
@@ -586,6 +596,12 @@ export default function App() {
      currency most of them use; places in another currency are left out of the total rather
      than added to it as bare numbers (the same rule as the iOS app) */
   const books = useMemo(() => placeBooks(allExpenses, allSettles, hostCur), [allExpenses, allSettles, hostCur])
+  useEffect(() => {
+    const l = settleLink.current
+    if (!l || !uid || !linesWith(books, uid, l.person).length) return
+    settleLink.current = null
+    setSettlePrefill({ amount: l.amount, iPay: l.iPay }); setSettlePersonId(l.person); setModal('settleperson')
+  }, [books, uid])
   const mainCur = useMemo(() => {
     const n = new Map<string, number>()
     for (const l of books.values()) if (l.owes.length) n.set(l.currency, (n.get(l.currency) || 0) + 1)
@@ -747,7 +763,7 @@ export default function App() {
     bills: partOn(profile, 'bills') ? billsCtx : null,
     T, uid, hostCur, main: mainCur, groups: myFlats, circles, members: allMembers, expenses: allExpenses, books, cats,
     openPage, openGroup, invite: (id) => { setFlatIdP(id); setModal('invite') }, openExpense, addWith,
-    settlePerson: (id) => { setSettlePersonId(id); setModal('settleperson') }, remindPerson,
+    settlePerson: (id) => { setSettlePrefill(null); setSettlePersonId(id); setModal('settleperson') }, remindPerson,
     newGroup: () => setModal('create'), join: () => setModal('join'), showToast,
   }
   const placesCount = myFlats.length + (circles.length ? 1 : 0)
@@ -770,7 +786,7 @@ export default function App() {
           {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
-          {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings }} />}
+          {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings, profile, sProfile }} />}
         </div>
       </main>
 
@@ -827,7 +843,7 @@ export default function App() {
       <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, c: fc, start: flatId, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, cats, openCategories: () => setModal('cats'), save: saveExpense, resolve: resolveCircle }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
       <ChoreModal c={choresCtx} open={modal === 'chore'} onClose={closeModal} editing={choreEdit.chore} flatId={choreEdit.chore ? choreEdit.chore.flat_id : choreEdit.flat} save={saveChore} remove={removeChore} />
       <BillModal b={billsCtx} open={modal === 'bill'} onClose={closeModal} editing={billEdit.bill} flatId={billEdit.bill ? billEdit.bill.flat_id : billEdit.flat} save={saveBill} remove={removeBill} />
-      <PersonSettle c={fc} open={modal === 'settleperson'} person={settlePersonId} onClose={closeModal} record={recordSettle} />
+      <PersonSettle c={fc} open={modal === 'settleperson'} person={settlePersonId} prefill={settlePrefill} onClose={closeModal} record={recordSettle} />
       <SettleModal {...{ open: modal === 'settle', onClose: closeModal, T, members, ledger, uid, nameOf, fH, settleUp, initial: settleInit }} />
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />

@@ -8,3 +8,5 @@ out=$(mktemp -d)
 trap 'rm -rf "$out"' EXIT
 swiftc -O -parse-as-library ios-native/Heimat/Ledger.swift ios-native/Tests/LedgerTests.swift -o "$out/ledger-tests"
 "$out/ledger-tests" tests/ledger-vectors.json
+swiftc -O -parse-as-library ios-native/Heimat/Suggest.swift ios-native/Tests/SuggestTests.swift -o "$out/suggest-tests"
+"$out/suggest-tests" tests/suggest-vectors.json

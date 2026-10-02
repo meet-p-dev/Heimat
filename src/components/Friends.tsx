@@ -344,8 +344,8 @@ export function PersonPage({ c, person, onBack }: { c: FriendsCtx; person: strin
 
 /* ------------------------------------------------- settling up with a person */
 
-export function PersonSettle({ c, open, person, onClose, record }: {
-  c: FriendsCtx; open: boolean; person: string | null; onClose: () => void
+export function PersonSettle({ c, open, person, prefill, onClose, record }: {
+  c: FriendsCtx; open: boolean; person: string | null; prefill?: { amount: string; iPay: boolean } | null; onClose: () => void
   record: (person: string, lines: PlaceLine[], currency: string, pay: number, iPay: boolean, pair: string | null) => void
 }) {
   const { T } = c
@@ -360,7 +360,13 @@ export function PersonSettle({ c, open, person, onClose, record }: {
     setIPay(net <= 0)
     setAmt(net ? minorToInput(Math.abs(net), currency) : '')
   }
-  useEffect(() => { if (open && person) { const first = tot[0]?.currency || c.hostCur; setCur(first); reset(first); seeded.current = true } else seeded.current = false }, [open, person])
+  useEffect(() => {
+    if (open && person) {
+      const first = tot[0]?.currency || c.hostCur; setCur(first); reset(first); seeded.current = true
+      // from MoneyTrack's bank match: the payment as it left (or reached) your account
+      if (prefill) { setIPay(prefill.iPay); setAmt(prefill.amount) }
+    } else seeded.current = false
+  }, [open, person])
   if (!person) return null
   const name = personName(c.members, person)
   const currency = cur || tot[0]?.currency || c.hostCur

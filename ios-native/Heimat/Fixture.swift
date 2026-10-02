@@ -94,6 +94,14 @@ extension AppModel {
         ]
         choreSwaps = [ChoreSwap(id: "w1", choreId: "c4", n: 0, flatId: flat, fromUser: dana, toUser: me)]
         choresDone = [turn("c2", 3, "2026-09-28", "2026-10-04", nina, "done", by: nina, pts: 2)]
+        // a working student with two jobs this month (the tax estimate on the Work tab)
+        profile.tax = TaxDetails()
+        profile.jobs = ["Uni lab": JobSetting(kind: "werkstudent", main: true), "Café Mondo": JobSetting(kind: "minijob", main: false)]
+        let month = String(Fmt.today().prefix(7))
+        shifts = [("01", "Uni lab", 8), ("02", "Uni lab", 8), ("05", "Uni lab", 6), ("06", "Café Mondo", 5), ("08", "Uni lab", 8), ("09", "Café Mondo", 6)].map { d, emp, h in
+            var s = Shift(); s.date = "\(month)-\(d)"; s.employer = emp; s.start = "09:00"; s.end = String(format: "%02d:00", 9 + h); s.wage = emp == "Uni lab" ? 15.5 : 13.9
+            return s
+        }
         tab = .flat
     }
 

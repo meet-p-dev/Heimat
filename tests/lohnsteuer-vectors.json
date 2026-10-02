@@ -1,0 +1,7276 @@
+{
+"source": "https://www.bmf-steuerrechner.de/interface/2026Version1.xhtml (code LSt2026ext)",
+"fetched": "2026-10-01",
+"cases": [
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "166",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1675",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "3466",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5025",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5150",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "6733",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5158",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "6750",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8416",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "10058",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "12816",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "14525",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "10800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "4433",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "315400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "315400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "4433",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "315400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "21416",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "315400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "25841",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "442000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8816",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "555000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1625",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "129000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "555000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8816",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "555000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "29800",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "555000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "34233",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "681600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "18733",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1034100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "9883",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "608100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1034100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "18733",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1034100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "46566",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1034100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "51000",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1160700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "38250",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1896400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "28341",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1470400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "9383",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1896400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "38250",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1896400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "74750",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1896400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "78966",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "2023000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "83716",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3621200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "71683",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3195200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "44350",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3621200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "83716",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3621200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "134733",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3621200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "139166",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3747800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "173408",
+"SOLZLZZ": "455",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6371300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "158500",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "5945300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "109866",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6371300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "173408",
+"SOLZLZZ": "455",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6371300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "230991",
+"SOLZLZZ": "7307",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6371300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "235416",
+"SOLZLZZ": "7834",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6497900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "368275",
+"SOLZLZZ": "20255",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "353358",
+"SOLZLZZ": "19434",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11512700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "275933",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "368275",
+"SOLZLZZ": "20255",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "425850",
+"SOLZLZZ": "23421",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "430283",
+"SOLZLZZ": "23665",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "12065300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "894250",
+"SOLZLZZ": "49183",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "878358",
+"SOLZLZZ": "48309",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26512700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "800466",
+"SOLZLZZ": "44025",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "894250",
+"SOLZLZZ": "49183",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "965708",
+"SOLZLZZ": "53113",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": 0,
+"KRV": 0,
+"ALV": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "970458",
+"SOLZLZZ": "53375",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "27065300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8700",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "549000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "174875",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6413100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "7841",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "505500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "93075",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "2431000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 515532,
+"STKL": 2,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "59891",
+"BKS": "0",
+"LSTLZZ": "86983",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3733884",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 6,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "429666",
+"SOLZLZZ": "23631",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "12047900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "432966",
+"SOLZLZZ": "23813",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "12142100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 4,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 6240000,
+"STKL": 3,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "682800",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4185900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "38783",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1918900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "14716",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "27200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 15000000,
+"STKL": 3,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "3304000",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11921300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "38541",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1908700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 551959,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "95250",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4013508",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 6,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "11425",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 2,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "37233",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1854000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 3,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "308716",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "12888700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "16725",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "939600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 2,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "202050",
+"BKS": "0",
+"LSTLZZ": "202050",
+"SOLZLZZ": "3863",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "7189500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 3,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "56900",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4185900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "368275",
+"SOLZLZZ": "15517",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "21191",
+"BKS": "0",
+"LSTLZZ": "21191",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "309100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 3,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "342700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 4080000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "471300",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1939300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "13500",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "785400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 4,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "300",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "25400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 518409,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "82375",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3574808",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "83266",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3605600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 39798,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "9108",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "569400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "1508",
+"BKS": "0",
+"LSTLZZ": "9883",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "608100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 540000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 814419,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "249016",
+"SOLZLZZ": "9452",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6886428",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "12808",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 2,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "334458",
+"BKS": "0",
+"LSTLZZ": "351533",
+"SOLZLZZ": "18395",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11460400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 2,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "19508",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1070100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "16675",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "180100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 3,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 1,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "16816",
+"BKS": "0",
+"LSTLZZ": "58466",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4254600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "24808",
+"BKS": "0",
+"LSTLZZ": "24808",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1313100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "4258",
+"BKS": "0",
+"LSTLZZ": "13650",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "792600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "893600",
+"SOLZLZZ": "49148",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26921300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 9360000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "2749900",
+"BKS": "0",
+"LSTLZZ": "2749900",
+"SOLZLZZ": "85073",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6319000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 2,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "191900",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6899500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 2400000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "112700",
+"BKS": "0",
+"LSTLZZ": "112700",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "583800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 6240000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1017500",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3658600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 540000,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "68500",
+"BKS": "0",
+"LSTLZZ": "68500",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 3,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1691",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 5,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5325",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 4,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "367658",
+"SOLZLZZ": "20221",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11921300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8916",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "559800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "1683",
+"BKS": "0",
+"LSTLZZ": "1683",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "45358",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "999600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 4,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "906875",
+"SOLZLZZ": "46022",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "27275500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "14658",
+"BKS": "0",
+"LSTLZZ": "19825",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1085100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "99633",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4158600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 537026,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "169125",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "4603712",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 3,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "9516",
+"BKS": "0",
+"LSTLZZ": "9516",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1904600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "3466",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "5133",
+"BKS": "0",
+"LSTLZZ": "5133",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "14675",
+"BKS": "0",
+"LSTLZZ": "14675",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "23300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 6,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "7458",
+"BKS": "0",
+"LSTLZZ": "7458",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1041",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "84700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 2,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "877750",
+"BKS": "0",
+"LSTLZZ": "877750",
+"SOLZLZZ": "48276",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26495300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5166",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "84341",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3643000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 114390,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8141",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8291",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "528600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "9750",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1919100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 3,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "767666",
+"BKS": "0",
+"LSTLZZ": "801816",
+"SOLZLZZ": "42221",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26977100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "6725",
+"BKS": "0",
+"LSTLZZ": "6725",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 4,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "33075",
+"BKS": "0",
+"LSTLZZ": "38833",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1920900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "12808",
+"BKS": "0",
+"LSTLZZ": "12808",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "13108",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "766200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 15000000,
+"STKL": 4,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "4808000",
+"SOLZLZZ": "258808",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "12864300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 4,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 1,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 80058,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 30000000,
+"STKL": 6,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "11654900",
+"SOLZLZZ": "641019",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "27086300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "74416",
+"BKS": "0",
+"LSTLZZ": "74416",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1886200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "8916",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "559800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "909125",
+"SOLZLZZ": "46137",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "27335500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 4,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "25341",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1337100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60400,
+"STKL": 2,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "9000",
+"BKS": "0",
+"LSTLZZ": "19116",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1052100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "204366",
+"SOLZLZZ": "2107",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "7255700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 8954028,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1941700",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6039828",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "100",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "9000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 6,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "34316",
+"BKS": "0",
+"LSTLZZ": "34316",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "684000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "22725",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1218600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 2500000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "895816",
+"SOLZLZZ": "49269",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "26980600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "425850",
+"SOLZLZZ": "23421",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11938700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "107575",
+"BKS": "0",
+"LSTLZZ": "107575",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "2845200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 2,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 3,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "12241",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "724200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 2400000,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "416800",
+"BKS": "0",
+"LSTLZZ": "416800",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "696000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 724800,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "81100",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "26725",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "467200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "39025",
+"BKS": "0",
+"LSTLZZ": "39025",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1929100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 5,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "47200",
+"BKS": "0",
+"LSTLZZ": "47200",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1052100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "25841",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "442000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 5,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "3533",
+"BKS": "0",
+"LSTLZZ": "3533",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 4080000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "583000",
+"BKS": "0",
+"LSTLZZ": "583000",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "2318700",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "6133",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 6,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "5066",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 0,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "100",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "8600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 2100000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "18600",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "123300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 723600,
+"STKL": 6,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "80300",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "0",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 1250000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "336200",
+"BKS": "0",
+"LSTLZZ": "370350",
+"SOLZLZZ": "18491",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "11998000",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 809483,
+"STKL": 3,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0.5",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 1
+},
+"out": {
+"BK": "106566",
+"BKS": "0",
+"LSTLZZ": "119233",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6730496",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 5,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 30000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "145833",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3938200",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 1,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 2,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 5,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "46775",
+"BKS": "0",
+"LSTLZZ": "46775",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1040100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "8416",
+"BKS": "0",
+"LSTLZZ": "8416",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "172800",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6353800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 2,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 15000,
+"STKL": 5,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 1,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "375",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "83266",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3605600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 720848,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 1,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "178425",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6514476",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "9150",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "571800",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 4080000,
+"STKL": 4,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "461300",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1904600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "16725",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "939600",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 1,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 0
+},
+"out": {
+"BK": "19116",
+"BKS": "0",
+"LSTLZZ": "19116",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1052100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 5,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "22225",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "338500",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 1,
+"RE4": 540000,
+"STKL": 4,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "1",
+"KRV": 1,
+"ALV": 1,
+"PVA": "2",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 340000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 1,
+"PVA": "2",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "39025",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1929100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 60300,
+"STKL": 1,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 130000,
+"STKL": 1,
+"KVZ": "2.5",
+"PVZ": 1,
+"R": 0,
+"ZKF": "2",
+"KRV": 0,
+"ALV": 0,
+"PVA": "2",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 200000,
+"STKL": 2,
+"KVZ": "3.4",
+"PVZ": 0,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "1825",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "143400",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 175000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0,
+"PKV": 1,
+"PKPV": 60000,
+"PKPVAGZ": 25000
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "123300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 90000,
+"STKL": 4,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 0,
+"ZKF": "0.5",
+"KRV": 1,
+"ALV": 1,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 45000,
+"STKL": 2,
+"KVZ": "2.5",
+"PVZ": 0,
+"R": 0,
+"ZKF": "1",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "0",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "0",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 250000,
+"STKL": 1,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "18408",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "1019100",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 780000,
+"STKL": 3,
+"KVZ": "2.9",
+"PVZ": 1,
+"R": 0,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "1",
+"PVS": 0
+},
+"out": {
+"BK": "0",
+"BKS": "0",
+"LSTLZZ": "109866",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "6371300",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+},
+{
+"in": {
+"LZZ": 2,
+"RE4": 520000,
+"STKL": 1,
+"KVZ": "1.7",
+"PVZ": 0,
+"R": 1,
+"ZKF": "0",
+"KRV": 0,
+"ALV": 0,
+"PVA": "0",
+"PVS": 1
+},
+"out": {
+"BK": "84975",
+"BKS": "0",
+"LSTLZZ": "84975",
+"SOLZLZZ": "0",
+"SOLZS": "0",
+"STS": "0",
+"VFRB": "123000",
+"VFRBS1": "0",
+"VFRBS2": "0",
+"WVFRB": "3664900",
+"WVFRBO": "0",
+"WVFRBM": "0"
+}
+}
+]
+}

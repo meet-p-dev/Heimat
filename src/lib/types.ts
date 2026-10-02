@@ -27,6 +27,9 @@ export interface Profile {
   doing?: string[]
   /* parts switched on or off by hand in Settings */
   parts?: Partial<Record<string, boolean>>
+  /* tax details for the monthly estimate (src/lib/tax/estimate.ts), and each employer's kind */
+  tax?: { taxClass: number; church: boolean; churchRate: number; kvz: number; children: number; over23: boolean; sachsen: boolean; minijobPensionOptOut: boolean }
+  jobs?: Record<string, { kind: 'minijob' | 'werkstudent' | 'shortterm' | 'regular'; main: boolean }>
 }
 
 export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean }

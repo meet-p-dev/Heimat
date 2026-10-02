@@ -11,6 +11,7 @@ import { Sheet, Field, Btn, Chip, Avatar, SegmentedControl } from '../ui'
 import { SplitEditor, PayersEditor, emptySplit, buildSpec, splitData, payersOf, fromExpense } from '../SplitEditor'
 import type { SplitState } from '../SplitEditor'
 import { WithPicker } from '../Friends'
+import { learn, suggestCategory } from '../../lib/suggest'
 import type { FriendsCtx } from '../Friends'
 
 /* what the form hands back: engine v2's columns, always all of them — that is how
@@ -43,6 +44,17 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   const [payer, setPayer] = useState(uid || '')
   const [split, setSplit] = useState<SplitState>(emptySplit([]))
   const [cat, setCat] = useState('groceries')
+  // once you pick a category yourself, typing stops suggesting one
+  const [catTouched, setCatTouched] = useState(false)
+  // what you filed things under before, newest first (src/lib/suggest.ts)
+  const learned = useMemo(() => learn(c.expenses.filter((e) => e.created_by === uid || e.paid_by === uid)
+    .map((e) => ({ description: e.description || '', category: e.category || '' }))), [c.expenses, uid])
+  const typed = (d: string) => {
+    setDesc(d)
+    if (catTouched) return
+    const s = suggestCategory(d, learned, (id) => cats.some((x) => x.id === id))
+    if (s) setCat(s)
+  }
   const [date, setDate] = useState(tod())
   const [draftId, setDraftId] = useState(newId)
   const [target, setTarget] = useState('')
@@ -73,9 +85,10 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
     if (!open) return
     if (editing) {
       setDesc(editing.description || ''); setAmt(minorToInput(toMinor(editing.amount, editing.currency), editing.currency)); setPayer(editing.paid_by)
-      setSplit(fromExpense(editing)); setCat(editing.category || 'other'); setDate(editing.spent_on || tod()); setTarget(editing.flat_id)
+      setSplit(fromExpense(editing)); setCat(editing.category || 'other'); setDate(editing.spent_on || tod()); setTarget(editing.flat_id); setCatTouched(true)
     } else {
       setDesc(prefill?.desc || ''); setAmt(''); setPayer(uid || ''); setCat(prefill?.category || 'groceries'); setDate(tod()); setDraftId(newId())
+      setCatTouched(!!prefill?.category)
       const picks = prefill?.people
       if (picks) { setTarget(''); if (picks.length) choose({ people: picks }); else setChoosing(true) }
       else setTarget(start || c.groups[0]?.id || '')
@@ -139,10 +152,10 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
             <span style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: T.txt3 }}>{cur}</span>
           </div>
         </Field>
-        <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
+        <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => typed(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
         <Field T={T} label="Category">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-            {cats.map((x) => <Chip key={x.id} T={T} on={cat === x.id} tint={x.color} icon={iconOf(x)} onClick={() => setCat(x.id)}>{x.label}</Chip>)}
+            {cats.map((x) => <Chip key={x.id} T={T} on={cat === x.id} tint={x.color} icon={iconOf(x)} onClick={() => { setCat(x.id); setCatTouched(true) }}>{x.label}</Chip>)}
             <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
           </div>
         </Field>
