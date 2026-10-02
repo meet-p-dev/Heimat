@@ -476,8 +476,34 @@ struct Chore: Codable, Identifiable, Hashable {
         case id, name, cadence, points, rota
         case flatId = "flat_id", anchorOn = "anchor_on"
     }
-    static let cadences: [(String, String)] = [("weekly", "Every week"), ("biweekly", "Every 2 weeks"), ("monthly", "Every month")]
     static let sizes: [(Int, String)] = [(1, "Small"), (2, "Medium"), (3, "Big")]
+
+    /// How often: every N days, weeks or months (1–99), stored as one word — the old names
+    /// for 1 week / 2 weeks / 1 month, "<N><d|w|m>" for the rest. Same as src/lib/chores.ts.
+    static func parse(_ c: String) -> (n: Int, unit: String) {
+        switch c {
+        case "weekly": return (1, "w")
+        case "biweekly": return (2, "w")
+        case "monthly": return (1, "m")
+        default:
+            guard let u = c.last, "dwm".contains(u), let n = Int(c.dropLast()), (1...99).contains(n), !c.hasPrefix("0") else { return (1, "w") }
+            return (n, String(u))
+        }
+    }
+    static func cadence(_ n: Int, _ unit: String) -> String {
+        let k = min(99, max(1, n))
+        if unit == "w" && k == 1 { return "weekly" }
+        if unit == "w" && k == 2 { return "biweekly" }
+        if unit == "m" && k == 1 { return "monthly" }
+        return "\(k)\(unit)"
+    }
+    static func label(_ c: String) -> String {
+        let (n, u) = parse(c)
+        let w = ["d": ("day", "days"), "w": ("week", "weeks"), "m": ("month", "months")][u] ?? ("week", "weeks")
+        return n == 1 ? "Every \(w.0)" : "Every \(n) \(w.1)"
+    }
+    /// the ones most people want, one tap each
+    static let presets = ["1d", "2d", "weekly", "biweekly", "monthly"]
 }
 
 /// One period of a chore: whose it is, and whether it was done (and the points it earned).

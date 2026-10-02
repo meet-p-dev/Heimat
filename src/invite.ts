@@ -22,6 +22,7 @@
    Deliberately plain DOM: no React, no app state, no service worker. */
 import { sb, authErrorText } from './lib/supabase'
 import { DK, LT } from './lib/theme'
+import { device, openAppHref, downloadHref } from './lib/getApp'
 
 const dark = !window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches
 const T = dark ? DK : LT
@@ -84,7 +85,7 @@ function ask(p: Preview) {
      <div id="err" style="${noteStyle(T.red)};display:none"></div>
      <button id="yes" style="${btnStyle(true)}">Accept and join</button>
      <button id="no" style="${ghostStyle}">No thanks</button>
-     <a href="heimat://invite/${encodeURIComponent(token)}" style="${linkStyle}">Already have the Splitlife app? Open it there</a>
+     ${appChoice()}
      <p style="font-size:12px;color:${T.txt3};line-height:1.5;margin:18px 0 0;text-align:center">${isDirect(p) ? 'Saying no takes you out of what they split with you.' : `Saying no removes you from the ${noun} and from anything you were split into.`} Nobody is told.</p>`,
   )
   const err = document.getElementById('err') as HTMLDivElement
@@ -108,6 +109,18 @@ function ask(p: Preview) {
         : `<p style="${pStyle}">You've been taken out of ${esc(p.flat_name || 'the group')}, along with anything you were split into. You can close this page.</p>`,
     )
   }
+}
+
+/* On a phone: open the invite in the app when it's there (Android comes back here with
+   app=0 when it isn't), and where to get it. */
+function appChoice(): string {
+  if (device() === 'other') return ''
+  const noApp = new URLSearchParams(location.search).get('app') === '0'
+  const get = downloadHref()
+  if (noApp) return get ? `<a href="${get}" style="${linkStyle}">Splitlife isn't on this phone — get the app</a>` : ''
+  const here = `${location.origin}${location.pathname}?t=${encodeURIComponent(token)}&app=0`
+  return `<a href="${openAppHref(`invite/${encodeURIComponent(token)}`, here)}" style="${ghostStyle};display:block;text-align:center;text-decoration:none">Open in the Splitlife app</a>`
+    + (get ? `<a href="${get}" style="${linkStyle}">Don't have it? Get Splitlife</a>` : '')
 }
 
 /* ── 2. the account ── */

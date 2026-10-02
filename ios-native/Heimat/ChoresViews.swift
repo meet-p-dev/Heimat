@@ -111,7 +111,7 @@ struct ChoreRowView: View {
     private func who(_ u: String?) -> String { u == nil ? "nobody" : u == m.uid ? "Your" : "\(m.personName(u!))'s" }
 
     private func line(_ now: ChoreTurn?, _ next: ChoreTurn?, started: Bool) -> String {
-        guard let now else { return chore.cadence == "monthly" ? "Every month" : "Every week" }
+        guard let now else { return Chore.label(chore.cadence) }
         if now.state == "done" {
             let by = now.doneBy.map { $0 == m.uid ? "you" : m.personName($0) } ?? "someone"
             return "Done ✓ by \(by)" + (next?.assignee).map { " · next: \($0 == m.uid ? "you" : m.personName($0))" }.orEmpty
@@ -171,7 +171,22 @@ struct ChoreForm: View {
             Form {
                 Section { TextField("e.g. Bathroom", text: $name) }
                 Section {
-                    Picker("How often", selection: $cadence) { ForEach(Chore.cadences, id: \.0) { Text($0.1).tag($0.0) } }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(Chore.presets, id: \.self) { p in
+                                Button(Chore.label(p)) { Haptic.tap(); cadence = p }
+                                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
+                                    .tint(cadence == p ? .accentColor : .secondary)
+                            }
+                        }
+                    }
+                    Stepper(Chore.label(cadence), value: Binding(get: { Chore.parse(cadence).n }, set: { cadence = Chore.cadence($0, Chore.parse(cadence).unit) }), in: 1...99)
+                    Picker("Unit", selection: Binding(get: { Chore.parse(cadence).unit }, set: { cadence = Chore.cadence(Chore.parse(cadence).n, $0) })) {
+                        Text("Days").tag("d"); Text("Weeks").tag("w"); Text("Months").tag("m")
+                    }
+                    .pickerStyle(.segmented)
+                } header: { Text("How often") } footer: { Text("Pick one, or set any number of days, weeks or months.") }
+                Section {
                     DatePicker("First turn starts", selection: $start, displayedComponents: .date)
                     Picker("Size", selection: $points) { ForEach(Chore.sizes, id: \.0) { Text("\($0.1) · \($0.0) pt\($0.0 == 1 ? "" : "s")").tag($0.0) } }
                 } footer: { Text("Bigger chores earn more points on this month's table.") }

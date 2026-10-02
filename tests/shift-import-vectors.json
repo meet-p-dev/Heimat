@@ -1,0 +1,260 @@
+{
+ "have": [
+  {
+   "id": "a1",
+   "date": "2026-09-01",
+   "employer": "Café Rot",
+   "start": "09:00",
+   "end": "17:00"
+  },
+  {
+   "id": "a2",
+   "date": "2026-09-03",
+   "employer": "Lab",
+   "start": "",
+   "end": "",
+   "hours": 4
+  }
+ ],
+ "cases": [
+  {
+   "name": "own JSON export",
+   "text": "{\n  \"app\": \"Heimat\",\n  \"exportedAt\": \"2026-10-02T10:00:00Z\",\n  \"profile\": {},\n  \"shifts\": [\n    {\n      \"id\": \"a1\",\n      \"date\": \"2026-09-01\",\n      \"employer\": \"Café Rot\",\n      \"start\": \"09:00\",\n      \"end\": \"17:00\",\n      \"breakMin\": 30,\n      \"paidBreak\": false,\n      \"wage\": 13.9\n    },\n    {\n      \"id\": \"b1\",\n      \"date\": \"2026-09-02\",\n      \"employer\": \"Café Rot\",\n      \"start\": \"18:00\",\n      \"end\": \"23:30\",\n      \"breakMin\": 0,\n      \"paidBreak\": false,\n      \"wage\": 13.9\n    },\n    {\n      \"id\": \"b2\",\n      \"date\": \"2026-09-05\",\n      \"employer\": \"Lab\",\n      \"start\": \"\",\n      \"end\": \"\",\n      \"breakMin\": 0,\n      \"paidBreak\": false,\n      \"wage\": 15,\n      \"hours\": 3.5\n    },\n    {\n      \"id\": \"b3\",\n      \"date\": \"2026-02-30\",\n      \"employer\": \"Lab\",\n      \"start\": \"10:00\",\n      \"end\": \"12:00\",\n      \"breakMin\": 0,\n      \"paidBreak\": false,\n      \"wage\": 15\n    }\n  ]\n}",
+   "want": {
+    "shifts": [
+     {
+      "id": "b1",
+      "date": "2026-09-02",
+      "employer": "Café Rot",
+      "start": "18:00",
+      "end": "23:30",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 13.9,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": "b2",
+      "date": "2026-09-05",
+      "employer": "Lab",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 15,
+      "hours": 3.5,
+      "pay": null
+     }
+    ],
+    "skipped": 1,
+    "bad": 1
+   }
+  },
+  {
+   "name": "bare JSON list",
+   "text": "[{\"date\":\"2026-09-10\",\"employer\":\"Uni\",\"start\":\"8:15\",\"end\":\"12:45\",\"breakMin\":\"15\",\"paidBreak\":\"yes\",\"wage\":\"14,20\"}]",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-09-10",
+      "employer": "Uni",
+      "start": "08:15",
+      "end": "12:45",
+      "breakMin": 15,
+      "paidBreak": true,
+      "wage": 14.2,
+      "hours": null,
+      "pay": null
+     }
+    ],
+    "skipped": 0,
+    "bad": 0
+   }
+  },
+  {
+   "name": "own CSV export",
+   "text": "Date,Employer,Start,End,Break (min),Paid break,Paid hours,Hourly wage,Gross pay\n2026-09-01,Café Rot,09:00,17:00,30,no,7.50,13.90,104.25\n2026-09-04,\"Rot, Café\",10:00,14:00,0,yes,4.00,13.90,55.60\n2026-09-03,Lab,,,0,no,4.00,15.00,60.00\n2026-09-06,Lab,,,0,no,2.25,15.00,33.75",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-09-04",
+      "employer": "Rot, Café",
+      "start": "10:00",
+      "end": "14:00",
+      "breakMin": 0,
+      "paidBreak": true,
+      "wage": 13.9,
+      "hours": null,
+      "pay": 55.6
+     },
+     {
+      "id": null,
+      "date": "2026-09-06",
+      "employer": "Lab",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 15,
+      "hours": 2.25,
+      "pay": 33.75
+     }
+    ],
+    "skipped": 2,
+    "bad": 0
+   }
+  },
+  {
+   "name": "German spreadsheet",
+   "text": "﻿Datum;Arbeitgeber;Beginn;Ende;Pause;Stundenlohn\r\n02.09.2026;\"Bäckerei; Süd\";6.00;12.30;30;12,82\r\n03.09.2026;Bäckerei Süd;06:00;24:00;0;1.234,50\r\n31.09.2026;Bäckerei Süd;06:00;12:00;0;12,82\r\n04.09.2026;Bäckerei Süd;25:00;12:00;0;12,82\r\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-09-02",
+      "employer": "Bäckerei; Süd",
+      "start": "06:00",
+      "end": "12:30",
+      "breakMin": 30,
+      "paidBreak": false,
+      "wage": 12.82,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-09-03",
+      "employer": "Bäckerei Süd",
+      "start": "06:00",
+      "end": "24:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 1234.5,
+      "hours": null,
+      "pay": null
+     }
+    ],
+    "skipped": 0,
+    "bad": 2
+   }
+  },
+  {
+   "name": "tabs and duplicates",
+   "text": "date\temployer\tstart\tend\twage\n2026-09-20\tShop\t10:00\t18:00\t13\n2026-09-20\tSHOP \t10:00\t18:00\t13\n2026-09-21\tShop\t\t\t13\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-09-20",
+      "employer": "Shop",
+      "start": "10:00",
+      "end": "18:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 13,
+      "hours": null,
+      "pay": null
+     }
+    ],
+    "skipped": 1,
+    "bad": 1
+   }
+  },
+  {
+   "name": "hours only",
+   "text": "Date,Employer,Hours,Wage\n2026-09-22,Tutor,\"1,5\",20\n2026-09-03,Lab,4,15\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-09-22",
+      "employer": "Tutor",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 20,
+      "hours": 1.5,
+      "pay": null
+     }
+    ],
+    "skipped": 1,
+    "bad": 0
+   }
+  },
+  {
+   "name": "pay without a wage",
+   "text": "Datum;Stunden;Brutto\n01.08.2026;5;62,50\n02.08.2026;3;abc\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-08-01",
+      "employer": "",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": 5,
+      "pay": 62.5
+     }
+    ],
+    "skipped": 0,
+    "bad": 1
+   }
+  },
+  {
+   "name": "older JSON with pay",
+   "text": "{\"shifts\":[{\"id\":\"old1\",\"date\":\"2025-12-01\",\"employer\":\"Bar\",\"hours\":6,\"pay\":75},{\"id\":\"old2\",\"date\":\"2025-12-02\",\"hours\":2,\"pay\":true}]}",
+   "want": {
+    "shifts": [
+     {
+      "id": "old1",
+      "date": "2025-12-01",
+      "employer": "Bar",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": 6,
+      "pay": 75
+     }
+    ],
+    "skipped": 0,
+    "bad": 1
+   }
+  },
+  {
+   "name": "no date column",
+   "text": "Name,Amount\nPizza,12\nBeer,4\n",
+   "want": {
+    "shifts": [],
+    "skipped": 0,
+    "bad": 2
+   }
+  },
+  {
+   "name": "not a timesheet",
+   "text": "hello there",
+   "want": {
+    "shifts": [],
+    "skipped": 0,
+    "bad": 1
+   }
+  },
+  {
+   "name": "broken JSON",
+   "text": "{\"shifts\": [1, 2",
+   "want": {
+    "shifts": [],
+    "skipped": 0,
+    "bad": 1
+   }
+  }
+ ]
+}

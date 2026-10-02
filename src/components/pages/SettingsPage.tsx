@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   UserPlus, LogIn, Mail, KeyRound, LogOut, Palette, Droplets, Bell, Globe, ArrowRightLeft, RefreshCw, CalendarDays, Timer, RotateCcw,
-  Vibrate, Sparkles, Download, FileSpreadsheet, Trash2, Shield, FileText, Info, Fingerprint, UserX,
+  Vibrate, Sparkles, Download, Upload, FileSpreadsheet, Trash2, Shield, FileText, Info, Fingerprint, UserX,
 } from 'lucide-react'
 import type { Theme, Profile, Shift, Runway, AuthMode } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
@@ -11,16 +11,18 @@ import { fetchRate } from '../../lib/rates'
 import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } from '../../lib/push'
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
+import { importShifts } from '../../lib/importShifts'
 import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, TINT } from '../ui'
 import { LifeSettingsItem } from '../Life'
 import { partOn } from '../../lib/life'
 
 const THEMES: [ThemeMode, string][] = [['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']]
 
-export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack, onAuth, onSignOut, onDeleteAccount, onReplayIntro, onEditProfile, showToast, clearLocal }: {
+export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack, onAuth, onSignOut, onDeleteAccount, onReplayIntro, onEditProfile, showToast, clearLocal, addShifts }: {
   T: Theme; prefs: Prefs; setPrefs: (p: Prefs) => void; profile: Profile; sProfile: (p: Profile) => void
   uid: string | null; isAnon: boolean; email: string | null; pendingEmail: string | null
   shifts: Shift[]; runway: Runway | null
+  addShifts: (s: Shift[]) => void
   onBack: () => void; onAuth: (m: AuthMode) => void; onSignOut: () => void; onDeleteAccount: () => void
   onReplayIntro: () => void; onEditProfile: () => void; showToast: (m: string) => void; clearLocal: () => void
 }) {
@@ -84,6 +86,29 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
     if (!shifts.length) { showToast('No shifts to export yet'); return }
     const r = await saveTextFile(`heimat-shifts-${tod()}.csv`, shiftsCsv(shifts), 'text/csv')
     showToast(r === 'saved' ? 'Shifts exported' : r === 'copied' ? 'CSV copied to clipboard' : r === 'failed' ? "Couldn't export" : 'Export ready')
+  }
+  /* a Splitlife export (JSON or CSV) or a timesheet from a spreadsheet; shifts already here are skipped */
+  const pickImport = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json,.csv,.txt,application/json,text/csv,text/plain'
+    input.onchange = async () => {
+      const f = input.files?.[0]
+      if (!f) return
+      if (f.size > 5_000_000) { showToast('That file is too big'); return }
+      const r = importShifts(await f.text(), shifts)
+      const note = [r.skipped && `${r.skipped} already here`, r.bad && `${r.bad} couldn't be read`].filter(Boolean).join(', ')
+      if (!r.shifts.length) { showToast(note ? `Nothing new to add — ${note}` : 'No shifts found in that file'); return }
+      if (!confirm(`Add ${r.shifts.length} shift${r.shifts.length === 1 ? '' : 's'}?${note ? `\n\n(${note})` : ''}`)) return
+      const stamp = Date.now().toString(36)
+      addShifts(r.shifts.map((s, i) => ({
+        id: s.id || `${stamp}${i.toString(36)}${Math.random().toString(36).slice(2, 6)}`, date: s.date, employer: s.employer,
+        start: s.start, end: s.end, breakMin: s.breakMin, paidBreak: s.paidBreak, wage: s.wage,
+        ...(s.hours != null ? { hours: s.hours } : {}), ...(s.pay != null ? { pay: s.pay } : {}),
+      })))
+      showToast(`Added ${r.shifts.length} shift${r.shifts.length === 1 ? '' : 's'}`)
+    }
+    input.click()
   }
   const clear = () => {
     if (!confirm('Clear the shifts and runway stored on this device?\n\nYour account, profile and flats are not affected. This cannot be undone — export first if you want a copy.')) return
@@ -150,6 +175,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       <Group T={T} title="Data & privacy" footer="Your profile, runway and shifts are stored only on this device. Shared flat data syncs only with your flatmates.">
         <Item T={T} icon={Download} tint={TINT.blue} label="Export my data" sub="Profile, runway and shifts as a JSON file" onClick={exportAll} />
         <Item T={T} icon={FileSpreadsheet} tint={TINT.green} label="Export shifts" sub="CSV for timesheets or your tax return" onClick={exportShifts} />
+        <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a Splitlife export or a timesheet (CSV)" onClick={pickImport} />
         <Item T={T} icon={Trash2} tint={TINT.red} label="Clear data on this device" sub="Removes shifts and runway" onClick={clear} />
         <Item T={T} icon={Shield} tint={TINT.gray} label="Privacy policy" onClick={() => openExternal(webOrigin() + 'legal/privacy.html')} />
         <Item T={T} icon={FileText} tint={TINT.gray} label="Terms of use" onClick={() => openExternal(webOrigin() + 'legal/terms.html')} />

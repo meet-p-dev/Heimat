@@ -10,3 +10,5 @@ swiftc -O -parse-as-library ios-native/Heimat/Ledger.swift ios-native/Tests/Ledg
 "$out/ledger-tests" tests/ledger-vectors.json
 swiftc -O -parse-as-library ios-native/Heimat/Suggest.swift ios-native/Tests/SuggestTests.swift -o "$out/suggest-tests"
 "$out/suggest-tests" tests/suggest-vectors.json
+swiftc -O -parse-as-library ios-native/Heimat/ShiftImport.swift ios-native/Tests/ShiftImportTests.swift -o "$out/shift-import-tests"
+"$out/shift-import-tests" tests/shift-import-vectors.json

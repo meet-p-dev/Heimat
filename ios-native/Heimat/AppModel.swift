@@ -530,6 +530,9 @@ final class AppModel {
     /// Opening an invite link. The database also hands out anything addressed
     /// to your email the moment you sign up, so this is for jumping straight
     /// to the group you were invited to.
+    /// a group code from an invite link, waiting for the join form to open
+    var joinPrefill: String?
+
     func claimInvite(_ token: String) async {
         do {
             let f: Flat = try await client.rpc("claim_invite", params: ["p_token": token]).execute().value
@@ -706,6 +709,23 @@ final class AppModel {
         }
     }
 
+
+    /// shifts from a file (ShiftImport.swift): what's new, what's already here, what couldn't be read
+    func readShifts(_ text: String) -> ShiftImport.Result {
+        ShiftImport.run(text, have: shifts.map { .init(id: $0.id, date: $0.date, employer: $0.employer, start: $0.start, end: $0.end, hours: $0.hours) })
+    }
+    func addImported(_ rows: [ShiftImport.Row]) {
+        let add = rows.map { r -> Shift in
+            var s = Shift()
+            if let id = r.id { s.id = id }
+            s.date = r.date; s.employer = r.employer; s.start = r.start; s.end = r.end
+            s.breakMin = Double(r.breakMin); s.paidBreak = r.paidBreak; s.wage = r.wage; s.hours = r.hours; s.pay = r.pay
+            return s
+        }
+        shifts = add + shifts
+        Haptic.success()
+        show("Added \(add.count) shift\(add.count == 1 ? "" : "s")")
+    }
 
     func saveShift(_ s: Shift) {
         if let i = shifts.firstIndex(where: { $0.id == s.id }) { shifts[i] = s } else { shifts.insert(s, at: 0) }

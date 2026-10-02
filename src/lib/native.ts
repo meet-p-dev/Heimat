@@ -82,6 +82,14 @@ export function onAppResume(handler: () => void) {
   return () => { p.then((h) => h.remove()).catch(() => {}) }
 }
 
+/* a link that opened the app (heimat://…, Android): the one it started with, and any later */
+export function onAppLink(handler: (url: string) => void) {
+  if (!isNative) return () => {}
+  CapApp.getLaunchUrl().then((r) => { if (r?.url) handler(r.url) }).catch(() => {})
+  const p = CapApp.addListener('appUrlOpen', ({ url }) => handler(url))
+  return () => { p.then((h) => h.remove()).catch(() => {}) }
+}
+
 /* http(s) links must leave the web view, or they replace the app with a web page */
 export async function openExternal(url: string) {
   if (isNative) { try { await Browser.open({ url }); return } catch {} }

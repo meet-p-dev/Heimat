@@ -22,6 +22,7 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         reset: resolve(__dirname, 'reset.html'),
         invite: resolve(__dirname, 'invite.html'),
+        join: resolve(__dirname, 'join.html'),
       },
     },
   },
@@ -45,7 +46,7 @@ export default defineConfig({
         // was served in their place, index.html forwarded the reset link to
         // reset.html, the worker answered with the shell again — a loop that
         // flickered on screen and never reached the token.
-        navigateFallbackDenylist: [/\/(privacy|terms|cb|reset|invite)\.html(\?|#|$)/],
+        navigateFallbackDenylist: [/\/(privacy|terms|cb|reset|invite|join)\.html(\?|#|$)/],
         // generateSW writes sw.js for us, so the push/notificationclick handlers
         // live in public/push-sw.js and get pulled into it here
         importScripts: ['push-sw.js'],

@@ -13,7 +13,31 @@ export interface ChoreSwap { id: string; chore_id: string; n: number; flat_id: s
 export type ChoreRow = Omit<Chore, 'id'>
 export interface ChoreData { chores: Chore[]; turns: ChoreTurn[]; swaps: ChoreSwap[]; done: ChoreTurn[] }
 
-export const CHORE_CADENCES: [string, string][] = [['weekly', 'Every week'], ['biweekly', 'Every 2 weeks'], ['monthly', 'Every month']]
+/* How often: every N days, weeks or months (1–99). Stored as one word — the old names for
+   1 week / 2 weeks / 1 month, '<N><d|w|m>' for the rest ('1d', '2d', '3w', '2m'); the
+   database works out the turns (migration 20261002050000_chore_frequency.sql). */
+export type Unit = 'd' | 'w' | 'm'
+export function parseCadence(c: string): { n: number; unit: Unit } {
+  if (c === 'weekly') return { n: 1, unit: 'w' }
+  if (c === 'biweekly') return { n: 2, unit: 'w' }
+  if (c === 'monthly') return { n: 1, unit: 'm' }
+  const m = /^([1-9][0-9]?)([dwm])$/.exec(c)
+  return m ? { n: Number(m[1]), unit: m[2] as Unit } : { n: 1, unit: 'w' }
+}
+export function cadenceOf(n: number, unit: Unit): string {
+  const k = Math.min(99, Math.max(1, Math.round(n) || 1))
+  if (unit === 'w' && k === 1) return 'weekly'
+  if (unit === 'w' && k === 2) return 'biweekly'
+  if (unit === 'm' && k === 1) return 'monthly'
+  return `${k}${unit}`
+}
+const UNIT_WORD: Record<Unit, [string, string]> = { d: ['day', 'days'], w: ['week', 'weeks'], m: ['month', 'months'] }
+export function cadenceLabel(c: string): string {
+  const { n, unit } = parseCadence(c)
+  return n === 1 ? `Every ${UNIT_WORD[unit][0]}` : `Every ${n} ${UNIT_WORD[unit][1]}`
+}
+/* the ones most people want, one tap each */
+export const CHORE_PRESETS = ['1d', '2d', 'weekly', 'biweekly', 'monthly']
 export const SIZES: [number, string][] = [[1, 'Small'], [2, 'Medium'], [3, 'Big']]
 export const EMPTY_CHORES: ChoreData = { chores: [], turns: [], swaps: [], done: [] }
 

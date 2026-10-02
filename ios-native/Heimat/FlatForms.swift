@@ -356,6 +356,8 @@ struct CreateJoinForm: View {
                             .textInputAutocapitalization(.characters).autocorrectionDisabled()
                             .font(.system(size: 28, weight: .bold, design: .monospaced)).multilineTextAlignment(.center)
                             .onChange(of: text) { _, t in text = t.uppercased().replacingOccurrences(of: " ", with: "") }
+                            // from a group's invite link
+                            .onAppear { if let c = m.joinPrefill { text = c; m.joinPrefill = nil } }
                     } header: { Text("Group code") } footer: { Text("Ask someone in the group — it's on the group's page. Been in this group before and deleted your account? Ask someone in it to invite you back instead, so your history comes with you.") }
                 } else if mode == .group {
                     Section {
@@ -411,7 +413,7 @@ struct InviteView: View {
     var body: some View {
         NavigationStack {
             if let flat = m.flat {
-                let msg = "Join my \(flat.noun) “\(flat.name)” on Splitlife\nCode: \(flat.joinCode)\nOpen \(Secrets.publicURL) → tap “Join with a code”."
+                let msg = "Join my \(flat.noun) “\(flat.name)” on Splitlife: \(Secrets.publicURL)join.html?c=\(flat.joinCode)\n(or type the code \(flat.joinCode) in Splitlife → Join with a code)"
                 Form {
                     Section {
                         TextField("Name", text: $name).textContentType(.givenName)

@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // MARK: - Profile
 
@@ -192,6 +193,7 @@ struct SettingsView: View {
     @State private var confirmSignOut = false
     @State private var confirmDelete = false
     @State private var confirmClear = false
+    @State private var picking = false
     @State private var jsonURL: URL?
     @State private var csvURL: URL?
 
@@ -329,6 +331,7 @@ struct SettingsView: View {
                 if let csvURL, !m.shifts.isEmpty {
                     ShareLink(item: csvURL) { row("tablecells", .green, "Export shifts", sub: "CSV for timesheets or your tax return") }
                 }
+                Button { picking = true } label: { row("square.and.arrow.down", .orange, "Import shifts", sub: "From a Splitlife export or a timesheet (CSV)") }
                 Button { confirmClear = true } label: { row("trash", .red, "Clear data on this phone", sub: "Removes your logged shifts") }
                 Link(destination: URL(string: Secrets.publicURL + "legal/privacy.html")!) { row("hand.raised.fill", .gray, "Privacy policy") }
                 Link(destination: URL(string: Secrets.publicURL + "legal/terms.html")!) { row("doc.text.fill", .gray, "Terms of use") }
@@ -367,6 +370,7 @@ struct SettingsView: View {
         .confirmationDialog("Sign out? Your flat stays safe — sign back in any time with your email.", isPresented: $confirmSignOut, titleVisibility: .visible) {
             Button("Sign out", role: .destructive) { Task { await m.signOut(); dismiss() } }
         }
+        .modifier(ImportShifts(picking: $picking))
         .confirmationDialog("Clear the shifts stored on this phone? Your account, profile and flats aren't affected.", isPresented: $confirmClear, titleVisibility: .visible) {
             Button("Clear data", role: .destructive) { m.clearLocal() }
         }
@@ -450,5 +454,30 @@ struct LifeSettingsView: View {
             q[keyPath: key] = order.filter(v.contains)
             m.saveProfile(q)
         })
+    }
+}
+
+/// Settings → Import shifts: pick a file, see what's new, add it (ShiftImport.swift).
+private struct ImportShifts: ViewModifier {
+    @Environment(AppModel.self) private var m
+    @Binding var picking: Bool
+    @State private var found: ShiftImport.Result?
+
+    func body(content: Content) -> some View {
+        content.fileImporter(isPresented: $picking, allowedContentTypes: [.json, .commaSeparatedText, .plainText, .text]) { r in
+            guard case .success(let url) = r else { return }
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            guard let data = try? Data(contentsOf: url), data.count <= 5_000_000,
+                  let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else { m.show("Couldn't read that file"); return }
+            let res = m.readShifts(text)
+            if res.shifts.isEmpty { m.show(res.skipped + res.bad > 0 ? "Nothing new to add — \(ShiftImportNote.text(res))" : "No shifts found in that file") }
+            else { found = res }
+        }
+        .confirmationDialog(found.map { "Add \($0.shifts.count) shift\($0.shifts.count == 1 ? "" : "s")?" } ?? "", isPresented: Binding(get: { found != nil }, set: { if !$0 { found = nil } }), titleVisibility: .visible) {
+            Button("Add") { if let f = found { m.addImported(f.shifts) }; found = nil }
+        } message: {
+            if let f = found, f.skipped + f.bad > 0 { Text(ShiftImportNote.text(f)) }
+        }
     }
 }

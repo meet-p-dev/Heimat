@@ -23,7 +23,8 @@ export default function InviteModal({ open, onClose, T, flat, members, invite, r
   if (!flat) return null
   // inside the app shells location.origin is capacitor://localhost, so links always point at the public web address
   const url = webOrigin()
-  const msg = `Join my group “${flat.name}” on Splitlife\nCode: ${flat.join_code}\nOpen ${url} → tap “Join with code”.`
+  // the link opens the app when it's installed, and offers it (or the browser) when it isn't
+  const msg = `Join my group “${flat.name}” on Splitlife: ${url}join.html?c=${encodeURIComponent(flat.join_code)}\n(or type the code ${flat.join_code} in Splitlife → Join with code)`
   const mailOK = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail.trim())
   const pending = members.filter((m) => m.flat_id === flat.id && isPending(m) && !m.left_at)
   const gone = members.filter((m) => m.flat_id === flat.id && !!m.left_at)

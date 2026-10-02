@@ -2,13 +2,15 @@ import { useState, useEffect } from 'react'
 import type { Theme, Profile, ModalId } from '../../lib/types'
 import { Sheet, Field, Btn } from '../ui'
 
-export default function CreateJoinModal({ open, mode, onClose, T, createFlat, joinFlat, busy, profile }: {
+export default function CreateJoinModal({ open, mode, onClose, T, createFlat, joinFlat, busy, profile, initialCode }: {
   open: boolean; mode: ModalId; onClose: () => void; T: Theme
   createFlat: (name: string) => void; joinFlat: (code: string) => void; busy: boolean; profile: Profile
+  /* from a group's invite link — filled in, still joined only with a tap */
+  initialCode?: string
 }) {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  useEffect(() => { if (open) { setName(''); setCode('') } }, [open, mode])
+  useEffect(() => { if (open) { setName(''); setCode(initialCode || '') } }, [open, mode])
   const join = mode === 'join'
   return (
     <Sheet open={open} onClose={onClose} title={join ? 'Join a group' : 'New group'} T={T}>

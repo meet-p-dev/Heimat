@@ -37,17 +37,13 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
   const toneC = ws.tone === 'red' ? T.red : ws.tone === 'amber' ? T.amber : WORK
 
   const shift = { icon: Clock, tint: TINT.orange, label: 'Log shift', onClick: onLogShift }
-  const actions = (flat
-    ? [
-        { icon: Plus, tint: TINT.green, label: 'Expense', onClick: startAddExpense },
-        show.work && shift,
-        show.list && { icon: ShoppingCart, tint: TINT.pink, label: 'List', onClick: openList, badge: openCount },
-        { icon: LineChart, tint: TINT.blue, label: 'Analytics', onClick: () => setModal('analytics') },
-      ]
-    : [
-        show.work && shift,
-        show.runway && { icon: Wallet, tint: TINT.blue, label: 'Runway', onClick: () => setModal('runway') },
-      ]).filter(Boolean) as { icon: typeof Clock; tint: string; label: string; onClick: () => void; badge?: number }[]
+  // adding an expense is the card's big button, so it isn't repeated here
+  const actions = [
+    show.work && shift,
+    flat && show.list && { icon: ShoppingCart, tint: TINT.pink, label: 'List', onClick: openList, badge: openCount },
+    hasMoney && { icon: LineChart, tint: TINT.blue, label: 'My spending', onClick: () => setModal('myspend') },
+    !flat && show.runway && { icon: Wallet, tint: TINT.blue, label: 'Runway', onClick: () => setModal('runway') },
+  ].filter(Boolean) as { icon: typeof Clock; tint: string; label: string; onClick: () => void; badge?: number }[]
 
   return (
     <>

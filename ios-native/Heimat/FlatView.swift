@@ -382,6 +382,18 @@ struct ShoppingListView: View {
 
 struct AnalyticsView: View {
     @Environment(AppModel.self) private var m
+    /// true: your own spending — your share of every bill, across all your groups and
+    /// friends (Home). false: the open group's spending (the group page).
+    var personal = false
+
+    /// the bills the charts are about, and what each one counts as
+    private var source: [Expense] {
+        guard personal else { return m.expenses }
+        // one currency only: amounts in two currencies never add up
+        let cur = m.overviewCurrency
+        return m.allExpenses.filter { $0.deletedAt == nil && ($0.currency.isEmpty ? m.hostCur : $0.currency) == cur && Ledger.share($0, of: m.uid) > 0 }
+    }
+    private func val(_ e: Expense) -> Double { personal ? Ledger.share(e, of: m.uid) : e.amount }
 
     /// How far back the charts look. `all` exists because a flat that started
     /// mid-year otherwise shows a mostly empty year.
@@ -408,11 +420,11 @@ struct AnalyticsView: View {
                 Calendar.current.date(byAdding: .month, value: -$0, to: first).map { String(Fmt.ymd($0).prefix(7)) }
             }
         } else {
-            keys = Set(m.expenses.map { String($0.spentOn.prefix(7)) }).sorted()
+            keys = Set(source.map { String($0.spentOn.prefix(7)) }).sorted()
         }
         return keys.compactMap { k in
             guard let d = Fmt.date(k + "-01") else { return nil }
-            return (k, d, m.expenses.filter { $0.spentOn.hasPrefix(k) }.reduce(0) { $0 + $1.amount })
+            return (k, d, source.filter { $0.spentOn.hasPrefix(k) }.reduce(0) { $0 + val($1) })
         }
     }
 
@@ -420,9 +432,9 @@ struct AnalyticsView: View {
     /// whole span. Keeping one source for this is what stops the headline total
     /// and the charts disagreeing.
     private var scoped: [Expense] {
-        if let month { return m.expenses.filter { $0.spentOn.hasPrefix(month) } }
+        if let month { return source.filter { $0.spentOn.hasPrefix(month) } }
         let keys = Set(buckets.map(\.key))
-        return m.expenses.filter { keys.contains(String($0.spentOn.prefix(7))) }
+        return source.filter { keys.contains(String($0.spentOn.prefix(7))) }
     }
 
     private var scopeLabel: String {
@@ -434,18 +446,26 @@ struct AnalyticsView: View {
         }
     }
 
-    private var total: Double { scoped.reduce(0) { $0 + $1.amount } }
+    private var total: Double { scoped.reduce(0) { $0 + val($1) } }
 
     private var slices: [(cat: Cat, total: Double, items: [Expense])] {
-        Dictionary(grouping: scoped) { $0.category ?? "other" }
-            .map { (Cats.of(m.cats, $0.key), $0.value.reduce(0) { $0 + $1.amount }, $0.value.sorted { $0.spentOn > $1.spentOn }) }
+        // by the category it shows as: names this list doesn't know all read "Other", and
+        // must add up as one row, not repeat it
+        Dictionary(grouping: scoped) { Cats.of(m.cats, $0.category ?? "other").id }
+            .map { (Cats.of(m.cats, $0.key), $0.value.reduce(0) { $0 + val($1) }, $0.value.sorted { $0.spentOn > $1.spentOn }) }
             .sorted { $0.1 > $1.1 }
     }
 
     private var payers: [(name: String, total: Double)] {
-        m.members
+        // your own spending: where it went (each group, and bills with friends)
+        if personal {
+            return Dictionary(grouping: scoped) { m.placeName($0.flatId) }
+                .map { (name: $0.key, total: $0.value.reduce(0) { $0 + val($1) }) }
+                .sorted { $0.total != $1.total ? $0.total > $1.total : $0.name < $1.name }
+        }
+        return m.members
             .map { mem in
-                (mem, m.nameOf(mem.userId), scoped.filter { $0.paidBy == mem.userId }.reduce(0) { $0 + $1.amount })
+                (mem, m.nameOf(mem.userId), scoped.filter { $0.paidBy == mem.userId }.reduce(0) { $0 + val($1) })
             }
             .filter { $0.2 > 0 }
             .sorted { $0.2 > $1.2 }
@@ -466,7 +486,7 @@ struct AnalyticsView: View {
             .padding(.top, 4)
             .padding(.bottom, 24)
         }
-        .navigationTitle("Analytics")
+        .navigationTitle(personal ? "My spending" : "Analytics")
         .heimatScreen()
         .animation(.smooth(duration: 0.28), value: month)
         .animation(.smooth(duration: 0.28), value: span)
@@ -491,7 +511,7 @@ struct AnalyticsView: View {
                     .font(.system(size: 36, weight: .heavy)).monospacedDigit()
                     .contentTransition(.numericText(value: total))
                     .lineLimit(1).minimumScaleFactor(0.6)
-                Text("group spend · your share \(m.fH(Money.toMajor(Ledger.myShareMinor(scoped, uid: m.uid, currency: m.book.currency), m.book.currency)))")
+                Text(personal ? "your share · all groups and friends" : "group spend · your share \(m.fH(Money.toMajor(Ledger.myShareMinor(scoped, uid: m.uid, currency: m.book.currency), m.book.currency)))")
                     .font(.system(size: 13.5)).foregroundStyle(.secondary)
             }
         }
@@ -628,7 +648,7 @@ struct AnalyticsView: View {
                                 Spacer(minLength: 6)
                                 Text("\(m.nameOf(e.paidBy)) · \(Fmt.relDay(e.spentOn))")
                                     .font(.system(size: 11.5)).foregroundStyle(.tertiary).lineLimit(1)
-                                Text(m.fH(e.amount))
+                                Text(m.fH(val(e)))
                                     .font(.system(size: 13.5, weight: .semibold)).monospacedDigit()
                             }
                             .padding(.leading, 38).padding(.trailing, 16).padding(.vertical, 8)
@@ -647,7 +667,7 @@ struct AnalyticsView: View {
 
     private var whoPaid: some View {
         VStack(spacing: 0) {
-            SectionLabel("Who paid").padding(.bottom, 10)
+            SectionLabel(personal ? "Where it went" : "Who paid").padding(.bottom, 10)
             HeimatCard(radius: 24, padding: 14) {
                 Chart(payers, id: \.name) { p in
                     BarMark(x: .value("Paid", p.total), y: .value("Who", p.name))

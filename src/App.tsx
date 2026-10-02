@@ -47,7 +47,7 @@ import ListPage from './components/ListPage'
 import LiquidGlass from './components/LiquidGlass'
 import { IconBtn, Avatar } from './components/ui'
 import { pushSupported, needsInstall, permission as notifPermission, subscribe, initNativeListeners } from './lib/push'
-import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, webOrigin, resetUrl } from './lib/native'
+import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, onAppLink, webOrigin, resetUrl } from './lib/native'
 import { touchAppUser, appUserName } from './lib/appUser'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -82,6 +82,16 @@ export default function App() {
   const [expensePrefill, setExpensePrefill] = useState<ExpensePrefill | null>(null)
   const [settlePersonId, setSettlePersonId] = useState<string | null>(null)
   const [settlePrefill, setSettlePrefill] = useState<{ amount: string; iPay: boolean } | null>(null)
+  /* a group's invite link (join.html → ?join=CODE in the browser, heimat://join/CODE in the
+     app) or a personal invite (heimat://invite/TOKEN): handled once we're signed in */
+  const [joinPrefill, setJoinPrefill] = useState('')
+  const [pendingLink, setPendingLink] = useState<{ join?: string; invite?: string } | null>(() => {
+    const q = new URLSearchParams(window.location.search), c = (q.get('join') || '').trim().toUpperCase()
+    if (!c) return null
+    q.delete('join')
+    window.history.replaceState(null, '', window.location.pathname + (q.toString() ? `?${q}` : '') + window.location.hash)
+    return /^[A-Z0-9]{4,12}$/.test(c) ? { join: c } : null
+  })
   /* MoneyTrack's "Record it in Splitlife too": ?settle=<person>&amount=12.50&dir=out|in opens
      settling up with that person, the amount filled in — nothing is recorded until you tap Record */
   const settleLink = useRef<{ person: string; amount: string; iPay: boolean } | null>((() => {
@@ -596,6 +606,27 @@ export default function App() {
      currency most of them use; places in another currency are left out of the total rather
      than added to it as bare numbers (the same rule as the iOS app) */
   const books = useMemo(() => placeBooks(allExpenses, allSettles, hostCur), [allExpenses, allSettles, hostCur])
+  useEffect(() => onAppLink((url) => {
+    const m = /^heimat:\/\/(join|invite)\/([^/?#]+)/.exec(url)
+    const u = m ? null : (() => { try { return new URL(url) } catch { return null } })()
+    const join = m?.[1] === 'join' ? m[2] : u?.pathname.endsWith('/join.html') ? u.searchParams.get('c') : null
+    const invite = m?.[1] === 'invite' ? m[2] : u?.pathname.endsWith('/invite.html') ? u.searchParams.get('t') : null
+    if (join && /^[A-Za-z0-9]{4,12}$/.test(join)) setPendingLink({ join: join.toUpperCase() })
+    else if (invite && /^[a-f0-9]{32}$/.test(invite)) setPendingLink({ invite })
+  }), [])
+  useEffect(() => { if (modal !== 'join') setJoinPrefill('') }, [modal])
+  useEffect(() => {
+    if (!pendingLink || !uid || !sb) return
+    const l = pendingLink
+    setPendingLink(null)
+    if (l.join) { setJoinPrefill(l.join); setModal('join'); return }
+    if (l.invite) {
+      sb.rpc('claim_invite', { p_token: l.invite }).then(async ({ data, error }) => {
+        if (error || !data) { showToast('That invite has already been used'); return }
+        await loadMyFlats(); setTab('flat'); showToast(`You're in ${(data as { name?: string }).name || 'the group'}`)
+      })
+    }
+  }, [pendingLink, uid])
   useEffect(() => {
     const l = settleLink.current
     if (!l || !uid || !linesWith(books, uid, l.person).length) return
@@ -607,6 +638,13 @@ export default function App() {
     for (const l of books.values()) if (l.owes.length) n.set(l.currency, (n.get(l.currency) || 0) + 1)
     return [...n].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]?.[0] || hostCur
   }, [books, hostCur])
+  /* your own spending (Home → My spending): your share of every bill in every group and with
+     friends, in your main currency (two currencies never add up), as rows of that share */
+  const mySpend = useMemo(() => allExpenses
+    .filter((e) => !e.deleted_at && (e.currency || hostCur) === mainCur)
+    .map((e) => ({ ...e, amount: shareOf(e, uid) }))
+    .filter((e) => e.amount > 0), [allExpenses, uid, mainCur, hostCur])
+  const placeOf = (id: string) => myFlats.find((f) => f.id === id)?.name || 'Non-group expenses'
   const overallNet = useMemo(() => {
     if (!uid) return 0
     let v = 0
@@ -822,7 +860,7 @@ export default function App() {
       {pages.map((p) => p === 'profile'
         ? <ProfilePage key="profile" {...{ T, profile, uid, isAnon, email, pendingEmail, myFlats, flatId, earnedTotal, spentTotal, shiftCount: shifts.length, runwayCalc, fH, onBack: closePage, onAuth: setAuth, onSwitchFlat: (id: string) => { setPages([]); openGroup(id) }, setModal, onOpenSettings: openSettings }} />
         : p === 'settings'
-        ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal }} />
+        ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal, addShifts: (add: Shift[]) => sShifts([...add, ...shifts]) }} />
         : p === 'nongroup'
         ? <NonGroupPage key={p} c={fc} onBack={closePage} />
         : p === 'mybills'
@@ -848,11 +886,12 @@ export default function App() {
       <ExpenseDetailModal {...{ open: modal === 'expdetail', onClose: closeModal, T, expense: viewExpense, fH, nameOf, cats }} />
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />
       <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, members, invite: inviteMember, revoke: revokeInvite, inviteBack, showToast }} />
-      <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: closeModal, T, createFlat, joinFlat, busy, profile }} />
+      <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: closeModal, T, createFlat, joinFlat, busy, profile, initialCode: joinPrefill }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: closeModal, T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: closeModal, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />
       <ProfileModal {...{ open: modal === 'profile', onClose: closeModal, T, profile, uid, onSave: (p: Profile) => { saveProfile(p); showToast('Profile saved') } }} />
       <AnalyticsModal {...{ open: modal === 'analytics', onClose: closeModal, T, expenses, members, uid, fH, nameOf, cats, currency: ledger.currency }} />
+      <AnalyticsModal {...{ open: modal === 'myspend', onClose: closeModal, T, expenses: mySpend, members: [], uid, fH, nameOf, cats, personal: placeOf }} />
       {showList && inFlat && <ListPage {...{ T, onClose: () => setShowList(false), items, nameOf, addItem, setItemBought, deleteItem, clearBoughtItems, expenseFromBought: () => { setShowList(false); expenseFromBought() }, cats, openCategories: () => setModal('cats') }} />}
       {showIntro && <Intro T={T} onClose={() => setShowIntro(false)} />}
       {notifPrompt && !showIntro && <NotifPrompt {...{ T, mode: notifPrompt, busy: notifBusy, onEnable: enableNotif, onDismiss: dismissNotifPrompt }} />}

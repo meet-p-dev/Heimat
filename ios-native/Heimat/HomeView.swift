@@ -136,14 +136,10 @@ struct HomeView: View {
 
     private var quickActions: some View {
         HStack(spacing: 10) {
-            if m.flat != nil {
-                QuickAction(symbol: "plus", tint: Tint.green, label: "Expense") { m.startAddExpense() }
-                if m.profile.on(.work) { QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) } }
-                if m.profile.on(.list) { QuickAction(symbol: "cart.fill", tint: Tint.pink, label: "List", badge: m.openItems) { m.sheet = .list } }
-                QuickAction(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "Analytics") { m.sheet = .analytics }
-            } else if m.profile.on(.work) {
-                QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) }
-            }
+            // adding an expense is the card's big button above, so it isn't repeated here
+            if m.profile.on(.work) { QuickAction(symbol: "clock.fill", tint: Tint.orange, label: "Log shift") { m.sheet = .shift(nil, nil) } }
+            if m.flat != nil && m.profile.on(.list) { QuickAction(symbol: "cart.fill", tint: Tint.pink, label: "List", badge: m.openItems) { m.sheet = .list } }
+            if !m.allExpenses.isEmpty { QuickAction(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "My spending") { m.sheet = .myAnalytics } }
         }
     }
 

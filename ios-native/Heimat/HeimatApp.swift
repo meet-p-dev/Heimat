@@ -32,12 +32,12 @@ struct HeimatApp: App {
                     }
                 }
                 .onOpenURL { url in
-                    guard url.scheme == "heimat" else { return }
-                    if url.host == "add-expense" { model.startAddExpense() }
-                    // heimat://invite/<token>, from the email we send
-                    if url.host == "invite" {
-                        let token = url.pathComponents.filter { $0 != "/" }.first ?? ""
-                        if !token.isEmpty { Task { await model.claimInvite(token) } }
+                    switch DeepLink(url) {
+                    case .addExpense: model.startAddExpense()
+                    case .invite(let token): Task { await model.claimInvite(token) }
+                    // a group's invite link: the join form, code filled in — you still tap Join
+                    case .join(let code): model.joinPrefill = code; model.sheet = .flat(.join)
+                    case nil: break
                     }
                 }
         }
@@ -72,6 +72,26 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
 }
 enum AuthMode: String, Hashable { case signup, signin, forgot, password, email }
 enum FlatMode: Hashable { case create, join, group }
+
+/// Links that open the app: heimat://add-expense, heimat://invite/<token> (the email we
+/// send), heimat://join/<code> (a group's invite page), and the same pages on the web
+/// (…/invite.html?t=…, …/join.html?c=…) for when the system hands those to the app.
+enum DeepLink: Equatable {
+    case addExpense, invite(String), join(String)
+    init?(_ url: URL) {
+        let q = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        let item = { (n: String) in q.first { $0.name == n }?.value?.trimmingCharacters(in: .whitespaces) ?? "" }
+        let first = url.pathComponents.filter { $0 != "/" }.first ?? ""
+        switch (url.scheme, url.host) {
+        case ("heimat", "add-expense"): self = .addExpense
+        case ("heimat", "invite") where !first.isEmpty: self = .invite(first)
+        case ("heimat", "join") where !first.isEmpty: self = .join(first.uppercased())
+        case ("https", _) where url.lastPathComponent == "invite.html" && !item("t").isEmpty: self = .invite(item("t"))
+        case ("https", _) where url.lastPathComponent == "join.html" && !item("c").isEmpty: self = .join(item("c").uppercased())
+        default: return nil
+        }
+    }
+}
 struct ExpensePrefill: Hashable {
     var desc = ""
     var category = "groceries"
@@ -105,7 +125,7 @@ extension View {
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
 /// system's own, so iOS draws them in Liquid Glass.
 enum SheetRoute: Identifiable, Hashable {
-    case settings, profile, editProfile, invite, categories, list, analytics, history
+    case settings, profile, editProfile, invite, categories, list, analytics, myAnalytics, history
     case auth(AuthMode)
     case flat(FlatMode)
     case expense(Expense?, ExpensePrefill?)
@@ -131,6 +151,7 @@ struct SheetHost: View {
         case .categories: CategoriesView()
         case .list: NavigationStack { ShoppingListView() }
         case .analytics: NavigationStack { AnalyticsView() }
+        case .myAnalytics: NavigationStack { AnalyticsView(personal: true) }
         case .history: NavigationStack { HistoryView() }
         case .auth(let mode): AuthView(start: mode)
         case .flat(let mode): CreateJoinForm(mode: mode)

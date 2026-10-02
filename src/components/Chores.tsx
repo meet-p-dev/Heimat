@@ -3,10 +3,10 @@ import { Check, PlusCircle, Trophy, Sparkles } from 'lucide-react'
 import type { Theme, Member } from '../lib/types'
 import { isPending } from '../lib/types'
 import type { Chore, ChoreTurn, ChoreSwap, ChoreRow, ChoreData } from '../lib/chores'
-import { CHORE_CADENCES, SIZES, turnsOf, myTurns, board } from '../lib/chores'
+import { CHORE_PRESETS, SIZES, turnsOf, myTurns, board, parseCadence, cadenceOf, cadenceLabel, type Unit } from '../lib/chores'
 import { relDay, tod } from '../lib/format'
 import { haptic } from '../lib/haptic'
-import { Sheet, Field, Btn, Card, SegmentedControl, Alert } from './ui'
+import { Sheet, Field, Btn, Card, SegmentedControl, Alert, Stepper } from './ui'
 
 /* Chores (docs/chores-screens.md; iOS: ChoresViews.swift). */
 
@@ -178,8 +178,20 @@ export function ChoreModal({ c, open, onClose, editing, flatId, save, remove }: 
         {editing && <Btn full kind="danger" size="md" onClick={() => { if (confirm(`Remove ${editing.name}? Its points this month stay.`)) { remove(editing); onClose() } }} style={{ marginTop: 4 }}>Remove chore</Btn>}
       </>}>
       <Field T={T} label="Name" htmlFor="ch-name"><input id="ch-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Bathroom" /></Field>
-      <Field T={T} label="How often" htmlFor="ch-cad">
-        <select id="ch-cad" className="fld" value={cadence} onChange={(e) => setCadence(e.target.value)}>{CHORE_CADENCES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+      <Field T={T} label={`How often · ${cadenceLabel(cadence).toLowerCase()}`} hint="Pick one, or set any number of days, weeks or months.">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+          {CHORE_PRESETS.map((p) => (
+            <Btn key={p} size="sm" kind={cadence === p ? 'tinted' : 'ghost'} onClick={() => { haptic(6); setCadence(p) }}>{cadenceLabel(p)}</Btn>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 15 }}>Every</span>
+          <Stepper label="how many" value={parseCadence(cadence).n} min={1} max={99} onChange={(v) => setCadence(cadenceOf(v, parseCadence(cadence).unit))} />
+          <div style={{ flex: 1 }}>
+            <SegmentedControl T={T} label="Unit" options={[['d', 'Days'], ['w', 'Weeks'], ['m', 'Months']]} value={parseCadence(cadence).unit}
+              onChange={(u) => setCadence(cadenceOf(parseCadence(cadence).n, u as Unit))} />
+          </div>
+        </div>
       </Field>
       <Field T={T} label="First turn starts" htmlFor="ch-start"><input id="ch-start" className="fld" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
       <Field T={T} label="Size" hint="Bigger chores earn more points on this month's table.">
