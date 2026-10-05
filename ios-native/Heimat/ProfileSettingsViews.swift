@@ -177,6 +177,8 @@ struct EditProfileForm: View {
 struct SettingsView: View {
     @State private var pushOn = false
     @State private var pushDenied = false
+    /// what the last test notification came back with, in words
+    @State private var pushTest: String?
     @State private var cloudOn = CloudBackup.shared.enabled
     @State private var lastBackup: Date?
     @State private var confirmRestore = false
@@ -226,6 +228,7 @@ struct SettingsView: View {
 
             Section {
                 Toggle(isOn: Binding(get: { pushOn }, set: { on in
+                    pushTest = nil
                     Task {
                         if on {
                             if let why = await Push.shared.enable() {
@@ -240,10 +243,21 @@ struct SettingsView: View {
                     Label { Text("Notifications") } icon: { SettingIcon(symbol: "bell.fill", color: .red) }
                 }
                 .disabled(pushDenied)
+
+                // the only way to tell "nothing has happened" from "nothing arrives"
+                if pushOn {
+                    AsyncButton(action: { pushTest = await Push.shared.sendTest() }) {
+                        row("paperplane.fill", .blue, "Send a test notification")
+                    }
+                    .tint(.primary)
+                }
             } header: { Text("Notifications") } footer: {
-                Text(pushDenied
-                     ? "Blocked in iOS Settings — turn Splitlife's notifications back on there."
-                     : "A nudge when a flatmate adds an expense or settles up.")
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(pushDenied
+                         ? "Blocked in iOS Settings — turn Splitlife's notifications back on there."
+                         : "A nudge when a flatmate adds an expense or settles up.")
+                    if pushOn, let pushTest { Text(pushTest).foregroundStyle(.primary) }
+                }
             }
             .task { pushOn = await pushState(); pushDenied = await Push.shared.permission() == .denied }
 

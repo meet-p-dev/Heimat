@@ -6,6 +6,9 @@ import SwiftUI
 /// has no equivalent in a list.
 struct HomeView: View {
     @Environment(AppModel.self) private var m
+    /// iOS hasn't asked yet — read once Home appears, since asking is async
+    @State private var canAsk = false
+    @AppStorage(Push.askedKey) private var pushAsked = false
 
     var body: some View {
         NavigationStack {
@@ -14,6 +17,7 @@ struct HomeView: View {
                     if m.flat != nil || !m.circles.isEmpty { balance() } else { noFlat }
                     quickActions
                     if m.profile.on(.limit) { tiles }
+                    if askPush { pushCard.transition(.opacity.combined(with: .scale(scale: 0.96))) }
                     if m.flat != nil && m.isAnon { guest }
                     if m.flat != nil { recent }
                 }
@@ -22,6 +26,8 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
             .refreshable { await m.reload() }
+            .task { canAsk = await Push.shared.permission() == .notDetermined }
+            .animation(.smooth, value: askPush)
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top) {
                 HeimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Splitlife" : m.firstName)
@@ -177,6 +183,52 @@ struct HomeView: View {
             }
         }
         .frame(width: 54, height: 54)
+    }
+
+    // MARK: - Notifications
+
+    /// Asked once, here rather than from a switch deep in Settings — and only
+    /// once there is someone whose expenses you would want to hear about.
+    private var askPush: Bool {
+        guard canAsk, !pushAsked, Push.shared.wanted else { return false }
+        let circles = Set(m.circles.map(\.id))
+        return !m.flats.isEmpty || m.allExpenses.contains { circles.contains($0.flatId) }
+    }
+
+    private var pushCard: some View {
+        HeimatCard(radius: 22, padding: 14) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .top, spacing: 12) {
+                    SettingIcon(symbol: "bell.fill", color: .red)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Know when someone adds a bill").font(.system(size: 15, weight: .semibold))
+                        Text("Get a notification when someone adds an expense with you, pays you back, or a bill or chore is due.")
+                            .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                HStack(spacing: 10) {
+                    Button {
+                        Haptic.tap()
+                        Task {
+                            await Push.shared.enable()
+                            pushAsked = true
+                            canAsk = false
+                        }
+                    } label: {
+                        Text("Turn on").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glassProminent)
+                    Button { pushAsked = true } label: {
+                        Text("Not now").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.glass)
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+                .padding(.top, 12)
+            }
+        }
     }
 
     // MARK: - Rest

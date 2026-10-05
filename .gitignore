@@ -6,3 +6,6 @@ dist/
 dist-ssr/
 .env
 *.local
+# the Android app's Firebase settings: downloaded from the Firebase console
+# (Project settings → Your apps → Android) into android/app, kept out of the repo
+android/app/google-services.json

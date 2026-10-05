@@ -78,10 +78,15 @@ alone for now.
 Notifications for an expense reach the people it is split between plus
 whoever paid — not the whole flat.
 
-**Push** (`Push.swift`). Stores the APNs token as `apns:<token>` in
-`push_subscriptions`. The server half already existed and is shared with the
-web build — `supabase/functions/push` plus database triggers. No server work is
-needed for new clients.
+**Push** (`Push.swift`). Saves the APNs token through the `save_push_device`
+database function — as `apns:<token>` from TestFlight/App Store builds and
+`apns-dev:<token>` from Debug builds run from Xcode (Apple's test server) —
+which moves the row to whoever is signed in now. Sign-out and switching
+notifications off call `forget_push_device`. Settings has "Send a test
+notification", which calls the `push` function with `{ event: "test" }`. The
+server half is shared with the web build — `supabase/functions/push` plus
+database triggers; it needs the APNs key in its secrets (APNS_KEY_ID,
+APNS_PRIVATE_KEY) before anything reaches an iPhone.
 
 **App Intents** (`Intents.swift`). `AddExpenseIntent`, `LogShiftIntent`,
 `OpenAddExpenseIntent`. These are the single implementation behind Siri, the

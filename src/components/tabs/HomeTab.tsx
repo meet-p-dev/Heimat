@@ -1,4 +1,4 @@
-import { Plus, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound } from 'lucide-react'
+import { Plus, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound, Bell } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Theme, Flat, Runway, Expense, Cat, ModalId, TabId, AuthMode } from '../../lib/types'
 import type { RunwayCalc, WorkStats, SettleSuggestion } from '../../lib/derive'
@@ -17,7 +17,7 @@ function QuickAction({ icon: I, tint, label, onClick, badge }: { icon: LucideIco
   )
 }
 
-export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth }: {
+export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth, pushAsk, pushBusy, onPushOn, onPushLater }: {
   T: Theme; flat: Flat | null
   /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
   scope: string; hasMoney: boolean
@@ -29,6 +29,8 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
   expenses: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void; cats: Cat[]
   openList: () => void; openCount: number; onLogShift: () => void; openSettle: (s: SettleSuggestion | null) => void
   onOpenExpense: (e: Expense) => void; onAuth: (m: AuthMode) => void
+  /* offer notifications (App.tsx decides when this device can and hasn't been asked) */
+  pushAsk: boolean; pushBusy: boolean; onPushOn: () => void; onPushLater: () => void
 }) {
   // myNet is whole cents from the ledger, so exactly zero is settled — no ±0,50 € blind spot
   const tone = myNet > 0 ? T.green : myNet < 0 ? T.red : T.txt
@@ -79,6 +81,23 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
       {actions.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: `repeat(${actions.length > 2 ? 4 : 2}, 1fr)`, gap: 10, marginBottom: 14 }}>
         {actions.map((a) => <QuickAction key={a.label} {...a} />)}
       </div>}
+
+      {/* only once there's someone to hear from: a group, or expenses with friends */}
+      {hasMoney && pushAsk && (
+        <Card T={T} style={{ padding: '15px 14px 14px', borderRadius: 24, marginBottom: 14 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <span className="h-item-ic" style={{ background: TINT.red }}><Bell size={17} /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 650, fontSize: 15 }}>Know when someone adds a bill</div>
+              <div style={{ fontSize: 13, color: T.txt2, marginTop: 2, lineHeight: 1.45 }}>Get a notification when someone adds an expense with you, pays you back, or a bill or chore is due.</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
+            <Btn size="md" busy={pushBusy} onClick={onPushOn} style={{ flex: 1 }}>Turn on</Btn>
+            <Btn size="md" kind="secondary" disabled={pushBusy} onClick={onPushLater} style={{ flex: 1 }}>Not now</Btn>
+          </div>
+        </Card>
+      )}
 
       {(show.runway || show.limit) && <div style={{ display: 'grid', gridTemplateColumns: show.runway && show.limit ? '1fr 1fr' : '1fr', gap: 12 }}>
         {show.runway && <Card T={T} onClick={() => setTab('money')} ariaLabel="Funds runway" style={{ padding: 14, borderRadius: 24 }}>

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'node:path'
+import { existsSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
@@ -8,11 +9,20 @@ import { VitePWA } from 'vite-plugin-pwa'
 // worker is pure overhead (and unavailable on iOS's capacitor:// scheme).
 const native = process.env.VITE_NATIVE === '1'
 
+// The Android app can receive notifications only once android/app/google-services.json
+// (from the Firebase project) is in place; without it the push plugin crashes the app
+// the moment it is asked for a token. src/lib/push.ts leaves push alone until then —
+// so after adding the file, build again (npm run android).
+const androidPush = existsSync(resolve(__dirname, 'android/app/google-services.json'))
+
 // base defaults to '/' (local dev, root hosting, and both native shells). For
 // GitHub Pages project sites the deploy workflow sets VITE_BASE=/Heimat/ so
 // assets resolve under the subpath.
 export default defineConfig({
   base: native ? '/' : process.env.VITE_BASE || '/',
+  define: {
+    __ANDROID_PUSH__: JSON.stringify(androidPush),
+  },
   build: {
     rollupOptions: {
       // reset.html and invite.html are entries, not public/ assets: they need

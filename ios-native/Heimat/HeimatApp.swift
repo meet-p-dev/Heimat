@@ -20,11 +20,12 @@ struct HeimatApp: App {
                     if AppModel.fixtureMode { return }
                     #endif
                     await Push.shared.refresh()
+                    Push.shared.clearBadge()
                     model.publishWidgetData()
                 }
                 .onChange(of: phase) { _, new in
                     // pick up anything Siri or a widget wrote while we were away
-                    if new == .active { model.reloadLocal() }
+                    if new == .active { model.reloadLocal(); Push.shared.clearBadge() }
                     // and leave the widgets something current to draw
                     if new == .background || new == .inactive {
                         model.publishWidgetData()

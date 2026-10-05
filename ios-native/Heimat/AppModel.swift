@@ -242,10 +242,15 @@ final class AppModel {
     }
 
     private func apply(_ user: User) {
-        uid = user.id.uuidString.lowercased()
+        let id = user.id.uuidString.lowercased()
+        let switched = id != uid
+        uid = id
         isAnon = user.isAnonymous
         email = user.email
         pendingEmail = user.newEmail
+        // signed in, signed out to a fresh guest, or a token that came before
+        // anyone was: this phone's notifications now go to this account
+        if switched { Push.shared.resaveAfterAuth() }
     }
 
     // MARK: flat data
@@ -822,6 +827,9 @@ final class AppModel {
         do {
             let user = try await client.auth.update(user: UserAttributes(email: email, password: password), redirectTo: URL(string: Secrets.publicURL))
             apply(user)
+            // the guest keeps its id, so this phone is already filed under it — this
+            // only retries a save that didn't get through while it was a guest
+            Push.shared.resaveAfterAuth()
             if !name.isEmpty && name != profile.name { var p = profile; p.name = name; saveProfile(p) } else { await touchAppUser() }
             await claimWaitingInvites()
             await loadMyFlats()
@@ -887,6 +895,8 @@ final class AppModel {
     }
 
     func signOut() async {
+        // while still signed in — afterwards the database no longer knows it's yours
+        await Push.shared.forget()
         try? await client.auth.signOut()
         flatId = nil
         flats = []

@@ -46,7 +46,7 @@ import NotifPrompt from './components/NotifPrompt'
 import ListPage from './components/ListPage'
 import LiquidGlass from './components/LiquidGlass'
 import { IconBtn, Avatar } from './components/ui'
-import { pushSupported, needsInstall, permission as notifPermission, subscribe, initNativeListeners } from './lib/push'
+import { pushSupported, needsInstall, permission as notifPermission, isSubscribed, subscribe, subscribeError, initNativeListeners, resaveIfSubscribed, forgetThisDevice, pushSwitchedOff } from './lib/push'
 import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, onAppLink, webOrigin, resetUrl } from './lib/native'
 import { touchAppUser, appUserName } from './lib/appUser'
 import { fetchRate } from './lib/rates'
@@ -104,8 +104,10 @@ export default function App() {
   const [viewExpense, setViewExpense] = useState<Expense | null>(null)
   const [settleInit, setSettleInit] = useState<SettleSuggestion | null>(null)
   const [showIntro, setShowIntro] = useState(false)
-  const [notifPrompt, setNotifPrompt] = useState<'enable' | 'install' | null>(null)
+  const [notifPrompt, setNotifPrompt] = useState<'install' | null>(null)
   const [notifBusy, setNotifBusy] = useState(false)
+  // Home's "Know when someone adds a bill" card
+  const [pushAsk, setPushAsk] = useState(false)
   const [showList, setShowList] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -205,6 +207,9 @@ export default function App() {
     if (!m.error && !e.error && !st.error) { setAllMembers((m.data as Member[]) || []); setAllExpenses((e.data as Expense[]) || []); setAllSettles((st.data as Settlement[]) || []) }
   }
   useEffect(() => { if (uid) loadMyFlats() }, [uid])
+  /* this device's notifications follow whoever is signed in: a guest who signs in, or
+     someone signing out and back in, takes the device along (and a rotated token is saved) */
+  useEffect(() => { if (uid) resaveIfSubscribed() }, [uid])
 
   const hostCur = profile.hostCur || 'EUR'
   const homeCur = profile.homeCur || hostCur
@@ -509,7 +514,7 @@ export default function App() {
     setBusy(false)
     if (error) { showToast("Couldn't delete the account — try again"); return }
     await sb.auth.signOut().catch(() => {})
-    ;['mt-h-profile', 'mt-h-runway', 'mt-h-shifts', 'mt-h-flatid', 'mt-h-notif-asked'].forEach((k) => {
+    ;['mt-h-profile', 'mt-h-runway', 'mt-h-shifts', 'mt-h-flatid', 'mt-h-notif-asked', 'mt-h-push-asked'].forEach((k) => {
       try { localStorage.removeItem(k) } catch {}
     })
     location.reload()
@@ -518,6 +523,8 @@ export default function App() {
   const signOut = async () => {
     if (!sb) return
     if (!confirm('Sign out? Your flat stays safe — sign back in any time with your email.')) return
+    // the account that's leaving stops getting notifications on this device
+    await forgetThisDevice()
     await sb.auth.signOut()
     setFlatIdP(null)
     setPages([])
@@ -713,28 +720,36 @@ export default function App() {
     return false
   }), [auth, showIntro, notifPrompt, modal, showList, pages, tab])
 
-  /* once you're in a flat, offer notifications on your own — most people don't find the toggle.
-     Shown at most once (until dismissed) and never after you've already answered the browser prompt. */
+  /* In Safari on an iPhone, push only exists once Splitlife is on the Home Screen — once
+     you're in a flat, say how, at most once. Everywhere else Home offers notifications. */
   useEffect(() => {
     if (!flatId || notifPrompt || LS.g<boolean>('mt-h-notif-asked')) return
-    if (needsInstall()) { setNotifPrompt('install'); return }
-    let cancelled = false
-    // 'default' means the OS prompt was never answered, so no subscription can exist yet
-    if (pushSupported()) notifPermission().then((p) => { if (!cancelled && p === 'default') setNotifPrompt('enable') })
-    return () => { cancelled = true }
+    if (needsInstall()) setNotifPrompt('install')
   }, [flatId, notifPrompt])
-
   const dismissNotifPrompt = () => { LS.s('mt-h-notif-asked', true); setNotifPrompt(null) }
+
+  /* Home's card offering notifications — most people never find the switch in Settings.
+     Until it's answered, and only while this device isn't set up yet, isn't blocked, and
+     they haven't switched notifications off themselves. Not just "the OS prompt was never
+     answered": in a browser the permission can already be granted (the site shares its
+     address with MoneyTrack) with no subscription for Splitlife behind it.
+     Checked again on the way back from Settings, where the answer may have changed. */
+  useEffect(() => {
+    if (!uid || LS.g<boolean>('mt-h-push-asked') || pushSwitchedOff() || needsInstall() || !pushSupported()) { setPushAsk(false); return }
+    let cancelled = false
+    Promise.all([notifPermission(), isSubscribed()])
+      .then(([p, on]) => { if (!cancelled) setPushAsk((p === 'default' || p === 'granted') && !on) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [uid, tab, pages.length])
+  const pushLater = () => { LS.s('mt-h-push-asked', true); setPushAsk(false) }
   const enableNotif = async () => {
     setNotifBusy(true)
     const r = await subscribe()
     setNotifBusy(false)
-    LS.s('mt-h-notif-asked', true)
-    setNotifPrompt(null)
-    if (r.ok) showToast('Notifications on')
-    else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Splitlife in Settings → Notifications' : 'Blocked — allow Splitlife in your browser settings')
-    else if (r.reason === 'install') showToast('Add Splitlife to your Home Screen first')
-    else showToast("Couldn't turn on notifications")
+    LS.s('mt-h-push-asked', true)
+    setPushAsk(false)
+    showToast(r.ok ? 'Notifications on' : subscribeError(r.reason))
   }
 
   const toastEl = toast && <div className="h-toast glass glass-strong" role="status">{toast}</div>
@@ -821,7 +836,7 @@ export default function App() {
 
       <main ref={mainRef} className="h-main">
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth }} />}
+          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings, profile, sProfile }} />}

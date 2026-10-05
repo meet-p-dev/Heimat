@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  UserPlus, LogIn, Mail, KeyRound, LogOut, Palette, Droplets, Bell, Globe, ArrowRightLeft, RefreshCw, CalendarDays, Timer, RotateCcw,
+  UserPlus, LogIn, Mail, KeyRound, LogOut, Palette, Droplets, Bell, BellRing, Globe, ArrowRightLeft, RefreshCw, CalendarDays, Timer, RotateCcw,
   Vibrate, Sparkles, Download, Upload, FileSpreadsheet, Trash2, Shield, FileText, Info, Fingerprint, UserX,
 } from 'lucide-react'
 import type { Theme, Profile, Shift, Runway, AuthMode } from '../../lib/types'
@@ -8,7 +8,7 @@ import type { Prefs, ThemeMode } from '../../lib/prefs'
 import { DEFAULT_PREFS } from '../../lib/prefs'
 import { fixDe, rateDe, numVal, relDay, tod } from '../../lib/format'
 import { fetchRate } from '../../lib/rates'
-import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe } from '../../lib/push'
+import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe, subscribeError, sendTestNotification, pushMissingInBuild } from '../../lib/push'
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { importShifts } from '../../lib/importShifts'
@@ -28,6 +28,9 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
 }) {
   const [notif, setNotif] = useState(false)
   const [notifBusy, setNotifBusy] = useState(false)
+  // the test notification: waiting on the server, then what it said
+  const [testBusy, setTestBusy] = useState(false)
+  const [testMsg, setTestMsg] = useState<string | null>(null)
   const [rateOpen, setRateOpen] = useState(false)
   const [rate, setRate] = useState('')
   const [fetching, setFetching] = useState(false)
@@ -43,19 +46,24 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
 
   const toggleNotif = async () => {
     if (notifBusy) return
+    if (pushMissingInBuild) { showToast(subscribeError('android-unavailable')); return }
     if (needsInstall()) { showToast('Add Splitlife to your Home Screen first'); return }
     if (!pushSupported()) { showToast('Notifications aren’t supported on this device'); return }
     setNotifBusy(true)
     if (notif) {
-      await unsubscribe(); setNotif(false); showToast('Notifications off')
+      await unsubscribe(); setNotif(false); setTestMsg(null); showToast('Notifications off')
     } else {
       const r = await subscribe()
       if (r.ok) { setNotif(true); showToast('Notifications on') }
-      else if (r.reason === 'denied') showToast(isNative ? 'Blocked — allow Splitlife in Settings → Notifications' : 'Blocked — allow notifications in your browser settings')
-      else if (r.reason === 'install') showToast('Add Splitlife to your Home Screen first')
-      else showToast("Couldn't turn on notifications")
+      else showToast(subscribeError(r.reason))
     }
     setNotifBusy(false)
+  }
+  const sendTest = async () => {
+    if (testBusy) return
+    setTestBusy(true); setTestMsg(null)
+    setTestMsg(await sendTestNotification())
+    setTestBusy(false)
   }
 
   const liveRate = async () => {
@@ -147,8 +155,12 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       </Group>
 
       <Group T={T} title="Notifications">
-        <Item T={T} icon={Bell} tint={TINT.red} label="Push notifications" sub={needsInstall() ? 'Add Splitlife to your Home Screen to enable' : 'New shared expenses, list items and payments to you'}
+        <Item T={T} icon={Bell} tint={TINT.red} label="Push notifications"
+          sub={pushMissingInBuild ? "Notifications aren't available in this test version yet." : needsInstall() ? 'Add Splitlife to your Home Screen to enable' : 'New shared expenses, list items and payments to you'}
           right={<Toggle label="Push notifications" on={notif} disabled={notifBusy} onChange={toggleNotif} />} />
+        {notif && <Item T={T} icon={BellRing} tint={TINT.orange} label="Send a test notification" chevron={false} disabled={testBusy} onClick={sendTest}
+          sub={testBusy ? 'Sending…' : testMsg || 'Check that notifications reach this device'}
+          right={testBusy ? <span className="h-spin" style={{ color: T.txt3, flexShrink: 0 }} /> : undefined} />}
       </Group>
 
       <Group T={T} title="Currency" footer="Rates come from open.er-api.com and are for reference only.">
