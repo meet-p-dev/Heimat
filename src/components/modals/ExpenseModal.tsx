@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Settings2, Trash2, Users, ChevronRight } from 'lucide-react'
+import { Settings2, Trash2, Users, CalendarDays, ChevronDown } from 'lucide-react'
 import type { Theme, Member, Expense, Cat, SplitType, SplitData } from '../../lib/types'
 import { hasLeft } from '../../lib/types'
 import { iconOf } from '../../icons'
+import { colorOf } from '../../lib/theme'
 import { money, amountVal, tod, relDay } from '../../lib/format'
 import { computeShares, minorToInput, toMinor, cmp } from '../../lib/ledger'
 import { personName, pairCircle } from '../../lib/places'
 import type { PersonPick } from '../../lib/places'
-import { Sheet, Field, Btn, Chip, Avatar, SegmentedControl } from '../ui'
+import { Sheet, Field, Btn, Chip, Avatar } from '../ui'
 import { SplitEditor, PayersEditor, emptySplit, buildSpec, splitData, payersOf, fromExpense } from '../SplitEditor'
 import type { SplitState } from '../SplitEditor'
 import { WithPicker } from '../Friends'
@@ -59,6 +60,8 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   const [draftId, setDraftId] = useState(newId)
   const [target, setTarget] = useState('')
   const [choosing, setChoosing] = useState(false)
+  // the bottom bar's pickers: one open at a time
+  const [panel, setPanel] = useState<'date' | 'cat' | null>(null)
   const [resolving, setResolving] = useState(false)
   const circle = c.circles.some((x) => x.id === target)
 
@@ -85,8 +88,10 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
     if (!open) return
     if (editing) {
       setDesc(editing.description || ''); setAmt(minorToInput(toMinor(editing.amount, editing.currency), editing.currency)); setPayer(editing.paid_by)
+      setPanel(null)
       setSplit(fromExpense(editing)); setCat(editing.category || 'other'); setDate(editing.spent_on || tod()); setTarget(editing.flat_id); setCatTouched(true)
     } else {
+      setPanel(null)
       setDesc(prefill?.desc || ''); setAmt(''); setPayer(uid || ''); setCat(prefill?.category || 'groceries'); setDate(tod()); setDraftId(newId())
       setCatTouched(!!prefill?.category)
       const picks = prefill?.people
@@ -131,56 +136,79 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   }
 
   const peopleRows = people.map((m) => ({ id: m.user_id, name: m.display_name }))
+  const catNow = cats.find((x) => x.id === cat)
+  const CatIcon = catNow ? iconOf(catNow) : Settings2
+  const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })()
+  const groupLocked = !!editing && !circle
+  /* The order you think in: how much and what for, who paid, who it's split between.
+     Where it goes, when, and its category sit in the bar at the bottom, like Splitwise —
+     they start right (the group you're in, today, a guessed category) and rarely change.
+     A different group means different people, so payer and split start over then. */
   return (
     <>
       <Sheet open={open && !choosing} onClose={onClose} title={editing ? 'Edit expense' : 'New expense'} T={T}
         footer={<>
+          {panel === 'date' && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 10, alignItems: 'center' }}>
+              <Chip T={T} on={date === tod()} onClick={() => { setDate(tod()); setPanel(null) }}>Today</Chip>
+              <Chip T={T} on={date === yesterday} onClick={() => { setDate(yesterday); setPanel(null) }}>Yesterday</Chip>
+              <input aria-label="Pick a day" className="fld" type="date" value={date} onChange={(e) => { if (e.target.value) setDate(e.target.value) }} style={{ flex: 1, minWidth: 150, padding: '8px 12px' }} />
+            </div>
+          )}
+          {panel === 'cat' && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 10 }}>
+              {cats.map((x) => <Chip key={x.id} T={T} on={cat === x.id} tint={x.color} icon={iconOf(x)} onClick={() => { setCat(x.id); setCatTouched(true); setPanel(null) }}>{x.label}</Chip>)}
+              <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 7, marginBottom: 10, overflowX: 'auto', scrollbarWidth: 'none' }}>
+            <Chip T={T} icon={CalendarDays} on={panel === 'date'} onClick={() => setPanel(panel === 'date' ? null : 'date')} ariaLabel="Date" style={{ flexShrink: 0 }}>{relDay(date)}</Chip>
+            <Chip T={T} icon={Users} on={!target && !resolving} onClick={() => { if (!groupLocked && !resolving) { setPanel(null); setChoosing(true) } }}
+              ariaLabel={groupLocked ? "Group — a group's expense stays in its group" : 'Where it goes'}
+              style={{ flexShrink: 0, opacity: groupLocked ? 0.7 : 1 }}>
+              <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resolving ? 'One moment…' : withLabel}</span>
+              {!groupLocked && <ChevronDown size={13} style={{ flexShrink: 0 }} />}
+            </Chip>
+            <Chip T={T} icon={CatIcon} on={panel === 'cat'} onClick={() => setPanel(panel === 'cat' ? null : 'cat')} ariaLabel="Category" style={{ flexShrink: 0 }}>{catNow?.label || 'Category'}</Chip>
+          </div>
           <Btn full disabled={!valid} onClick={submit}>{editing ? 'Save changes' : v > 0 ? `Add ${money(v, cur)}` : 'Add expense'}</Btn>
           {editing && onDelete && <Btn full kind="danger" size="md" icon={Trash2} onClick={onDelete} style={{ marginTop: 4 }}>Delete expense</Btn>}
         </>}>
-        <Field T={T} label="With you and" hint={editing && !circle ? "A group's expense stays in its group." : undefined}>
-          <button type="button" className="h-well" disabled={(!!editing && !circle) || resolving} onClick={() => setChoosing(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', cursor: 'pointer', color: target ? T.txt : T.acc, textAlign: 'left', font: 'inherit' }}>
-            <Users size={18} color={T.acc} />
-            <span style={{ flex: 1, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resolving ? 'One moment…' : withLabel}</span>
-            {!(editing && !circle) && <ChevronRight size={17} color={T.txt3} />}
-          </button>
-        </Field>
         <Field T={T} label="How much?" htmlFor="ex-amt" error={amt.trim() && v <= 0 ? 'Enter an amount like 12,50' : undefined} hint={cur === hostCur && homeCur !== hostCur && v > 0 ? `≈ ${money(v * rate, homeCur)} in your home currency` : undefined}>
           <div style={{ position: 'relative' }}>
             <input id="ex-amt" className="fld fld-big" value={amt} onChange={(e) => setAmt(e.target.value)} inputMode="decimal" placeholder="0,00" style={{ paddingRight: 64 }} />
             <span style={{ position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)', fontWeight: 700, color: T.txt3 }}>{cur}</span>
           </div>
         </Field>
-        <Field T={T} label="What for?" htmlFor="ex-desc"><input id="ex-desc" className="fld" value={desc} onChange={(e) => typed(e.target.value)} placeholder="e.g. Rewe groceries" /></Field>
-        <Field T={T} label="Category">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-            {cats.map((x) => <Chip key={x.id} T={T} on={cat === x.id} tint={x.color} icon={iconOf(x)} onClick={() => { setCat(x.id); setCatTouched(true) }}>{x.label}</Chip>)}
-            <Chip T={T} dashed icon={Settings2} onClick={openCategories}>Edit</Chip>
+        <Field T={T} label="What for?" htmlFor="ex-desc">
+          <div style={{ position: 'relative' }}>
+            <button type="button" aria-label={`Category: ${catNow?.label || 'choose'}`} onClick={() => setPanel(panel === 'cat' ? null : 'cat')}
+              style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', width: 32, height: 32, borderRadius: 10, border: 'none', cursor: 'pointer', background: catNow ? colorOf(catNow) : T.border, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CatIcon size={16} />
+            </button>
+            <input id="ex-desc" className="fld" value={desc} onChange={(e) => typed(e.target.value)} placeholder="e.g. Rewe groceries" style={{ paddingLeft: 50 }} />
           </div>
         </Field>
         {people.length > 0 && <>
           <Field T={T} label="Paid by">
-            <SegmentedControl T={T} label="Paid by" options={[['one', 'One person'], ['several', 'Several people']]} value={split.severalPaid ? 'several' : 'one'}
-              onChange={(v) => setSplit({ ...split, severalPaid: v === 'several', paid: v === 'several' && !Object.keys(split.paid).length && payer ? { [payer]: amt } : split.paid })} />
-            {!split.severalPaid && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 10 }}>
-                {people.map((m) => (
-                  <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
-                    <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
-                  </Chip>
-                ))}
-              </div>
-            )}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {!split.severalPaid && people.map((m) => (
+                <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
+                  <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
+                </Chip>
+              ))}
+              <Chip T={T} on={split.severalPaid} dashed={!split.severalPaid}
+                onClick={() => setSplit({ ...split, severalPaid: !split.severalPaid, paid: !split.severalPaid && !Object.keys(split.paid).length && payer ? { [payer]: amt } : split.paid })}>
+                {split.severalPaid ? 'Several people ✓' : 'Several people'}
+              </Chip>
+            </div>
           </Field>
           {split.severalPaid && <PayersEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} name={nm} />}
           <SplitEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} seed={seed} result={result} unreadable={built.unreadable}
             name={nm} setTotal={(minor) => setAmt(minorToInput(minor, cur))} />
         </>}
-        <Field T={T} label="Date" htmlFor="ex-date" hint={date && date !== tod() ? relDay(date) : undefined} style={{ marginBottom: 4 }}>
-          <input id="ex-date" className="fld" value={date} onChange={(e) => setDate(e.target.value)} type="date" />
-        </Field>
         {ids.length === 0 && target && <div style={{ fontSize: 13, color: T.txt3 }}>Loading the people…</div>}
+        {!target && !resolving && <div style={{ fontSize: 13.5, color: T.txt2 }}>Choose who it's with in the bar below.</div>}
       </Sheet>
       <WithPicker c={c} open={open && choosing} onClose={() => { setChoosing(false); if (!target) onClose() }}
         group={circle ? null : target || null}

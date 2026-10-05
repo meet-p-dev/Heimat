@@ -43,6 +43,8 @@ struct ExpenseForm: View {
     @State private var target = ""
     @State private var choosing = false
     @State private var resolving = false
+    @State private var pickingDay = false
+    @FocusState private var amountFocused: Bool
 
     private var people: [Member] {
         let list = m.members(of: target)
@@ -62,46 +64,50 @@ struct ExpenseForm: View {
         let splitOK = built.unreadable == nil && { if case .ok = result { true } else { false } }()
         let valid = v > 0 && splitOK && paidOK && !target.isEmpty && !resolving
         NavigationStack {
+            // The order you think in: how much and what for, who paid, who it's split
+            // between. Where it goes, when, and its category sit in the bar at the bottom,
+            // like Splitwise — they start right and rarely change. A different group means
+            // different people, so payer and split start over then (onChange of target).
             Form {
                 Section {
                     HStack {
                         TextField("0,00", text: $amount).keyboardType(.decimalPad)
                             .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .focused($amountFocused)
                         Text(cur).font(.title3.weight(.semibold)).foregroundStyle(.secondary)
+                    }
+                    HStack(spacing: 10) {
+                        let c = Cats.of(m.cats, cat)
+                        categoryMenu {
+                            Image(systemName: c.symbol).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                                .frame(width: 32, height: 32).background(c.color, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                        TextField("What for? e.g. Rewe groceries", text: $desc)
+                            .onChange(of: desc) { _, d in
+                                guard !catTouched, let s = Suggest.category(d, learned, known: { id in m.cats.contains { $0.id == id } }) else { return }
+                                cat = s
+                            }
                     }
                 } header: { Text("How much?") } footer: {
                     if !amount.isEmpty && v <= 0 { Text("Enter an amount like 12,50").foregroundStyle(.red) }
                     else if cur == m.hostCur && m.homeCur != m.hostCur && v > 0 { Text("≈ \(Fmt.money(v * m.profile.rate, m.homeCur)) in your home currency") }
                 }
-                Section {
-                    // a group, or people outside any group. A group expense stays in its
-                    // group (moving it would rewrite whose debt it is); a non-group
-                    // expense can change its people, and moves to their circle
-                    Button { choosing = true } label: {
-                        HStack {
-                            Text("With you and").foregroundStyle(.primary)
-                            Spacer()
-                            if resolving { ProgressView() } else {
-                                Label(withSummary, systemImage: m.isCircle(target) ? "person.2.fill" : target.isEmpty ? "plus" : "person.3.fill")
-                                    .foregroundStyle(target.isEmpty ? Color.accentColor : Color.secondary).lineLimit(1)
+                if !people.isEmpty {
+                    Section("Paid by") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                if !split.severalPaid {
+                                    ForEach(people) { p in
+                                        FormChip(label: m.nameOf(p.userId, in: target), on: payer == p.userId) { payerChoice.wrappedValue = p.userId }
+                                    }
+                                }
+                                FormChip(label: split.severalPaid ? "Several people ✓" : "Several people", on: split.severalPaid) {
+                                    payerChoice.wrappedValue = split.severalPaid ? (m.uid ?? "") : Self.several
+                                }
                             }
+                            .padding(.vertical, 2)
                         }
                     }
-                    .disabled(editing.map { !m.isCircle($0.flatId) } ?? false)
-                    TextField("What for? e.g. Rewe groceries", text: $desc)
-                        .onChange(of: desc) { _, d in
-                            guard !catTouched, let s = Suggest.category(d, learned, known: { id in m.cats.contains { $0.id == id } }) else { return }
-                            cat = s
-                        }
-                    Picker("Category", selection: Binding(get: { cat }, set: { cat = $0; catTouched = true })) { ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) } }
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                    Picker("Paid by", selection: payerChoice) {
-                        ForEach(people) { Text(m.nameOf($0.userId, in: target)).tag($0.userId) }
-                        Divider()
-                        Text("Several people").tag(Self.several)
-                    }
-                } footer: {
-                    Button("Edit categories") { m.sheet = .categories }.font(.footnote)
                 }
                 if split.severalPaid {
                     PayersEditor(s: $split, people: people, total: total, cur: cur, name: { m.nameOf($0, in: target) })
@@ -114,6 +120,16 @@ struct ExpenseForm: View {
             }
             .navigationTitle(editing == nil ? "New expense" : "Edit expense")
             .heimatSurface()
+            .safeAreaInset(edge: .bottom) { bottomBar }
+            .sheet(isPresented: $pickingDay) {
+                NavigationStack {
+                    DatePicker("Day", selection: $date, in: ...Date().addingTimeInterval(366 * 86400), displayedComponents: .date)
+                        .datePickerStyle(.graphical).padding(.horizontal)
+                        .navigationTitle("Pick a day").navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { pickingDay = false } } }
+                }
+                .presentationDetents([.medium])
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
@@ -166,6 +182,8 @@ struct ExpenseForm: View {
                         target = m.flatId ?? m.flats.first?.id ?? ""
                     }
                     payer = m.uid ?? ""; split = SplitState(among: Set(people.map(\.userId)))
+                    // a new expense starts with the amount, ready to type
+                    if prefill?.people?.isEmpty != true { amountFocused = true }
                 }
             }
             .sheet(isPresented: $choosing) {
@@ -192,6 +210,41 @@ struct ExpenseForm: View {
 
 extension ExpenseForm {
     static let several = "\u{0}several"
+
+    /// date, where it goes, category — chips that start right and are changed only sometimes
+    private var bottomBar: some View {
+        let groupLocked = editing.map { !m.isCircle($0.flatId) } ?? false
+        let c = Cats.of(m.cats, cat)
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                Menu {
+                    Button("Today") { date = Date() }
+                    Button("Yesterday") { date = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date() }
+                    Button("Pick a day…") { pickingDay = true }
+                } label: { ChipLabel(symbol: "calendar", text: Fmt.relDay(Fmt.ymd(date))) }
+                Button { if !groupLocked && !resolving { choosing = true } } label: {
+                    ChipLabel(symbol: m.isCircle(target) ? "person.2.fill" : "person.3.fill", text: resolving ? "One moment…" : withSummary,
+                              more: !groupLocked, accent: target.isEmpty)
+                }
+                .opacity(groupLocked ? 0.6 : 1)
+                .accessibilityHint(groupLocked ? "A group's expense stays in its group" : "Where it goes")
+                categoryMenu { ChipLabel(symbol: c.symbol, text: c.label) }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 10)
+        }
+        .background(.bar)
+    }
+
+    /// the categories, and a way to change them
+    private func categoryMenu<L: View>(@ViewBuilder label: () -> L) -> some View {
+        Menu {
+            Picker("Category", selection: Binding(get: { cat }, set: { cat = $0; catTouched = true })) {
+                ForEach(m.cats) { Label($0.label, systemImage: $0.symbol).tag($0.id) }
+            }
+            Divider()
+            Button("Edit categories…") { m.sheet = .categories }
+        } label: { label() }
+    }
 
     /// "Münchener Straße 67", "Nina, Tom", or "Choose"
     private var withSummary: String {
@@ -694,5 +747,40 @@ struct WithPicker: View {
                 }
             }
         }
+    }
+}
+
+/// a choice in a row of chips (Paid by)
+private struct FormChip: View {
+    let label: String
+    let on: Bool
+    let tap: () -> Void
+    var body: some View {
+        Button { Haptic.tap(); tap() } label: {
+            Text(label).font(.system(size: 14.5, weight: .semibold)).lineLimit(1)
+                .padding(.horizontal, 13).padding(.vertical, 7)
+                .foregroundStyle(on ? Color.white : Color.primary)
+                .background(on ? Color.accentColor : Color.secondary.opacity(0.13), in: Capsule())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// a chip in the bottom bar
+private struct ChipLabel: View {
+    let symbol: String
+    let text: String
+    var more = false
+    var accent = false
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol).font(.system(size: 13, weight: .semibold))
+            Text(text).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+            if more { Image(systemName: "chevron.down").font(.system(size: 10, weight: .bold)).foregroundStyle(.secondary) }
+        }
+        .frame(maxWidth: 150)
+        .padding(.horizontal, 12).padding(.vertical, 8)
+        .foregroundStyle(accent ? Color.accentColor : Color.primary)
+        .background(Color.secondary.opacity(0.13), in: Capsule())
     }
 }

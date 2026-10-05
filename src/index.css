@@ -107,6 +107,7 @@ input.fld::-webkit-date-and-time-value{text-align:left}
 .h-seg button[aria-pressed=true]{color:var(--txt)}
 .chip{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;border-radius:99px;padding:8px 13px;font-size:13.5px;font-weight:600;border:1px solid var(--field-bd);background:var(--field);color:var(--txt2);cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s}
 .chip:active{transform:scale(.95)}
+.chip>svg{flex-shrink:0}
 .h-pill{display:inline-flex;align-items:center;gap:5px;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap}
 .h-check{width:24px;height:24px;border-radius:99px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid var(--field-bd);transition:background .2s,border-color .2s}
 .h-check[data-on=true]{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
