@@ -52,6 +52,9 @@ export function billLine(b: Bill, s: BillStatus | undefined, who: (uid: string) 
   if (s.state === 'overdue') return { text: `Overdue since ${relDay(s.due_on)}`, urgent: true }
   if (s.state === 'paid') return { text: `Paid ✓ by ${s.paid_by ? who(s.paid_by) : 'someone'} · next ${relDay(s.due_on)}`, urgent: false }
   const d = daysUntil(s.due_on)
+  // a status read before midnight can be out of date by the time it's shown
+  if (d < 0) return { text: `Overdue since ${relDay(s.due_on)}`, urgent: true }
+  if (d === 0) return { text: 'Due today', urgent: true }
   return { text: d === 1 ? 'Due tomorrow' : d < 7 ? `Due in ${d} days` : `Due ${relDay(s.due_on)}`, urgent: false }
 }
 
