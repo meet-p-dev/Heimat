@@ -36,7 +36,7 @@ struct OnboardingView: View {
                     .font(.system(size: 34, weight: .semibold))
                     .foregroundStyle(.tint)
                     .frame(width: 76, height: 76)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 24))
+                    .glassSurface(in: .rect(cornerRadius: 24))
                     .padding(.top, 24)
                 Text("Splitlife").font(.system(size: 46, weight: .bold, design: .rounded))
                 Text("Bills, chores and money, shared — for life abroad.").font(.title3).foregroundStyle(.secondary)
@@ -52,9 +52,9 @@ struct OnboardingView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 10) {
                 Button { Haptic.tap(); step = 1 } label: { Text("Get started").frame(maxWidth: .infinity) }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                 Button { sheet = .auth(.signin) } label: { Text("I already have an account").frame(maxWidth: .infinity) }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 Text("By continuing you agree to the [Terms](\(Secrets.publicURL)legal/terms.html) and [Privacy policy](\(Secrets.publicURL)legal/privacy.html).")
                     .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center).padding(.top, 4)
             }
@@ -91,7 +91,7 @@ struct OnboardingView: View {
                     HStack {
                         TextField(fetching ? "Fetching…" : "e.g. 90,5", text: $rate).keyboardType(.decimalPad)
                         AsyncButton(action: { await live(host.cur, home.cur) }) { Label("Live", systemImage: "arrow.clockwise") }
-                            .buttonStyle(.glass)
+                            .glassButton()
                     }
                 } header: { Text("1 \(host.cur) = ? \(home.cur)") } footer: {
                     Text("A reference rate that updates itself once a day. You can change it in Settings.")
@@ -107,7 +107,7 @@ struct OnboardingView: View {
                 Haptic.tap()
                 step = 2
             } label: { Text("Continue").frame(maxWidth: .infinity) }
-            .buttonStyle(.glassProminent).controlSize(.large)
+            .glassProminentButton().controlSize(.large)
             .disabled(draft.name.trimmingCharacters(in: .whitespaces).isEmpty)
             .padding(.horizontal, 24).padding(.bottom, 8)
         }
@@ -131,7 +131,7 @@ struct OnboardingView: View {
                 Haptic.tap()
                 if m.isAnon { step = 3 } else { finish(signup: false) }
             } label: { Text(m.isAnon ? "Continue" : "Start using Splitlife").frame(maxWidth: .infinity) }
-            .buttonStyle(.glassProminent).controlSize(.large)
+            .glassProminentButton().controlSize(.large)
             .padding(.horizontal, 24).padding(.bottom, 8)
         }
     }
@@ -142,7 +142,7 @@ struct OnboardingView: View {
                 Image(systemName: "checkmark.shield.fill")
                     .font(.system(size: 32, weight: .semibold)).foregroundStyle(.tint)
                     .frame(width: 70, height: 70)
-                    .glassEffect(.regular, in: .rect(cornerRadius: 22))
+                    .glassSurface(in: .rect(cornerRadius: 22))
                     .padding(.top, 24)
                 Text("Keep your data safe").font(.largeTitle.bold())
                 Text("Create a free account and your flat, balances and history come back on any phone you sign in on.")
@@ -156,9 +156,9 @@ struct OnboardingView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 10) {
                 Button { finish(signup: true) } label: { Text("Create account").frame(maxWidth: .infinity) }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                 Button { finish(signup: false) } label: { Text("Continue as guest").frame(maxWidth: .infinity) }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 Text("You can create an account any time from Settings.").font(.caption).foregroundStyle(.secondary)
             }
             .controlSize(.large)

@@ -141,8 +141,8 @@ struct SwapAskCard: View {
                 Text("\(m.personName(swap.fromUser)) asks if you can take their turn: \(name)")
                     .font(.system(size: 15, weight: .semibold))
                 HStack(spacing: 10) {
-                    Button("Decline") { Task { await m.answerSwap(swap, accept: false) } }.buttonStyle(.glass)
-                    Button("I'll do it") { Task { await m.answerSwap(swap, accept: true) } }.buttonStyle(.glassProminent)
+                    Button("Decline") { Task { await m.answerSwap(swap, accept: false) } }.glassButton()
+                    Button("I'll do it") { Task { await m.answerSwap(swap, accept: true) } }.glassProminentButton()
                 }
                 .controlSize(.small)
             }

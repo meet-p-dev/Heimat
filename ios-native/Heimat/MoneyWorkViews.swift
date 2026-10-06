@@ -75,7 +75,7 @@ struct WorkView: View {
         Button { m.sheet = .shift(nil, nil) } label: {
             Label("Log a work shift", systemImage: "plus").frame(maxWidth: .infinity)
         }
-        .buttonStyle(.glassProminent)
+        .glassProminentButton()
         .tint(.work)
         .controlSize(.large)
     }

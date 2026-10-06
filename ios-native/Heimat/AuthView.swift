@@ -72,7 +72,7 @@ struct AuthView: View {
                         Image(systemName: sent ? "envelope.badge.fill" : symbol)
                             .font(.system(size: 28, weight: .semibold)).foregroundStyle(.tint)
                             .frame(width: 62, height: 62)
-                            .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                            .glassSurface(in: .rect(cornerRadius: 20))
                         Text(sent ? (mode == .forgot ? "Check your inbox" : "Confirm your new email") : title)
                             .font(.largeTitle.bold())
                         Text(sent

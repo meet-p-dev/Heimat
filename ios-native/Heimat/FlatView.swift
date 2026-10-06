@@ -79,7 +79,7 @@ struct GroupPage: View {
                     Button { m.sheet = .invite } label: {
                         Label("Invite", systemImage: "person.badge.plus")
                     }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     .controlSize(.small)
                 }
                 HStack(spacing: 0) {
@@ -198,11 +198,11 @@ struct GroupPage: View {
             Button { m.sheet = .settle(nil) } label: {
                 Label("Settle up", systemImage: "arrow.left.arrow.right").frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glass)
+            .glassButton()
             Button { m.startAddExpense() } label: {
                 Label("Add expense", systemImage: "plus").frame(maxWidth: .infinity)
             }
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
         }
         .controlSize(.large)
         .lineLimit(1)
@@ -229,12 +229,12 @@ struct GroupPage: View {
     private var emptyExpenses: some View {
         HeimatCard(radius: 26, padding: 22) {
             VStack(spacing: 10) {
-                Image(systemName: "receipt").font(.system(size: 34)).foregroundStyle(.tertiary)
+                Image(systemName: Compat.receiptSymbol).font(.system(size: 34)).foregroundStyle(.tertiary)
                 Text("No shared expenses yet").font(.system(size: 17, weight: .bold))
                 Text("Add rent, groceries or the internet bill — Splitlife splits it and keeps score for everyone.")
                     .font(.system(size: 14)).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 Button("Add the first expense") { m.startAddExpense() }
-                    .buttonStyle(.glassProminent).controlSize(.large).padding(.top, 4)
+                    .glassProminentButton().controlSize(.large).padding(.top, 4)
             }
             .frame(maxWidth: .infinity)
         }
@@ -271,7 +271,7 @@ struct GroupPage: View {
             Label("Leave “\(flat.name)”", systemImage: "rectangle.portrait.and.arrow.right")
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.glass)
+        .glassButton()
         .controlSize(.large)
         .tint(.hRed)
         .padding(.top, 12)
@@ -288,9 +288,9 @@ struct NoFlatView: View {
         } actions: {
             VStack(spacing: 10) {
                 Button { m.sheet = .flat(.create) } label: { Label("Create a flat", systemImage: "plus").frame(maxWidth: 260) }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                 Button { m.sheet = .flat(.join) } label: { Label("Join with a code", systemImage: "key.fill").frame(maxWidth: 260) }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 if m.isAnon { Button("Been here before? Sign in") { m.sheet = .auth(.signin) }.padding(.top, 6) }
             }
             .controlSize(.large)
@@ -338,10 +338,10 @@ struct ShoppingListView: View {
                     Text("Bought · \(bought.count)")
                 } footer: {
                     HStack(spacing: 10) {
-                        Button { m.expenseFromBought() } label: { Label("Add as expense", systemImage: "receipt").frame(maxWidth: .infinity) }
-                            .buttonStyle(.glassProminent)
+                        Button { m.expenseFromBought() } label: { Label("Add as expense", systemImage: Compat.receiptSymbol).frame(maxWidth: .infinity) }
+                            .glassProminentButton()
                         AsyncButton(action: { await m.clearBought() }) { Label("Clear", systemImage: "trash") }
-                            .buttonStyle(.glass)
+                            .glassButton()
                     }
                     .controlSize(.large)
                     .padding(.top, 10)

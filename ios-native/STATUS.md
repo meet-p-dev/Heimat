@@ -36,10 +36,17 @@ not sign.
 
 **Design.** All tabs are free-form card columns, not grouped `List`s, because
 the grids have no `List` equivalent. Shared primitives in `Components.swift`
-mirror the web's `ui.tsx`: `HeimatCard` (real `.glassEffect`), `QuickAction`,
+mirror the web's `ui.tsx`: `HeimatCard` (real Liquid Glass on iOS 26), `QuickAction`,
 `Chip`, `HeimatRow`, `SectionLabel`, `PressStyle`, `Tint`. `HeimatHeader`
 replaces the system navigation bar so titles sit on the same 16pt gutter as
 content. `Surface.swift` draws the ambient background.
+
+**iOS 18 and up.** The app and the widget target iOS 18. Liquid Glass is iOS 26
+only, so no view calls it directly: `Compat.swift` has `.glassButton()`,
+`.glassProminentButton()` and `.glassSurface(in:tint:interactive:)`, which are
+the real glass on iOS 26 and a bordered capsule or a frosted material before
+it. In a debug build, `-HeimatLegacyLook` (with `-HeimatFixture`) shows the
+iOS 18 look on an iOS 26 simulator.
 
 **Tabs** (`HeimatApp.swift`) are an offset `HStack` driven by our own
 `DragGesture`, not a `TabView` and not a horizontal `ScrollView`, so a drag

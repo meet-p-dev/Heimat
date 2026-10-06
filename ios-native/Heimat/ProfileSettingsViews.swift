@@ -25,7 +25,7 @@ struct ProfileView: View {
                     Text("\(home?.flag ?? "🌍") \(p.homeCountry)  →  \(host?.flag ?? "🌍") \(p.hostCountry)")
                         .font(.subheadline).foregroundStyle(.secondary)
                     Button { sheet = .editProfile } label: { Label("Edit profile", systemImage: "pencil") }
-                        .buttonStyle(.glass).padding(.top, 4)
+                        .glassButton().padding(.top, 4)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -41,8 +41,8 @@ struct ProfileView: View {
                         }
                     } icon: { SettingIcon(symbol: "exclamationmark.shield.fill", color: .orange) }
                     HStack(spacing: 10) {
-                        Button { sheet = .auth(.signup) } label: { Text("Create account").frame(maxWidth: .infinity) }.buttonStyle(.glassProminent)
-                        Button { sheet = .auth(.signin) } label: { Text("Sign in").frame(maxWidth: .infinity) }.buttonStyle(.glass)
+                        Button { sheet = .auth(.signup) } label: { Text("Create account").frame(maxWidth: .infinity) }.glassProminentButton()
+                        Button { sheet = .auth(.signin) } label: { Text("Sign in").frame(maxWidth: .infinity) }.glassButton()
                     }
                     .controlSize(.large)
                 }
@@ -142,7 +142,7 @@ struct EditProfileForm: View {
                             AsyncButton(action: { if let r = await Rates.fetch(host: host.cur, home: home.cur) { rate = Fmt.input(r) } }) {
                                 Label("Live", systemImage: "arrow.clockwise")
                             }
-                            .buttonStyle(.glass)
+                            .glassButton()
                         }
                     }
                 }

@@ -103,6 +103,9 @@ extension AppModel {
             return ("Paid ✓ by \(who) · next \(Fmt.relDay(s.dueOn))", false)
         default:
             let days = Calendar(identifier: .gregorian).dateComponents([.day], from: Fmt.date(Fmt.today()) ?? Date(), to: Fmt.date(s.dueOn) ?? Date()).day ?? 0
+            // a status read before midnight can be out of date by the time it's shown
+            if days < 0 { return ("Overdue since \(Fmt.relDay(s.dueOn))", true) }
+            if days == 0 { return ("Due today", true) }
             return (days == 1 ? "Due tomorrow" : days < 7 ? "Due in \(days) days" : "Due \(Fmt.relDay(s.dueOn))", false)
         }
     }

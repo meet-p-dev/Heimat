@@ -78,14 +78,14 @@ struct HomeView: View {
                     Button { m.startAddExpense() } label: {
                         Label("Add expense", systemImage: "plus").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     Button {
                         // with no group open, what there is to settle is with friends
                         if m.flat != nil { m.sheet = .settle(nil) } else { m.tab = .flat; m.groupsPath = [.nonGroup] }
                     } label: {
                         Label("Settle up", systemImage: "arrow.left.arrow.right").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 }
                 .controlSize(.large)
                 .lineLimit(1)
@@ -115,11 +115,11 @@ struct HomeView: View {
                     Button { m.sheet = .flat(.group) } label: {
                         Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     Button { m.sheet = .flat(.join) } label: {
                         Label("Join", systemImage: "key.fill").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 }
                 .controlSize(.large)
                 .lineLimit(1)
@@ -218,11 +218,11 @@ struct HomeView: View {
                     } label: {
                         Text("Turn on").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     Button { pushAsked = true } label: {
                         Text("Not now").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glass)
+                    .glassButton()
                 }
                 .lineLimit(1)
                 .minimumScaleFactor(0.75)

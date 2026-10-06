@@ -230,7 +230,8 @@ struct MainTabs: View {
             .offset(x: -progress * w)
             .frame(width: w, height: geo.size.height, alignment: .leading)
             .contentShape(Rectangle())
-            .simultaneousGesture(pan(width: w))
+            // off before iOS 26 (Compat.swipeTabs): the bar still switches tabs
+            .simultaneousGesture(pan(width: w), including: Compat.swipeTabs ? .all : .subviews)
         }
         // a tap on the bar, or `m.tab` set from a card, glides the pager over;
         // while a finger is on it the drag is in charge instead.
@@ -320,6 +321,13 @@ struct GlassTabBar: View {
     /// Both curves start at 0 and end at 1, so the pill always settles to an
     /// exact capsule; in between, the front edge is ahead of the back one.
     private static let bend = 1.7
+
+    /// How much of the screen the bar takes above the home indicator. The tab pages
+    /// get it as safe area; a page pushed inside a tab's NavigationStack doesn't,
+    /// so those add it to their scrolling themselves (GroupsView's destinations).
+    static let height: CGFloat = 60
+    static let bottomGap: CGFloat = 4
+    static var clearance: CGFloat { height + bottomGap }
     private func lead(_ t: Double) -> Double { 1 - pow(1 - t, Self.bend) }
     private func trail(_ t: Double) -> Double { pow(t, Self.bend) }
 
@@ -361,10 +369,10 @@ struct GlassTabBar: View {
                     .offset(x: left + 6)
             }
         }
-        .frame(height: 60)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .frame(height: Self.height)
+        .glassSurface(in: .capsule, interactive: true)
         .padding(.horizontal, 20)
-        .padding(.bottom, 4)
+        .padding(.bottom, Self.bottomGap)
     }
 
     private func item(_ tab: AppTab) -> some View {

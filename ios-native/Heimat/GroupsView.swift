@@ -21,11 +21,11 @@ struct GroupsView: View {
                         Button { m.sheet = .flat(.group) } label: {
                             Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.glass)
+                        .glassButton()
                         Button { m.sheet = .flat(.join) } label: {
                             Label("Join with code", systemImage: "key.fill").frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.glass)
+                        .glassButton()
                     }
                     .controlSize(.large)
                     .lineLimit(1).minimumScaleFactor(0.75)
@@ -46,12 +46,17 @@ struct GroupsView: View {
             .safeAreaInset(edge: .top) { HeimatHeader(kicker: Fmt.longToday(), title: "Groups") }
             .heimatScreen()
             .navigationDestination(for: GroupsRoute.self) { route in
-                switch route {
-                case .group(let id): GroupPage(id: id)
-                case .nonGroup: NonGroupView()
-                case .myBills: MyBillsView()
-                case .person(let p): PersonView(person: p)
+                Group {
+                    switch route {
+                    case .group(let id): GroupPage(id: id)
+                    case .nonGroup: NonGroupView()
+                    case .myBills: MyBillsView()
+                    case .person(let p): PersonView(person: p)
+                    }
                 }
+                // a pushed page doesn't get the tab bar as safe area: without this its
+                // last rows ("Leave …") stay under the bar however far you scroll
+                .contentMargins(.bottom, GlassTabBar.clearance, for: .scrollContent)
             }
         }
     }
@@ -137,7 +142,7 @@ struct GroupCard: View {
             Button { m.switchFlat(flat.id); m.sheet = .invite } label: {
                 Label("Invite", systemImage: "person.badge.plus").font(.system(size: 13, weight: .semibold))
             }
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.small)
             .padding(12)
         }
@@ -176,7 +181,7 @@ struct NonGroupCard: View {
             Button { m.startAddExpense(prefill: ExpensePrefill(people: [])) } label: {
                 Label("Add", systemImage: "plus").font(.system(size: 13, weight: .semibold))
             }
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.small)
             .padding(12)
             .disabled(m.uid == nil)
@@ -228,7 +233,7 @@ struct NonGroupView: View {
                                 }
                             }
                         }
-                        .glassEffect(.regular, in: .rect(cornerRadius: 24))
+                        .glassSurface(in: .rect(cornerRadius: 24))
                     }
                 }
             }
@@ -364,7 +369,7 @@ struct PersonSearch: View {
                 }
             }
         }
-        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+        .glassSurface(in: .rect(cornerRadius: 20))
         .onChange(of: email) { _, _ in looked = nil; newName = "" }
         .task { if autofocus { try? await Task.sleep(for: .milliseconds(450)); focused = true } }
         .sheet(isPresented: $contacts) {
@@ -392,7 +397,7 @@ struct PersonSearch: View {
                             let n = newName.trimmingCharacters(in: .whitespaces)
                             pick(PersonPick(email: email, name: n.isEmpty ? String(email.split(separator: "@")[0]) : n))
                         }
-                        .buttonStyle(.glassProminent)
+                        .glassProminentButton()
                     }
                 }
                 .padding(.horizontal, 16).padding(.vertical, 12)
@@ -493,13 +498,13 @@ struct PersonView: View {
                             Button { m.sheet = .settlePerson(person) } label: {
                                 Label("Settle up", systemImage: "arrow.left.arrow.right").frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.glassProminent)
+                            .glassProminentButton()
                             .disabled(main == nil)
                             if (main?.minor ?? 0) > 0 {
                                 Button { Task { await m.remind(person) } } label: {
                                     Label("Remind", systemImage: "bell.badge").frame(maxWidth: .infinity)
                                 }
-                                .buttonStyle(.glass)
+                                .glassButton()
                             }
                         }
                         .controlSize(.large).lineLimit(1).minimumScaleFactor(0.75)
@@ -514,7 +519,7 @@ struct PersonView: View {
                     ShareLink(item: url, message: Text("I added what we split on Splitlife — open this to see it and join: ")) {
                         Label("Send \(m.personName(person)) their link", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.glassProminent).controlSize(.large)
+                    .glassProminentButton().controlSize(.large)
                 }
 
                 if !lines.isEmpty { whereFrom(lines) }
@@ -522,7 +527,7 @@ struct PersonView: View {
                 Button { m.startAddExpense(prefill: ExpensePrefill(people: [PersonPick(userId: person, name: m.personName(person))])) } label: {
                     Label("Add an expense with \(m.personName(person))", systemImage: "plus").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.glass).controlSize(.large)
+                .glassButton().controlSize(.large)
 
                 if !shared.isEmpty {
                     VStack(spacing: 0) {

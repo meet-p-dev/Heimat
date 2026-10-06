@@ -732,7 +732,7 @@ struct WithPicker: View {
                                 if i < m.flats.count - 1 { RowDivider(inset: 60) }
                             }
                         }
-                        .glassEffect(.regular, in: .rect(cornerRadius: 20))
+                        .glassSurface(in: .rect(cornerRadius: 20))
                     }
                 }
                 .padding(16)

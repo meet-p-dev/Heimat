@@ -120,7 +120,7 @@ struct ToastView: View {
             .font(.subheadline.weight(.semibold))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 18).padding(.vertical, 11)
-            .glassEffect(.regular, in: .capsule)
+            .glassSurface(in: .capsule)
             .padding(.horizontal, 24).padding(.top, 6)
     }
 }
@@ -171,7 +171,8 @@ struct PressStyle: ButtonStyle {
 }
 
 /// A card floating on the ambient wash. Unlike the web's blur-only imitation
-/// this is the system's Liquid Glass, so it refracts what scrolls behind it.
+/// this is the system's Liquid Glass, so it refracts what scrolls behind it
+/// (a frosted material before iOS 26, see `Compat.swift`).
 /// `tinted` adds the accent wash the hero card carries.
 struct HeimatCard<Content: View>: View {
     var radius: CGFloat = 24
@@ -191,7 +192,7 @@ struct HeimatCard<Content: View>: View {
                                               startPoint: .topLeading, endPoint: .bottom))
                 }
             }
-            .glassEffect(.regular, in: shape)
+            .glassSurface(in: shape)
         if let action {
             Button { Haptic.tap(); action() } label: { card }.buttonStyle(PressStyle())
         } else {
@@ -230,7 +231,7 @@ struct QuickAction: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .glassEffect(.regular, in: .rect(cornerRadius: 22))
+            .glassSurface(in: .rect(cornerRadius: 22))
         }
         .buttonStyle(PressStyle())
         .accessibilityLabel(badge > 0 ? "\(label), \(badge) to buy" : label)
@@ -372,7 +373,7 @@ struct HeimatHeader: View {
             .buttonStyle(PressStyle())
             .foregroundStyle(.primary)
             .padding(.horizontal, 5).padding(.vertical, 4)
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .glassSurface(in: .capsule, interactive: true)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)

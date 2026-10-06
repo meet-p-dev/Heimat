@@ -4,8 +4,10 @@
 name: Heimat
 options:
   bundleIdPrefix: app.heimat
+  # the app and the widget both; Liquid Glass (iOS 26) goes through
+  # Heimat/Compat.swift, which falls back to iOS 18 styles
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "18.0"
   createIntermediateGroups: true
 settings:
   base:
