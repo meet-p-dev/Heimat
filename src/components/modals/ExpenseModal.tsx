@@ -19,6 +19,8 @@ import type { FriendsCtx } from '../Friends'
    the server tells this app from the ones before split types (docs/money-engine.md) */
 export interface ExpenseSave {
   id: string; place: string; editing: boolean
+  /* everyone with money on it, as the server counts them: who paid, and who has a share */
+  on: string[]
   description: string; amount: number; currency: string; paid_by: string; split_among: string[]
   split_type: SplitType; split: SplitData | null; payers: Record<string, number> | null; category: string; spent_on: string
 }
@@ -99,13 +101,16 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
       else setTarget(start || c.groups[0]?.id || '')
     }
   }, [open])
-  // new people: an even split between all of them, paid by you (an edit keeps its payer while they are on it)
+  // new people: an even split between all of them, paid by you (an edit keeps its payer while they are on it).
+  // On opening too, not only on a new place: the form stays mounted, and a new expense in the
+  // same group must not start with the split of the last expense opened (it did)
   useEffect(() => {
     if (!open || !target) return
-    if (editing && editing.flat_id === target) return
+    // the expense being edited, back in its own place: as it was saved
+    if (editing && editing.flat_id === target) { setSplit(fromExpense(editing)); setPayer(editing.paid_by); return }
     setSplit(emptySplit(c.members.filter((m) => m.flat_id === target && !hasLeft(m)).map((m) => m.user_id)))
     setPayer((p) => (c.members.some((m) => m.flat_id === target && m.user_id === p) ? p : uid || ''))
-  }, [target])
+  }, [open, target])
 
   const cur = editing?.currency || hostCur
   const v = amountVal(amt, cur)
@@ -117,7 +122,9 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   const paidOK = split.severalPaid ? !!paid && Object.keys(paid).length > 0 && Object.values(paid).reduce((a, b) => a + b, 0) === total : !!payer
   const valid = v > 0 && result.ok && !built.unreadable && paidOK && !!target && !resolving && /^\d{4}-\d{2}-\d{2}$/.test(date)
 
-  const withLabel = !target ? 'Choose' : circle ? people.filter((m) => m.user_id !== uid).map((m) => personName(c.members, m.user_id)).join(', ') || 'Choose'
+  // the people still in it: picking someone who has left would make them a new friend
+  const stillIn = people.filter((m) => !hasLeft(m) && m.user_id !== uid)
+  const withLabel = !target ? 'Choose' : circle ? stillIn.map((m) => personName(c.members, m.user_id)).join(', ') || 'Choose'
     : c.groups.find((g) => g.id === target)?.name || ''
 
   const submit = () => {
@@ -127,15 +134,16 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
     const paidBy = payers ? Object.entries(payers).sort((a, b) => b[1] - a[1] || cmp(a[0], b[0]))[0][0] : split.severalPaid && paid ? Object.keys(paid)[0] : payer
     // equal and adjusted splits are worked out from who is ticked; the rest from their figures
     const among = split.mode === 'equal' || split.mode === 'adjust' ? [...split.among].sort(cmp) : [...result.shares.keys()].sort(cmp)
+    const shared = split.mode === 'equal' || split.mode === 'adjust' ? among : [...result.shares].filter(([, v]) => v !== 0).map(([u]) => u)
     save({
-      id: editing ? editing.id : draftId, place: target, editing: !!editing,
+      id: editing ? editing.id : draftId, place: target, editing: !!editing, on: [...new Set([paidBy, ...Object.keys(payers || {}), ...shared])],
       description: desc.trim(), amount: v, currency: cur, paid_by: paidBy, split_among: among,
       split_type: split.mode, split: splitData(split, built.spec), payers, category: cat, spent_on: date,
     })
     onClose()
   }
 
-  const peopleRows = people.map((m) => ({ id: m.user_id, name: m.display_name }))
+  const peopleRows = people.map((m) => ({ id: m.user_id, name: m.display_name, gone: hasLeft(m) }))
   const catNow = cats.find((x) => x.id === cat)
   const CatIcon = catNow ? iconOf(catNow) : Settings2
   const yesterday = (() => { const d = new Date(); d.setDate(d.getDate() - 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` })()
@@ -192,7 +200,8 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
         {people.length > 0 && <>
           <Field T={T} label="Paid by">
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
-              {!split.severalPaid && people.map((m) => (
+              {/* someone who has left stays the payer of what they paid, but can't become one */}
+              {!split.severalPaid && people.filter((m) => !hasLeft(m) || editing?.paid_by === m.user_id).map((m) => (
                 <Chip key={m.user_id} T={T} on={payer === m.user_id} onClick={() => setPayer(m.user_id)} style={{ paddingLeft: 5 }}>
                   <Avatar name={m.display_name} seed={m.user_id} size={24} /> {nm(m.user_id)}
                 </Chip>
@@ -203,7 +212,9 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
               </Chip>
             </div>
           </Field>
-          {split.severalPaid && <PayersEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} name={nm} />}
+          {/* someone who has left keeps the row for what they paid, but isn't offered as a new payer */}
+          {split.severalPaid && <PayersEditor T={T} s={split} set={setSplit} total={total} cur={cur} name={nm}
+            people={peopleRows.filter((p) => !p.gone || editing?.paid_by === p.id || editing?.payers?.[p.id] != null)} />}
           <SplitEditor T={T} s={split} set={setSplit} people={peopleRows} total={total} cur={cur} seed={seed} result={result} unreadable={built.unreadable}
             name={nm} setTotal={(minor) => setAmt(minorToInput(minor, cur))} />
         </>}
@@ -212,7 +223,7 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
       </Sheet>
       <WithPicker c={c} open={open && choosing} onClose={() => { setChoosing(false); if (!target) onClose() }}
         group={circle ? null : target || null}
-        people={circle ? people.filter((m) => m.user_id !== uid).map((m) => ({ userId: m.user_id, name: personName(c.members, m.user_id) })) : []}
+        people={circle ? stillIn.map((m) => ({ userId: m.user_id, name: personName(c.members, m.user_id) })) : []}
         groupsAllowed={!editing} done={choose} />
     </>
   )

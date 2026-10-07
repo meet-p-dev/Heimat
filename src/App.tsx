@@ -9,9 +9,10 @@ import { haptic, setHapticsEnabled } from './lib/haptic'
 import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeRunway, computeWorkStats } from './lib/derive'
-import { buildLedger, shareOf, pairwiseFor, toMajor } from './lib/ledger'
+import { buildLedger, shareOf, pairwiseFor, toMajor, participantsOf } from './lib/ledger'
 import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId, PageId, AuthMode } from './lib/types'
+import { hasLeft } from './lib/types'
 import { mergeCats, slug } from './lib/data'
 import { loadPrefs, savePrefs, systemDark, applyThemeToDocument } from './lib/prefs'
 import type { Prefs } from './lib/prefs'
@@ -356,9 +357,19 @@ export default function App() {
     const cols = { description: x.description, amount: x.amount, currency: x.currency, paid_by: x.paid_by, split_among: x.split_among, split_type: x.split_type, split: x.split, payers: x.payers, category: x.category, spent_on: x.spent_on || tod() }
     let err: string | null = null
     if (circles.some((c) => c.id === x.place)) {
-      // outside any group: the server finds or makes the circle for these people, and moves it when they change
-      const people = allMembers.filter((m) => m.flat_id === x.place && m.user_id !== uid).map((m) => m.user_id)
-      err = await saveFriendExpense(x.id, people, cols)
+      // outside any group it belongs to the circle of exactly the people with money on it:
+      // those still in it besides you go to the server, which finds or makes that circle and
+      // moves it there (someone who has left can't be found again, and a deleted account
+      // must not come back as a friend)
+      const here = allMembers.filter((m) => m.flat_id === x.place && !hasLeft(m) && m.user_id !== uid).map((m) => m.user_id)
+      const people = here.filter((u) => x.on.includes(u))
+      const was = x.editing ? allExpenses.find((e) => e.id === x.id) : undefined
+      const wasOn = (e: Expense, u: string) => e.paid_by === u || e.payers?.[u] != null || participantsOf(e).includes(u)
+      if (was && was.flat_id === x.place && people.length === here.filter((u) => wasOn(was, u)).length && people.every((u) => wasOn(was, u))) {
+        // the same people on it as before: an ordinary edit keeps it where it is
+        const { error } = await sb.from('expenses').update(cols).eq('id', x.id)
+        err = error ? friendsMessage(error, "Couldn't save — try again.") : null
+      } else err = await saveFriendExpense(x.id, people, cols)
     } else {
       // the id is made in the form so the split shown before saving is the split saved
       const { error } = x.editing
@@ -668,7 +679,9 @@ export default function App() {
   const openEditExpense = (e: Expense) => { setEditExpense(e); setExpensePrefill(null); setModal('exp') }
   const openViewExpense = (e: Expense) => { setViewExpense(e); setModal('expdetail') }
   // you can edit an expense you added, or one someone else logged but you paid for
-  const openExpense = (e: Expense) => { haptic(6); if (e.created_by === uid || e.paid_by === uid) openEditExpense(e); else openViewExpense(e) }
+  /* everyone on an expense can edit it: whoever added it, paid for it, or has a share of it */
+  const canEdit = (e: Expense) => !!uid && (e.created_by === uid || e.paid_by === uid || !!e.payers?.[uid] || participantsOf(e).includes(uid))
+  const openExpense = (e: Expense) => { haptic(6); if (canEdit(e)) openEditExpense(e); else openViewExpense(e) }
   const openSettle = (init: SettleSuggestion | null) => { setSettleInit(init); setModal('settle') }
   const openPage = (p: PageId) => { haptic(8); setPages((s) => [...s.filter((x) => x !== p), p]) }
   const closePage = () => setPages((s) => s.slice(0, -1))

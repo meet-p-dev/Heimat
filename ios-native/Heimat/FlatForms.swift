@@ -46,8 +46,12 @@ struct ExpenseForm: View {
     @State private var pickingDay = false
     @FocusState private var amountFocused: Bool
 
+    /// who can be on it: the place's people now — and anyone already on the expense
+    /// being edited, so editing it cannot quietly drop someone who has left since
     private var people: [Member] {
-        let list = m.members(of: target)
+        let list = m.allMembers.filter { p in
+            p.flatId == target && (!p.hasLeft || editing.map { $0.flatId == target && $0.isOn(p.userId) } ?? false)
+        }
         return list.isEmpty ? m.members : list
     }
 
@@ -97,7 +101,8 @@ struct ExpenseForm: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 if !split.severalPaid {
-                                    ForEach(people) { p in
+                                    // someone who has left stays the payer of what they paid, but can't become one
+                                    ForEach(people.filter { !$0.hasLeft || $0.userId == editing?.paidBy }) { p in
                                         FormChip(label: m.nameOf(p.userId, in: target), on: payer == p.userId) { payerChoice.wrappedValue = p.userId }
                                     }
                                 }
@@ -110,7 +115,9 @@ struct ExpenseForm: View {
                     }
                 }
                 if split.severalPaid {
-                    PayersEditor(s: $split, people: people, total: total, cur: cur, name: { m.nameOf($0, in: target) })
+                    // someone who has left keeps the row for what they paid, but isn't offered as a new payer
+                    PayersEditor(s: $split, people: people.filter { !$0.hasLeft || editing?.payers?[$0.userId] != nil || editing?.paidBy == $0.userId },
+                                 total: total, cur: cur, name: { m.nameOf($0, in: target) })
                 }
                 SplitEditor(s: $split, people: people, total: total, cur: cur, seed: seed, result: result, unreadable: built.unreadable,
                             name: { m.nameOf($0, in: target) }, setTotal: { amount = Money.input($0, cur) })
@@ -148,9 +155,21 @@ struct ExpenseForm: View {
                                              among: among, category: cat, spentOn: Fmt.ymd(date), splitType: split.mode.rawValue,
                                              split: split.data(built.spec), payers: payers.count > 1 ? payers : nil, currency: cur)
                         if m.isCircle(target) {
-                            let others = people.map(\.userId).filter { $0 != m.uid }
+                            // outside any group it belongs to the circle of exactly the people with
+                            // money on it: those still in it besides you go to the server, which finds
+                            // or makes that circle (someone who has left can't be found again, and a
+                            // deleted account must not come back as a friend)
+                            let shared = split.mode == .equal || split.mode == .adjust ? among : owed.filter { $0.value != 0 }.map(\.key)
+                            let onIt = Set([paidBy] + Array((d.payers ?? [:]).keys) + shared)
+                            let here = m.members(of: target).map(\.userId).filter { $0 != m.uid }
+                            let others = here.filter(onIt.contains)
                             let id = editing?.id ?? draftId, edit = editing != nil
-                            Task { _ = await m.saveFriendExpense(id, people: others, d, editing: edit) }
+                            if let e = editing, e.flatId == target, Set(others) == Set(here.filter { e.isOn($0) }) {
+                                // the same people on it as before: an ordinary edit keeps it where it is
+                                Task { await m.updateExpense(e.id, d) }
+                            } else {
+                                Task { _ = await m.saveFriendExpense(id, people: others, d, editing: edit) }
+                            }
                         } else {
                             Task { if let e = editing { await m.updateExpense(e.id, d) } else { await m.addExpense(d) } }
                         }
@@ -188,7 +207,7 @@ struct ExpenseForm: View {
             }
             .sheet(isPresented: $choosing) {
                 WithPicker(group: m.isCircle(target) ? nil : target,
-                           people: m.isCircle(target) ? people.filter { $0.userId != m.uid }.map { PersonPick(userId: $0.userId, name: m.personName($0.userId)) } : [],
+                           people: m.isCircle(target) ? m.members(of: target).filter { $0.userId != m.uid }.map { PersonPick(userId: $0.userId, name: m.personName($0.userId)) } : [],
                            groupsAllowed: editing == nil) { c in
                     choosing = false
                     Task { await choose(c) }
@@ -198,7 +217,14 @@ struct ExpenseForm: View {
             .onChange(of: split.mode) { _, mode in split.start(mode, total: total, cur: cur, seed: seed) }
             .scrollDismissesKeyboard(.interactively)
             // a different flat means different people, so the split starts over
-            .onChange(of: target) { _, _ in
+            .onChange(of: target) { _, t in
+                // the expense being edited, in its own place: as it was saved. Opening it
+                // sets the place too, and that must not start its split over (it did:
+                // a percentage split came back "equal between everyone")
+                if let e = editing, t == e.flatId {
+                    payer = e.paidBy; split = SplitState.from(e)
+                    return
+                }
                 // new people: an even split between all of them, paid by you (an edit
                 // keeps its payer while they are still on it)
                 if editing == nil || !people.contains(where: { $0.userId == payer }) { payer = m.uid ?? "" }
@@ -250,7 +276,7 @@ extension ExpenseForm {
     private var withSummary: String {
         if target.isEmpty { return "Choose" }
         if !m.isCircle(target) { return m.flatName(target) }
-        let names = people.filter { $0.userId != m.uid }.map { m.personName($0.userId) }
+        let names = m.members(of: target).filter { $0.userId != m.uid }.map { m.personName($0.userId) }
         return names.isEmpty ? "Choose" : names.joined(separator: ", ")
     }
 
@@ -312,7 +338,7 @@ struct ExpenseDetailView: View {
                     LabeledContent("Category", value: c.label)
                     LabeledContent("Date", value: Fmt.relDay(expense.spentOn))
                     LabeledContent("Added by", value: expense.createdBy.map(m.nameOf) ?? "—")
-                } footer: { Text("Only the person who added it or the payer can edit it.") }
+                } footer: { Text("Only the people on this expense can edit it.") }
                 // whole cents that add up to the total above (10 € between three: 3,34 + 3,33 + 3,33)
                 Section("Split \((SplitMode(rawValue: expense.splitType ?? "equal") ?? .equal).title) · \(Ledger.shares(expense).count)") {
                     ForEach(Ledger.shares(expense), id: \.uid) { u, minor in

@@ -230,12 +230,14 @@ struct SplitEditor: View {
 
     @ViewBuilder private var header: some View {
         if s.mode == .equal || s.mode == .adjust {
-            let everyone = s.among.count == people.count
+            // everyone still here: someone who has left stays on what they were on, but isn't added
+            let pool = Set(people.filter { !$0.hasLeft || s.among.contains($0.userId) }.map(\.userId))
+            let everyone = !pool.isEmpty && pool.isSubset(of: s.among)
             HStack {
                 Text("Between · \(s.among.count)")
                 Spacer()
                 Button(everyone ? "Nobody" : "Everyone") {
-                    s.among = everyone ? [] : Set(people.map(\.userId))
+                    s.among = everyone ? [] : pool
                 }
                 .font(.footnote.weight(.semibold)).textCase(nil)
             }
@@ -345,7 +347,7 @@ struct SplitEditor: View {
             }
         }
         Section {
-            Button { s.lines.append(.init(among: Set(people.map(\.userId)))) } label: { Label("Add item", systemImage: "plus.circle.fill") }
+            Button { s.lines.append(.init(among: Set(people.filter { !$0.hasLeft }.map(\.userId)))) } label: { Label("Add item", systemImage: "plus.circle.fill") }
         }
         Section {
             extra("Tax", $s.tax)

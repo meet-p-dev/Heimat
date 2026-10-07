@@ -176,7 +176,8 @@ export function verdict(s: SplitState, total: number, cur: string, result: Split
   }
 }
 
-type Person = { id: string; name: string }
+/* gone: has left the place — they stay on what they were on, but aren't added to more */
+type Person = { id: string; name: string; gone?: boolean }
 
 const small: CSSProperties = { width: 96, textAlign: 'right', padding: '8px 10px', fontVariantNumeric: 'tabular-nums' }
 
@@ -205,7 +206,9 @@ export function SplitEditor({ T, s, set, people, total, cur, seed, result, unrea
     </span>
   )
   const v = verdict(s, total, cur, result, unreadable, name)
-  const everyone = people.length > 0 && people.every((p) => s.among.includes(p.id))
+  // everyone still here, and anyone who has left but is already on it
+  const pool = people.filter((p) => !p.gone || s.among.includes(p.id)).map((p) => p.id)
+  const everyone = pool.length > 0 && pool.every((u) => s.among.includes(u))
 
   return (
     <>
@@ -215,7 +218,7 @@ export function SplitEditor({ T, s, set, people, total, cur, seed, result, unrea
       {s.mode !== 'itemized' ? (
         <Field T={T} label={s.mode === 'equal' || s.mode === 'adjust'
           ? <span style={{ display: 'flex', justifyContent: 'space-between' }}><span>Between · {s.among.length}</span>
-              <button type="button" className="h-link" style={{ fontSize: 13 }} onClick={() => set({ ...s, among: everyone ? [] : people.map((p) => p.id) })}>{everyone ? 'Nobody' : 'Everyone'}</button></span>
+              <button type="button" className="h-link" style={{ fontSize: 13 }} onClick={() => set({ ...s, among: everyone ? [] : pool })}>{everyone ? 'Nobody' : 'Everyone'}</button></span>
           : 'Each person'}>
           <div className="h-well">
             {people.map((p) => {
@@ -269,7 +272,7 @@ export function SplitEditor({ T, s, set, people, total, cur, seed, result, unrea
             </div>
           ))}
           <button type="button" className="h-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, margin: '0 4px 14px' }}
-            onClick={() => set({ ...s, lines: [...s.lines, { id: lineId(), label: '', amount: '', among: people.map((p) => p.id) }] })}><Plus size={16} /> Add item</button>
+            onClick={() => set({ ...s, lines: [...s.lines, { id: lineId(), label: '', amount: '', among: people.filter((p) => !p.gone).map((p) => p.id) }] })}><Plus size={16} /> Add item</button>
           <Field T={T} label="Shared in proportion">
             <div className="h-well">
               {([['tax', 'Tax'], ['tip', 'Tip'], ['discount', 'Discount']] as const).map(([k, label]) => (

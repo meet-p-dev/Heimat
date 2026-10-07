@@ -193,7 +193,10 @@ extension AppModel {
             await loadMyFlats()
             return true
         } catch {
-            show(friendsMessage(error, "Couldn't save — try again."))
+            // the people changed, and someone who has left can't come along to the new ones
+            let moving = (error as? PostgrestError)?.message.contains("not_in_flat") == true
+            show(moving ? "Someone on this expense has left, so it can't move to other people — take them off it first."
+                        : friendsMessage(error, "Couldn't save — try again."))
             return false
         }
     }
@@ -260,7 +263,7 @@ extension AppModel {
         let m = e.message
         if m.contains("not someone you know") { return "You can only pick people you share a group with — add anyone else by email." }
         if m.contains("isn't on the expense") { return "Everyone you picked has to be on the expense — remove them, or include them in the split." }
-        if m.contains("not_in_flat") { return "Someone on this expense isn't one of the people you picked." }
+        if m.contains("not_in_flat") { return "Someone on this expense has left — what they paid can't change, and their share can't go up." }
         if m.hasPrefix("friends: ") {
             let rest = m.dropFirst("friends: ".count)
             return rest.prefix(1).uppercased() + rest.dropFirst()

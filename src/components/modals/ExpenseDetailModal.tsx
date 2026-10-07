@@ -27,7 +27,7 @@ export default function ExpenseDetailModal({ open, onClose, T, expense, fH, name
         <div style={{ fontWeight: 750, fontSize: 19, marginTop: 12 }}>{e.description || c.label}</div>
         <div style={{ fontSize: 36, fontWeight: 800, letterSpacing: -1.2, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{fH(e.amount)}</div>
         <div style={{ fontSize: 13.5, color: T.txt2, marginTop: 4 }}>{c.label} · {relDay(e.spent_on)} · paid by <b style={{ color: T.txt }}>{nameOf(e.paid_by)}</b></div>
-        <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 4 }}>Added by {nameOf(e.created_by)} — only they or the payer can edit it</div>
+        <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 4 }}>Added by {nameOf(e.created_by)} — only the people on it can edit it</div>
       </div>
       <SectionLabel T={T}>Split between · {parts.length}</SectionLabel>
       <div className="h-well">

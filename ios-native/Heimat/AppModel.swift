@@ -191,8 +191,8 @@ final class AppModel {
         return allMembers.first { $0.flatId == flat && $0.userId == u }?.displayName
             ?? members.first { $0.userId == u }?.displayName ?? personName(u)
     }
-    /// you can edit an expense you added, or one someone else logged but you paid for
-    func canEdit(_ e: Expense) -> Bool { e.createdBy == uid || e.paidBy == uid }
+    /// everyone on an expense can edit it: whoever added it, paid for it, or has a share of it
+    func canEdit(_ e: Expense) -> Bool { guard let uid else { return false }; return e.createdBy == uid || e.isOn(uid) }
     func open(_ e: Expense) { Haptic.tap(); sheet = canEdit(e) ? .expense(e, nil) : .expenseDetail(e) }
     func startAddExpense(prefill: ExpensePrefill? = nil) { sheet = .expense(nil, prefill) }
 
@@ -610,8 +610,17 @@ final class AppModel {
     }
 
     func updateExpense(_ id: String, _ d: ExpenseDraft) async {
-        let r = row(d)
-        await run("Expense updated") { try await self.client.from("expenses").update(r).eq("id", value: id).execute() }
+        #if DEBUG
+        if Self.fixtureMode { show("Demo mode — nothing is saved"); return }
+        #endif
+        do {
+            try await client.from("expenses").update(row(d)).eq("id", value: id).execute()
+            Haptic.success(); show("Expense updated")
+            await loadFlat()
+        } catch {
+            // the server's own refusals in words (someone who has left can't owe more)
+            show(friendsMessage(error, "Couldn't save — try again."))
+        }
     }
 
     func deleteExpense(_ id: String) async {

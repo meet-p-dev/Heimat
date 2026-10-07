@@ -77,6 +77,8 @@ struct Expense: Codable, Identifiable, Hashable {
     var storedShares: [String: Double]? { shares }
     /// everyone the bill is split between (each once); an empty split means the payer alone
     var parts: [String] { Ledger.participants(self) }
+    /// has money on it: paid some of it, or has a share of it
+    func isOn(_ uid: String) -> Bool { paidBy == uid || payers?[uid] != nil || parts.contains(uid) }
     /// what `uid` is charged for it: whole cents that add up to the total with
     /// everyone else's (10 € between three is 3,34 for one of them) — see Ledger.allocate
     func share(of uid: String?) -> Double { Ledger.share(self, of: uid) }

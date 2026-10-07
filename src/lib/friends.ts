@@ -16,7 +16,7 @@ export function friendsMessage(error: { message?: string } | null | undefined, f
   const m = error?.message || ''
   if (m.includes('not someone you know')) return 'You can only pick people you share a group with — add anyone else by email.'
   if (m.includes("isn't on the expense")) return 'Everyone you picked has to be on the expense — remove them, or include them in the split.'
-  if (m.includes('not_in_flat')) return "Someone on this expense isn't one of the people you picked."
+  if (m.includes('not_in_flat')) return "Someone on this expense has left — what they paid can't change, and their share can't go up."
   if (m.startsWith('friends: ')) { const r = m.slice(9); return r[0].toUpperCase() + r.slice(1) }
   if (m && /^[A-Z]/.test(m) && !/function|relation|permission denied/.test(m)) return m
   return fallback
@@ -49,6 +49,8 @@ export interface FriendExpense {
 export async function saveFriendExpense(id: string, people: string[], x: FriendExpense): Promise<string | null> {
   if (!sb) return 'Offline'
   const { error } = await sb.rpc('save_friend_expense', { p_id: id, p_people: people.map((u) => ({ user_id: u })), p_expense: x })
+  // the people changed, and someone who has left can't come along to the new ones
+  if (error?.message?.includes('not_in_flat')) return "Someone on this expense has left, so it can't move to other people — take them off it first."
   return error ? friendsMessage(error, "Couldn't save — try again.") : null
 }
 

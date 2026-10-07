@@ -56,6 +56,11 @@ extension AppModel {
             ex("08", meevi, "Ikea", 80, vi, [me, vi], "2026-08-30", cat: "home"),
             ex("09", meevi, "Pizza", 22, me, [me, vi], "2026-08-30"),
         ]
+        // a split that isn't even, and one between only some of the flat: opening them
+        // to edit has to show them as they were saved
+        var pizza = ex("10", flat, "Pizza night", 30, me, [me, alex, ben], "2026-09-29")
+        pizza.splitType = "percent"; pizza.split = SplitData(values: [me: 5000, alex: 3000, ben: 2000])
+        allExpenses += [pizza, ex("11", flat, "Drinks", 12, nina, [me, nina], "2026-09-29")]
         allSettles = [Settlement(id: "s1", flatId: meevi, fromUser: me, toUser: vi, amount: 29, settledOn: "2026-09-02", currency: "EUR")]
         flatId = flat
         members = allMembers.filter { $0.flatId == flat }
