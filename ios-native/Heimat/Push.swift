@@ -192,15 +192,24 @@ extension Push: UNUserNotificationCenterDelegate {
     ) async -> UNNotificationPresentationOptions {
         // reload alongside, not first: the banner (a test one from Settings
         // included) shouldn't wait for every group to load over the network
-        Task { @MainActor in await Push.shared.model?.reload() }
+        let isUpdate = notification.request.content.userInfo["url"] != nil
+        Task { @MainActor in
+            if isUpdate { await Push.shared.model?.checkUpdate() } else { await Push.shared.model?.reload() }
+        }
         return [.banner, .sound, .list]
     }
 
-    /// Tapped from the tray: bring the user to fresh data.
+    /// Tapped from the tray: bring the user to fresh data — or, for "New update
+    /// available", straight to TestFlight (the notification carries where).
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
+        if let link = response.notification.request.content.userInfo["url"] as? String {
+            await MainActor.run { AppModel.openUpdate(link) }
+            await Push.shared.model?.checkUpdate()
+            return
+        }
         await Push.shared.model?.reload()
     }
 }

@@ -541,3 +541,10 @@ struct ChoreSwap: Codable, Identifiable, Hashable {
         case choreId = "chore_id", flatId = "flat_id", fromUser = "from_user", toUser = "to_user"
     }
 }
+
+/// What app_update answers when a newer build is out: its number, and the TestFlight
+/// link that gets it (the TestFlight app itself, itms-beta://, when there is no public link).
+struct AppUpdate: Decodable, Equatable {
+    let build: Int
+    let url: String
+}

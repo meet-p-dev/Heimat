@@ -318,6 +318,12 @@ test('APNs: a store build goes to production, an Xcode build to the test server;
   assert.equal('badge' in apnsPayload(n).aps, false)
 })
 
+test('APNs: a url rides beside aps, and only when there is one', () => {
+  assert.deepEqual(apnsPayload({ title: 't', body: 'b', url: 'itms-beta://' }),
+    { aps: { alert: { title: 't', body: 'b' }, sound: 'default' }, url: 'itms-beta://' })
+  assert.equal('url' in apnsPayload({ title: 't', body: 'b' }), false)
+})
+
 test('APNs: BadDeviceToken → the other server once; forgotten only if both refuse', async () => {
   resetApnsCache()
   const { pem } = await ecKeys()

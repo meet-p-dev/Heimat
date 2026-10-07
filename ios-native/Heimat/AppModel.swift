@@ -14,6 +14,8 @@ final class AppModel {
     var sheet: SheetRoute?
     var toast: String?
     @ObservationIgnored private var toastTask: Task<Void, Never>?
+    /// a newer build the testers can install, while this phone runs an older one (app_update)
+    var update: AppUpdate?
 
     // personal, persisted on the device
     var profile: Profile { didSet { save(profile, "profile") } }
@@ -209,7 +211,7 @@ final class AppModel {
 
     func start() async {
         #if DEBUG
-        if Self.fixtureMode { loadFixture(); return }
+        if Self.fixtureMode { loadFixture(); await checkUpdate(); return }
         #endif
         if let legacy = await LegacyImport.run() { adopt(legacy) }
         do {
@@ -229,7 +231,50 @@ final class AppModel {
             }
         }
         await loadMyFlats()
+        await checkUpdate()
         if prefs.autoRate && homeCur != hostCur && profile.rateAt != Fmt.today() { _ = await refreshRate() }
+    }
+
+    // MARK: updates
+
+    /// This build's number (CFBundleVersion, e.g. 16).
+    static let build = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")
+
+    /// Is there a newer build than this one? Asked on launch and whenever the app comes
+    /// back to the front, so a tester who missed the notification still sees Home's
+    /// Update card. Quietly keeps what it knew when the server can't be reached.
+    func checkUpdate() async {
+        #if DEBUG
+        // -HeimatUpdate: the card, in demo mode
+        if Self.fixtureMode {
+            if ProcessInfo.processInfo.arguments.contains("-HeimatUpdate") {
+                update = AppUpdate(build: (Self.build ?? 0) + 1, url: "itms-beta://")
+            }
+            return
+        }
+        #endif
+        guard let mine = Self.build else { return }
+        struct Params: Encodable { let p_platform: String; let p_build: Int }
+        do {
+            let u: AppUpdate? = try await client.rpc("app_update", params: Params(p_platform: "ios", p_build: mine)).execute().value
+            if u != update { update = u }
+        } catch {
+            print("update check failed —", error.localizedDescription)
+        }
+    }
+
+    /// Opens TestFlight — from Home's Update card, or a tapped "New update" notification.
+    /// Only ever TestFlight: its app (itms-beta://) or a testflight.apple.com link; if the
+    /// TestFlight app isn't there, its App Store page instead.
+    static func openUpdate(_ link: String) {
+        guard let url = URL(string: link),
+              url.scheme == "itms-beta" || (url.scheme == "https" && url.host == "testflight.apple.com")
+        else { return }
+        UIApplication.shared.open(url) { opened in
+            if !opened, let store = URL(string: "https://apps.apple.com/app/testflight/id899247664") {
+                UIApplication.shared.open(store)
+            }
+        }
     }
 
     /// what the Capacitor build left behind — see LegacyImport

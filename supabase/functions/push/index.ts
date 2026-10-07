@@ -30,7 +30,7 @@ const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 type Payload = {
   token: string
-  event: 'item_added' | 'settlement' | 'expense_added' | 'nudge' | 'broadcast' | 'reminder' | 'test'
+  event: 'item_added' | 'settlement' | 'expense_added' | 'nudge' | 'broadcast' | 'reminder' | 'test' | 'app_update'
   flat_id?: string
   actor?: string          // who did it — never notified
   to_user?: string        // settlement recipient
@@ -47,6 +47,8 @@ type Payload = {
   description?: string    // expense description
   split_among?: string[]  // expense split, to work out each person's share
   message?: string        // broadcast body
+  platform?: string       // app_update: which app has a new build ('ios')
+  build?: number          // app_update: the new build's number
 }
 
 type Sub = { endpoint: string; user_id: string; p256dh: string | null; auth: string | null }
@@ -184,6 +186,28 @@ Deno.serve(async (req) => {
     const done = (recipients: number, extra: Record<string, unknown>, note?: string) => {
       console.log(summaryLine(event, recipients, [], configured, conf.problems, note))
       return Response.json(extra)
+    }
+
+    // A new build for the testers (announce_app_update): every iPhone running the
+    // TestFlight / App Store app — 'apns:', not the Xcode builds' 'apns-dev:' — and
+    // tapping it opens TestFlight. Whoever has updated already never sees the app's
+    // Update card; the notification itself can't know who has.
+    if (body.event === 'app_update') {
+      const build = Number(body.build)
+      if (body.platform !== 'ios' || !Number.isInteger(build) || build < 1) {
+        console.log(summaryLine(event, 0, [], configured, [], 'bad request'))
+        return new Response('bad request', { status: 400 })
+      }
+      const url = c.ios_update_url || 'itms-beta://'
+      const { data: subs, error } = await admin.from('push_subscriptions').select('endpoint,user_id,p256dh,auth').like('endpoint', 'apns:%')
+      if (error) throw error
+      if (!subs?.length) return done(0, { sent: 0, reason: 'no subscriptions' }, 'no devices')
+      const notice: Notice = { title: 'New update available', body: `Splitlife build ${build} is ready — update it in TestFlight.`, tag: 'app_update', url }
+      const { results, pruned } = await deliverAll(conf, subs as Sub[], () => notice)
+      const sent = results.filter((r) => r.ok).length
+      const people = new Set((subs as Sub[]).map((s) => s.user_id)).size
+      console.log(summaryLine(event, people, results, configured, conf.problems))
+      return Response.json({ sent, pruned, failed: results.length - sent, recipients: people })
     }
 
     // the people in the flat now: not those who left, not invitees who haven't joined

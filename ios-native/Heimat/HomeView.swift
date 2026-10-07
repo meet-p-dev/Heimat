@@ -14,6 +14,7 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
+                    if let u = m.update { updateCard(u).transition(.opacity.combined(with: .scale(scale: 0.96))) }
                     if m.flat != nil || !m.circles.isEmpty { balance() } else { noFlat }
                     quickActions
                     if m.profile.on(.limit) { tiles }
@@ -28,6 +29,7 @@ struct HomeView: View {
             .refreshable { await m.reload() }
             .task { canAsk = await Push.shared.permission() == .notDetermined }
             .animation(.smooth, value: askPush)
+            .animation(.smooth, value: m.update)
             .heimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Splitlife" : m.firstName)
             .heimatScreen()
         }
@@ -226,6 +228,31 @@ struct HomeView: View {
                 .padding(.top, 12)
             }
         }
+    }
+
+    /// A newer build is out (see AppModel.checkUpdate): one tap to TestFlight. It stays
+    /// until this phone runs that build.
+    private func updateCard(_ u: AppUpdate) -> some View {
+        HeimatCard(radius: 22, padding: 14) {
+            HStack(spacing: 12) {
+                SettingIcon(symbol: "arrow.down.circle.fill", color: .blue)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("New update available").font(.system(size: 15, weight: .semibold))
+                    Text("Build \(u.build) is ready in TestFlight.")
+                        .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 8)
+                Button {
+                    Haptic.tap()
+                    AppModel.openUpdate(u.url)
+                } label: {
+                    Text("Update").font(.system(size: 15, weight: .semibold))
+                }
+                .glassProminentButton()
+                .controlSize(.small)
+            }
+        }
+        .accessibilityElement(children: .contain)
     }
 
     // MARK: - Rest
