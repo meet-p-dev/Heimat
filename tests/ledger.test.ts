@@ -10,7 +10,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   fnv1a, allocate, sharesOf, buildLedger, settlePlan, zeroSumGroups, parseMinor, minorToInput,
-  toMinor, pairwiseFor, EXACT_LIMIT, flatCurrency, spread,
+  toMinor, pairwiseFor, EXACT_LIMIT, flatCurrency, spread, simplifyLedger,
 } from '../src/lib/ledger.ts'
 import type { Expense, Settlement } from '../src/lib/types.ts'
 
@@ -279,6 +279,170 @@ test('settle plan: fast enough to run on every change', () => {
   const plan = settlePlan(big)
   for (const v of applyPlan(big, plan).values()) assert.equal(v, 0)
   assert.ok(plan.length <= 39)
+})
+
+// ------------------------------------------------------- simplify debts
+
+/* an independent count of the most zero-sum groups: the old O(3^n) subset DP, kept here as
+   the oracle the new O(n·2^n) one is checked against all the way to the exact limit */
+function oracleGroups(vals: number[]): number {
+  const v = vals.filter((x) => x !== 0), n = v.length, full = (1 << n) - 1
+  if (!n) return 0
+  const sums = new Float64Array(full + 1), best = new Uint8Array(full + 1)
+  for (let m = 1; m <= full; m++) { const low = m & -m; sums[m] = sums[m ^ low] + v[31 - Math.clz32(low)] }
+  for (let m = 1; m <= full; m++) {
+    const low = m & -m
+    let b = best[m ^ low]
+    for (let sub = m; sub > 0; sub = (sub - 1) & m) if (sub & low && sums[sub] === 0 && 1 + best[m ^ sub] > b) b = 1 + best[m ^ sub]
+    best[m] = b
+  }
+  return best[full]
+}
+
+const key = (t: { from: string; to: string; minor: number }) => `${t.from}>${t.to}:${t.minor}`
+/* balances that add up to zero; `round` gives whole euros, where ties and zero-sum groups are common */
+function randomNet(r: () => number, n: number, round: boolean) {
+  const vals = Array.from({ length: n }, () => (round ? (Math.floor(r() * 9) - 4) * 1000 : Math.floor(r() * 20001) - 10000))
+  vals[0] -= sum(vals)
+  return new Map(vals.map((v, i) => ['p' + String(i).padStart(2, '0'), v]))
+}
+
+test('simplify: the fewest payments all the way to the exact limit (independent oracle)', () => {
+  const r = rng(41)
+  for (let t = 0; t < 600; t++) {
+    const n = 2 + Math.floor(r() * (t < 500 ? 11 : EXACT_LIMIT - 1)) // 2…12, then up to the limit
+    const net = randomNet(r, n, t % 2 === 0)
+    const vals = [...net.values()]
+    const nonzero = vals.filter((v) => v !== 0).length
+    assert.equal(settlePlan(net).length, nonzero - oracleGroups(vals), `case ${vals}`)
+  }
+})
+
+test('simplify: every balance exact, nobody both pays and receives, the least money moved', () => {
+  const r = rng(42)
+  for (let t = 0; t < 4000; t++) {
+    const net = randomNet(r, 1 + Math.floor(r() * 20), t % 3 === 0) // past the limit too
+    const plan = settlePlan(net)
+    for (const v of applyPlan(net, plan).values()) assert.equal(v, 0)
+    const payers = new Set(plan.map((x) => x.from)), payees = new Set(plan.map((x) => x.to))
+    for (const u of payers) assert.ok(!payees.has(u), 'someone both pays and receives')
+    for (const x of plan) assert.ok(Number.isSafeInteger(x.minor) && x.minor > 0 && x.from !== x.to)
+    // each debtor pays exactly what they owe overall — never more — so the money moved is the sum owed
+    for (const [u, v] of net) if (v < 0) assert.equal(sum(plan.filter((x) => x.from === u).map((x) => x.minor)), -v)
+    assert.equal(sum(plan.map((x) => x.minor)), sum([...net.values()].filter((v) => v > 0)))
+    const nonzero = [...net.values()].filter((v) => v !== 0).length
+    assert.ok(plan.length <= Math.max(0, nonzero - 1), 'more than people − 1 payments')
+  }
+})
+
+test('simplify: paying a suggestion never makes the rest need more payments — and the others in its group keep theirs', () => {
+  const r = rng(43)
+  let paid = 0, same = 0
+  for (let t = 0; t < 3000; t++) {
+    const net = randomNet(r, 2 + Math.floor(r() * 10), t % 2 === 0)
+    const plan = settlePlan(net)
+    const ids = [...net].filter(([, v]) => v !== 0).map(([u]) => u).sort()
+    const groups = zeroSumGroups(ids.map((u) => net.get(u)!)).map((g) => g.map((i) => ids[i]))
+    for (const x of plan) {
+      for (const part of [x.minor, Math.ceil(x.minor / 2)]) {
+        const after = applyPlan(net, [{ ...x, minor: part }])
+        const next = settlePlan(after)
+        assert.ok(next.length <= plan.length - (part === x.minor ? 1 : 0), 'a payment made the plan longer')
+        if (part !== x.minor) continue
+        paid++
+        if (next.map(key).sort().join() === plan.filter((y) => y !== x).map(key).sort().join()) same++
+        // when the groups are the same (minus whoever is now square), the plan is the old one without that payment
+        const ids2 = [...after].filter(([, v]) => v !== 0).map(([u]) => u).sort()
+        const groups2 = zeroSumGroups(ids2.map((u) => after.get(u)!)).map((g) => g.map((i) => ids2[i]).join())
+        const expected = groups.map((g) => g.filter((u) => after.get(u) !== 0).join()).filter(Boolean)
+        if (groups2.slice().sort().join('|') === expected.slice().sort().join('|')) {
+          assert.deepEqual(next.map(key).sort(), plan.filter((y) => y !== x).map(key).sort(), 'the rest of the plan moved')
+        }
+      }
+    }
+  }
+  // the rest only moves where two people now owe the same and the tie falls the other way
+  assert.ok(same / paid > 0.97, `only ${same} of ${paid} payments left the rest of the plan as it was`)
+})
+
+test('simplify: the same plan however the balances arrive, and none for books that do not balance', () => {
+  const r = rng(44)
+  for (let t = 0; t < 1500; t++) {
+    const net = randomNet(r, 2 + Math.floor(r() * 12), true)
+    const entries = [...net]
+    for (let i = entries.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [entries[i], entries[j]] = [entries[j], entries[i]] }
+    assert.deepEqual(settlePlan(new Map(entries)), settlePlan(net))
+  }
+  assert.deepEqual(settlePlan(new Map()), [])
+  assert.deepEqual(settlePlan(new Map([['ana', 0], ['ben', 0]])), [])
+  assert.deepEqual(settlePlan(new Map([['ana', 500]])), [], 'one person owed, nobody owing: bad data, no plan')
+  assert.deepEqual(settlePlan(new Map([['ana', 100], ['ben', -50]])), [], 'a plan must never leave money owing')
+  const huge = 2 ** 52
+  assert.deepEqual(settlePlan(new Map([['ana', huge], ['ben', huge], ['cara', -huge], ['dev', -huge]])), [], 'too large to add up exactly')
+})
+
+test('simplify: a chain of debts becomes one payment, and the examples people ask about', () => {
+  // ana owes ben 10, ben owes cara 10 → ana pays cara
+  assert.deepEqual(settlePlan(new Map([['ana', -1000], ['ben', 0], ['cara', 1000]])).map(key), ['ana>cara:1000'])
+  // two owe 10 each, two are owed 7 and 13: no zero-sum pair, so three payments — someone pays two people
+  assert.equal(settlePlan(new Map([['ana', -1000], ['ben', -1000], ['cara', 700], ['dev', 1300]])).length, 3)
+  // equal and opposite pairs pay each other directly
+  assert.deepEqual(settlePlan(new Map([['ana', -500], ['ben', -700], ['cara', 700], ['dev', 500]])).map(key).sort(), ['ana>dev:500', 'ben>cara:700'])
+})
+
+test('simplify: a simplified book keeps every balance and only changes who pays whom', () => {
+  for (let seed = 1; seed <= 1500; seed++) {
+    const { expenses, settles } = randomFlat(seed)
+    const L = buildLedger(expenses, settles)
+    const S = simplifyLedger(L)
+    assert.deepEqual([...S.netMinor], [...L.netMinor])
+    assert.deepEqual(S.owes.map(key), settlePlan(L.netMinor, L.currency).map(key))
+    for (const [c, b] of S.books) {
+      assert.deepEqual([...b.netMinor], [...L.books.get(c)!.netMinor])
+      // what each person's lines add up to is still exactly their balance
+      for (const [u, v] of b.netMinor) assert.equal(sum(pairwiseFor(b.owes, u).values()), v, `seed ${seed} ${u}`)
+    }
+  }
+})
+
+test('simplify: past the exact limit, people who only owe each other still pay each other', () => {
+  // 8 couples, each sharing only with each other, amounts all different
+  const net = new Map<string, number>()
+  for (let k = 0; k < 8; k++) { net.set('d' + k, -(1000 + 1090 * k)); net.set('e' + (7 - k), 1000 + 1090 * k) }
+  const plan = settlePlan(net)
+  assert.equal(plan.length, 8)
+  for (const t of plan) assert.equal(net.get(t.from), -net.get(t.to)!)
+  // and never more payments than the people who are owed or owe, less one
+  assert.deepEqual(settlePlan(new Map([['a', 2 ** 53], ['b', -(2 ** 53)], ['c', 1], ['d', -1]])), [], 'an amount too large to add up exactly')
+})
+
+test('simplify: a partial payment leaves the rest of its plan as it was when the groups stay the same', () => {
+  const r = rng(46)
+  for (let t = 0; t < 1500; t++) {
+    const net = randomNet(r, 2 + Math.floor(r() * 10), t % 2 === 0)
+    const plan = settlePlan(net)
+    const ids = [...net].filter(([, v]) => v !== 0).map(([u]) => u).sort()
+    const groups = zeroSumGroups(ids.map((u) => net.get(u)!)).map((g) => g.map((i) => ids[i]).join()).sort().join('|')
+    for (const x of plan) {
+      if (x.minor < 2) continue
+      const part = Math.floor(x.minor / 2)
+      const after = applyPlan(net, [{ ...x, minor: part }])
+      const ids2 = [...after].filter(([, v]) => v !== 0).map(([u]) => u).sort()
+      const groups2 = zeroSumGroups(ids2.map((u) => after.get(u)!)).map((g) => g.map((i) => ids2[i]).join()).sort().join('|')
+      if (groups2 !== groups) continue
+      assert.deepEqual(settlePlan(after).map(key).sort(), plan.map((y) => (y === x ? { ...y, minor: y.minor - part } : y)).map(key).sort())
+    }
+  }
+})
+
+test('simplify: still settles everything past the exact limit', () => {
+  const r = rng(45)
+  for (let t = 0; t < 200; t++) {
+    const net = randomNet(r, EXACT_LIMIT + 1 + Math.floor(r() * 30), t % 2 === 0)
+    const plan = settlePlan(net)
+    for (const v of applyPlan(net, plan).values()) assert.equal(v, 0)
+    assert.ok(plan.length <= [...net.values()].filter((v) => v !== 0).length - 1)
+  }
 })
 
 test('ledger: fast on years of history', () => {

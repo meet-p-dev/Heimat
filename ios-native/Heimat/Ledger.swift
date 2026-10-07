@@ -474,6 +474,8 @@ enum Ledger {
         let invalid: Int
         /// one book per currency, the main one first
         var books: [CurrencyBook] = []
+        /// who owes whom is the fewest-payments plan (the group has "simplify debts" on)
+        var simplified = false
         static let empty = Book(currency: "EUR", netMinor: [:], net: [:], owes: [], excluded: [], invalid: 0)
     }
 
@@ -688,67 +690,110 @@ enum Ledger {
 
     struct Transfer: Hashable { let from, to: String; let minor: Int; let amount: Double }
 
-    /// the exact solver's size limit: 2^12 subsets, well under a millisecond
-    static let exactLimit = 12
+    /// the exact solver's size limit: n·2^n steps — 14 people is 229k, under a millisecond,
+    /// and quick enough for the database's copy (settle_plan) too
+    static let exactLimit = 14
 
-    /// The fewest payments that bring every balance to exactly zero.
-    ///
-    /// NP-hard in general, and the old greedy made more payments than necessary
-    /// in about 30% of flats while the app promised "the fewest". Up to
-    /// `exactLimit` people with money outstanding this is exact: cutting the
-    /// balances into the most groups that each sum to zero needs (people −
-    /// groups) payments, the minimum, and a dynamic programme over subsets finds
-    /// that cut. Beyond the limit, the greedy (never more than people − 1).
-    ///
-    /// Every tie breaks by id, so the plan is a pure function of the balances.
-    /// The old version sorted a Dictionary, whose order Swift randomises per
-    /// launch — the same flat could say "pay Cara" on one launch and "pay Dev"
-    /// on the next.
+    /// The fewest payments that bring every balance to exactly zero — what "simplify
+    /// debts" shows, and what Settle up suggests in a group that has it on. The same
+    /// as settlePlan() in ledger.ts and settle_plan() in the database, case for case
+    /// (tests/ledger-vectors.json):
+    /// - everyone ends at exactly zero: each person pays, or is paid, exactly their
+    ///   balance — nobody's total changes, nobody pays more than they owe overall;
+    /// - nobody both pays and receives, so the least money possible moves;
+    /// - the fewest payments for up to `exactLimit` people with money outstanding
+    ///   (NP-hard in general): (people − groups) for the most groups the balances split
+    ///   into that each sum to zero. Beyond the limit (splitGroups): exact pairs first,
+    ///   then the exact split if few enough are left — never more than people − 1;
+    /// - stable while the groups stay the same: within a group the plan is the "north-west
+    ///   corner" one, debtors and creditors each in id order, each payment the overlap of
+    ///   one with the other, so paying a suggestion (in full or in part) just closes up its
+    ///   gap. A payment that creates a new zero-sum group or flips a tie can re-pair
+    ///   people; it never makes the plan longer;
+    /// - a pure function of the balances: every tie by id.
+    /// Books that don't balance (bad data), or with amounts too large to add up exactly
+    /// in the web app (beyond 2^53 minor units), get no plan rather than a wrong one.
     static func plan(_ net: [String: Int], _ cur: String?) -> [Transfer] {
         let entries = net.filter { !$0.key.isEmpty && $0.value != 0 }.map { ($0.key, $0.value) }.sorted { less($0.0, $1.0) }
-        let groups = entries.count <= exactLimit ? zeroSumGroups(entries.map(\.1)) : [Array(entries.indices)]
+        var sum = 0, total = 0
+        for (_, v) in entries {
+            let (s, o1) = sum.addingReportingOverflow(v)
+            let (t, o2) = total.addingReportingOverflow(v.magnitude > UInt(Int.max) ? Int.max : abs(v))
+            if o1 || o2 { return [] }
+            sum = s; total = t
+        }
+        guard sum == 0, total <= maxExact else { return [] }
+        let groups = splitGroups(entries.map(\.1))
         var out: [Transfer] = []
         for g in groups {
-            for t in greedy(g.map { entries[$0] }) {
+            for t in corner(g.map { entries[$0] }) {
                 out.append(Transfer(from: t.from, to: t.to, minor: t.minor, amount: Money.toMajor(t.minor, cur)))
             }
         }
         return out.sorted(by: transferOrder)
     }
 
-    /// indices of `vals` partitioned into the most subsets that each sum to zero
+    /// 2^53 − 1: the most a book may add up to and still be added exactly by the web app
+    static let maxExact = 9_007_199_254_740_991
+
+    /// The groups a plan is made in (splitGroups() in ledger.ts): up to `exactLimit` people the
+    /// most zero-sum groups; beyond it, everyone who owes exactly what someone is owed paired
+    /// with them first (each debtor in id order with the first such creditor in id order), then
+    /// the exact split on whoever is left if few enough, otherwise one group.
+    static func splitGroups(_ vals: [Int]) -> [[Int]] {
+        if vals.count <= exactLimit { return zeroSumGroups(vals) }
+        var used = [Bool](repeating: false, count: vals.count)
+        var groups: [[Int]] = []
+        for i in vals.indices where vals[i] < 0 && !used[i] {
+            if let j = vals.indices.first(where: { !used[$0] && vals[$0] == -vals[i] }) {
+                used[i] = true; used[j] = true
+                groups.append([min(i, j), max(i, j)])
+            }
+        }
+        let rest = vals.indices.filter { !used[$0] }
+        if !rest.isEmpty && rest.count <= exactLimit {
+            for g in zeroSumGroups(rest.map { vals[$0] }) { groups.append(g.map { rest[$0] }) }
+        } else if !rest.isEmpty { groups.append(rest) }
+        return groups
+    }
+
+    /// Indices of `vals` (summing to zero) split into the most groups that each sum to
+    /// zero, each group in index order. Lay everyone out in some order: every point where
+    /// the running total is zero ends a group, so best[m] = max over i in m of
+    /// best[m without i], plus one if m sums to zero (O(n·2^n)). Walking back, the lowest
+    /// index that keeps the best count goes each time, and a group ends wherever what is
+    /// left sums to zero. No group found this way has a smaller zero-sum group inside it.
     static func zeroSumGroups(_ vals: [Int]) -> [[Int]] {
         let n = vals.count
         guard n > 0 else { return [] }
         let full = (1 << n) - 1
         var sums = [Int](repeating: 0, count: full + 1)
         for m in 1...full { let low = m & -m; sums[m] = sums[m ^ low] + vals[low.trailingZeroBitCount] }
-        var best = [Int](repeating: 0, count: full + 1), pick = [Int](repeating: 0, count: full + 1)
+        var best = [UInt8](repeating: 0, count: full + 1)
         for m in 1...full {
-            let low = m & -m
-            var b = best[m ^ low], p = 0   // the lowest person in no zero-sum group
-            var sub = m
-            while sub > 0 {
-                if sub & low != 0 && sums[sub] == 0 && 1 + best[m ^ sub] > b { b = 1 + best[m ^ sub]; p = sub }
-                sub = (sub - 1) & m
-            }
-            best[m] = b; pick[m] = p
+            var b: UInt8 = 0, r = m
+            while r != 0 { let k = best[m ^ (r & -r)]; if k > b { b = k }; r &= r - 1 }
+            best[m] = b + (sums[m] == 0 ? 1 : 0)
         }
-        var groups: [[Int]] = [], rest: [Int] = [], m = full
-        while m > 0 {
-            let low = m & -m, p = pick[m]
-            if p != 0 { groups.append((0..<n).filter { p >> $0 & 1 == 1 }); m ^= p }
-            else { rest.append(low.trailingZeroBitCount); m ^= low }
+        var groups: [[Int]] = [], group: [Int] = [], m = full
+        while m != 0 {
+            let want = best[m] - (sums[m] == 0 ? 1 : 0)
+            var r = m
+            while best[m ^ (r & -r)] != want { r &= r - 1 }   // the lowest index that keeps the count
+            let low = r & -r
+            group.append(low.trailingZeroBitCount)
+            m ^= low
+            if m == 0 || sums[m] == 0 { groups.append(group.sorted()); group = [] }
         }
-        if !rest.isEmpty { groups.append(rest) }   // unreachable when the balances sum to zero
         return groups
     }
 
-    /// largest debtor pays largest creditor, ties by id; within a zero-sum group of k people, exactly k − 1 payments
-    private static func greedy(_ entries: [(String, Int)]) -> [(from: String, to: String, minor: Int)] {
-        let order: ((String, Int), (String, Int)) -> Bool = { $0.1 != $1.1 ? $0.1 > $1.1 : less($0.0, $1.0) }
-        var debt = entries.filter { $0.1 < 0 }.map { ($0.0, -$0.1) }.sorted(by: order)
-        var cred = entries.filter { $0.1 > 0 }.sorted(by: order)
+    /// north-west corner: debtors and creditors each in id order (entries come sorted), each
+    /// payment what is left of one against what is left of the other — within a group with no
+    /// smaller zero-sum group inside it, exactly (people − 1) payments
+    private static func corner(_ entries: [(String, Int)]) -> [(from: String, to: String, minor: Int)] {
+        var debt = entries.filter { $0.1 < 0 }.map { ($0.0, -$0.1) }
+        var cred = entries.filter { $0.1 > 0 }
         var out: [(from: String, to: String, minor: Int)] = []
         var i = 0, j = 0
         while i < debt.count && j < cred.count {
@@ -758,6 +803,27 @@ enum Ledger {
             if debt[i].1 == 0 { i += 1 }
             if cred[j].1 == 0 { j += 1 }
         }
+        return out
+    }
+
+    /// A book as "simplify debts" shows it: who owes whom becomes the fewest-payments plan,
+    /// per currency, while every balance stays exactly as it was. Only a way of looking at
+    /// the books — expenses and payments are never rewritten; switched off, the pairwise
+    /// figures are back as they were.
+    static func simplified(_ b: CurrencyBook) -> CurrencyBook {
+        CurrencyBook(currency: b.currency, netMinor: b.netMinor, net: b.net,
+                     owes: plan(b.netMinor, b.currency).map { Owe(from: $0.from, to: $0.to, minor: $0.minor, amount: $0.amount) })
+    }
+
+    /// the same for every currency book of a flat
+    static func simplified(_ book: Book) -> Book {
+        let books = book.books.map(simplified)
+        let main = books.first { $0.currency == book.currency }
+        var out = Book(currency: book.currency, netMinor: book.netMinor, net: book.net,
+                       owes: main?.owes ?? plan(book.netMinor, book.currency).map { Owe(from: $0.from, to: $0.to, minor: $0.minor, amount: $0.amount) },
+                       excluded: book.excluded, invalid: book.invalid)
+        out.books = books
+        out.simplified = true
         return out
     }
 

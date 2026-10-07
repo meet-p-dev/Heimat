@@ -387,7 +387,9 @@ struct SettleForm: View {
                             }
                         }
                     } header: { Label("Suggested", systemImage: "sparkles") } footer: {
-                        Text("The fewest payments that square everyone up. Tap one to fill it in.")
+                        Text(m.book.simplified
+                             ? "The fewest payments that square everyone up (simplify debts is on). Tap one to fill it in."
+                             : "What each person owes, as it stands. Tap one to fill it in — or turn on Simplify debts on the group page for fewer payments.")
                     }
                 }
                 Section {

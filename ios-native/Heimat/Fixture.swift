@@ -61,6 +61,20 @@ extension AppModel {
         var pizza = ex("10", flat, "Pizza night", 30, me, [me, alex, ben], "2026-09-29")
         pizza.splitType = "percent"; pizza.split = SplitData(values: [me: 5000, alex: 3000, ben: 2000])
         allExpenses += [pizza, ex("11", flat, "Drinks", 12, nina, [me, nina], "2026-09-29")]
+        func act(_ id: String, _ f: String, _ by: String?, _ kind: String, _ what: String?, _ amt: Double? = nil, at: String, meta: [String: String] = [:]) -> Activity {
+            Activity(id: "40000000-0000-4000-a000-0000000000" + id, flatId: f, actor: by, kind: kind, subject: what, amount: amt, at: at, meta: meta)
+        }
+        activity = [
+            act("01", flat, nina, "item_bought", "Oat milk", at: "2026-10-07T12:40:00.000000+00:00"),
+            act("02", flat, alex, "chore_done", "Bins", at: "2026-10-07T09:15:00.000000+00:00"),
+            act("03", meevi, vi, "bill_paid", "Internet", 39.99, at: "2026-10-06T18:02:00.000000+00:00"),
+            act("04", flat, ben, "swap_asked", "Bathroom", at: "2026-10-06T08:30:00.000000+00:00", meta: ["to": me]),
+            act("05", flat, me, "expense_added", "Pizza night", 30, at: "2026-09-29T19:20:00.000000+00:00"),
+            act("06", flat, nina, "expense_added", "Drinks", 12, at: "2026-09-29T21:05:00.000000+00:00"),
+            act("07", cNina, me, "expense_added", "Dinner at Thai Park", 30, at: "2026-09-28T20:00:00.000000+00:00"),
+            act("08", cNina, me, "joined", "Nina", at: "2026-09-01T10:00:00.000000+00:00"),
+            act("09", flat, dana, "item_added", "Dish soap", at: "2026-09-27T16:00:00.000000+00:00"),
+        ].sorted { $0.at > $1.at }
         allSettles = [Settlement(id: "s1", flatId: meevi, fromUser: me, toUser: vi, amount: 29, settledOn: "2026-09-02", currency: "EUR")]
         flatId = flat
         members = allMembers.filter { $0.flatId == flat }

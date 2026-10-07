@@ -8,7 +8,8 @@ struct GroupPage: View {
     let id: String
     @State private var confirmLeave = false
     @State private var deleting: Expense?
-    @State private var removing: Member?
+    /// the "simplify debts" switch, waiting for a yes: true to turn it on, false to turn it off
+    @State private var simplifyAsk: Bool?
 
     var body: some View {
         Group {
@@ -42,13 +43,6 @@ struct GroupPage: View {
         }
         .confirmationDialog("Delete this expense for everyone in the flat?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }), titleVisibility: .visible) {
             Button("Delete expense", role: .destructive) { if let e = deleting { Task { await m.deleteExpense(e.id) } } }
-        }
-        .confirmationDialog(
-            removing.map { "Remove \($0.displayName)? Their past expenses stay, so the balances still add up." } ?? "",
-            isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
-            titleVisibility: .visible
-        ) {
-            Button("Remove", role: .destructive) { if let r = removing { Task { await m.remove(r) } } }
         }
     }
 
@@ -107,88 +101,50 @@ struct GroupPage: View {
         return waiting > 0 ? "\(base) · \(waiting) invited" : base
     }
 
-    /// Who owes whom, as it actually stands — not the shortest way to square
-    /// up. Those are different numbers: simplifying moves a debt onto whoever
-    /// makes the fewest payments, so it would say you owe Kevin when you owe
-    /// Kartik. The suggestion belongs in Settle up, where it is offered as
-    /// one, and these lines agree with Home.
+    /// Only your own line of the group's balances: your total, and who you get money from
+    /// or owe — as it actually stands, not the shortest way to square up (that belongs in
+    /// Settle up). Everyone else's lines are one tap away, in All balances.
     private func balances() -> some View {
-        VStack(spacing: 0) {
-            SectionLabel("Balances").padding(.bottom, 10)
-            HeimatCard(radius: 24, padding: 0) {
-                VStack(spacing: 0) {
-                    let rows = m.balanceRoster
-                    // what you owe each person, from the same books — "Pay them back" pays that, not their whole balance
-                    let mine = m.uid.map { Ledger.pairwise(m.book.owes, for: $0) } ?? [:]
-                    ForEach(Array(rows.enumerated()), id: \.element.id) { i, mem in
-                        // whole cents from the ledger: zero is settled, anything else is a real debt
-                        let netMinor = m.book.netMinor[mem.userId] ?? 0
-                        let net = Money.toMajor(netMinor, m.book.currency)
-                        let pairs = Ledger.pairwise(m.book.owes, for: mem.userId)
-                            .map { (key: $0.key, value: Money.toMajor($0.value, m.book.currency)) }
-                            .sorted { abs($0.value) != abs($1.value) ? abs($0.value) > abs($1.value) : Ledger.less($0.key, $1.key) }
-                        let owes = pairs.filter { $0.value < 0 }
-                        let gets = pairs.filter { $0.value > 0 }
-                        let iOweThem = -(mine[mem.userId] ?? 0)
-                        NavigationLink(value: GroupsRoute.person(mem.userId)) {
-                        HStack(alignment: .top, spacing: 13) {
-                            AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 6) {
-                                    Text(mem.displayName + (mem.userId == m.uid ? " (you)" : ""))
-                                        .font(.system(size: 15.5, weight: .semibold))
-                                    if mem.isPending || mem.hasLeft {
-                                        Text(mem.hasLeft ? "left" : "invited")
-                                            .font(.system(size: 10.5, weight: .bold))
-                                            .padding(.horizontal, 7).padding(.vertical, 2)
-                                            .background(Color.secondary.opacity(0.16), in: Capsule())
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                                if owes.isEmpty && gets.isEmpty {
-                                    Text("settled up").font(.system(size: 12.5)).foregroundStyle(.tertiary)
-                                }
-                                ForEach(owes, id: \.key) { other, amt in
-                                    Text("owes \(Text(m.fH(-amt)).bold().foregroundColor(.hRed)) to \(m.nameOf(other))")
-                                        .font(.system(size: 12.5)).foregroundStyle(.secondary)
-                                }
-                                ForEach(gets, id: \.key) { other, amt in
-                                    Text("gets \(Text(m.fH(amt)).bold().foregroundColor(.hGreen)) from \(m.nameOf(other))")
-                                        .font(.system(size: 12.5)).foregroundStyle(.secondary)
-                                }
-                            }
-                            Spacer(minLength: 8)
-                            Text(netMinor > 0 ? "+\(m.fH(net))" : netMinor < 0 ? "−\(m.fH(-net))" : "—")
-                                .font(.system(size: 15, weight: .bold)).monospacedDigit()
-                                .foregroundStyle(netMinor > 0 ? Color.hGreen : netMinor < 0 ? Color.hRed : Color.secondary)
-                        }
-                        .padding(.horizontal, 16).padding(.vertical, 12)
-                        .contentShape(Rectangle())
-                        }
-                        .buttonStyle(PressStyle())
-                        .foregroundStyle(.primary)
-                        .disabled(mem.userId == m.uid)
-                        .contextMenu {
-                            if mem.userId != m.uid && !mem.hasLeft {
-                                // the server only sends a reminder over 0,50 € (see nudge()); offering it below that would just fail
-                                if netMinor < -Ledger.nudgeMinimum {
-                                    Button { Task { await m.nudge(mem) } } label: {
-                                        Label("Remind them about \(m.fH(-net))", systemImage: "bell.badge")
-                                    }
-                                }
-                                if iOweThem > 0 {
-                                    Button { m.sheet = .settle(Calc.Suggestion(from: m.uid ?? "", to: mem.userId, amount: Money.toMajor(iOweThem, m.book.currency))) } label: {
-                                        Label("Pay them back \(m.fH(Money.toMajor(iOweThem, m.book.currency)))", systemImage: "arrow.left.arrow.right")
-                                    }
-                                }
-                                Button(role: .destructive) { removing = mem } label: {
-                                    Label("Remove from \(m.flat?.noun ?? "flat")", systemImage: "person.badge.minus")
-                                }
-                            }
-                        }
-                        if i < rows.count - 1 { RowDivider(inset: 69) }
-                    }
+        let me = m.uid ?? ""
+        // whole cents from the ledger: zero is settled, anything else is a real debt
+        let netMinor = m.book.netMinor[me] ?? 0
+        let net = Money.toMajor(netMinor, m.book.currency)
+        let pairs = Ledger.pairwise(m.book.owes, for: me)
+            .map { (key: $0.key, value: Money.toMajor($0.value, m.book.currency)) }
+            .sorted { abs($0.value) != abs($1.value) ? abs($0.value) > abs($1.value) : Ledger.less($0.key, $1.key) }
+        let owes = pairs.filter { $0.value < 0 }
+        let gets = pairs.filter { $0.value > 0 }
+        let name = m.members.first { $0.userId == me }?.displayName ?? m.profile.name
+        return VStack(spacing: 0) {
+            SectionLabel(text: m.isSimplified(id) ? "Balances · simplified" : "Balances") {
+                NavigationLink(value: GroupsRoute.balances(id)) {
+                    Text("All balances").font(.system(size: 13.5, weight: .semibold))
                 }
+            }
+            .padding(.bottom, 10)
+            HeimatCard(radius: 24, padding: 0) {
+                HStack(alignment: .top, spacing: 13) {
+                    AvatarView(name: name, seed: me, size: 40)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name + " (you)").font(.system(size: 15.5, weight: .semibold))
+                        if owes.isEmpty && gets.isEmpty {
+                            Text("settled up").font(.system(size: 12.5)).foregroundStyle(.tertiary)
+                        }
+                        ForEach(owes, id: \.key) { other, amt in
+                            Text("owes \(Text(m.fH(-amt)).bold().foregroundColor(.hRed)) to \(m.nameOf(other))")
+                                .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                        }
+                        ForEach(gets, id: \.key) { other, amt in
+                            Text("gets \(Text(m.fH(amt)).bold().foregroundColor(.hGreen)) from \(m.nameOf(other))")
+                                .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer(minLength: 8)
+                    Text(netMinor > 0 ? "+\(m.fH(net))" : netMinor < 0 ? "−\(m.fH(-net))" : "—")
+                        .font(.system(size: 15, weight: .bold)).monospacedDigit()
+                        .foregroundStyle(netMinor > 0 ? Color.hGreen : netMinor < 0 ? Color.hRed : Color.secondary)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12)
             }
         }
     }
@@ -220,8 +176,45 @@ struct GroupPage: View {
                 HeimatRow(symbol: "chart.line.uptrend.xyaxis", tint: Tint.blue, label: "Analytics",
                           sub: "Spend trend, categories and who paid") { m.sheet = .analytics }
                 RowDivider()
-                HeimatRow(symbol: "clock.arrow.circlepath", tint: Tint.indigo, label: "History",
-                          sub: "Who added, changed or deleted what") { m.sheet = .history }
+                simplifyRow
+            }
+        }
+    }
+
+    /// "Simplify debts": the fewest payments instead of who owes whom pair by pair. One switch
+    /// for the whole group, which anyone can flip — so it asks first, and says what it does.
+    private var simplifyRow: some View {
+        let on = m.isSimplified(id)
+        return HStack(spacing: 13) {
+            Image(systemName: "arrow.triangle.branch")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 32, height: 32)
+                .background(Tint.teal.gradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Simplify debts").font(.system(size: 16))
+                Text(on ? "Fewest payments · nobody's total changes" : "Fewer payments for everyone")
+                    .font(.system(size: 12.5)).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            Toggle("Simplify debts", isOn: Binding(get: { on }, set: { simplifyAsk = $0 }))
+                .labelsHidden()
+                .disabled(m.uid == nil)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 11)
+        .frame(minHeight: 54)
+        .confirmationDialog(simplifyAsk == true ? "Simplify debts for everyone in this group?" : "Show who owes whom again?",
+                            isPresented: Binding(get: { simplifyAsk != nil }, set: { if !$0 { simplifyAsk = nil } }),
+                            titleVisibility: .visible) {
+            Button(simplifyAsk == true ? "Simplify debts" : "Turn off") {
+                if let v = simplifyAsk { Task { await m.setSimplify(v) } }
+                simplifyAsk = nil
+            }
+        } message: {
+            if simplifyAsk == true {
+                Text("Splitlife works out the fewest payments that square everyone up. Nobody's total changes and nobody pays more than they owe — but you may pay someone who didn't pay for your share. Everyone in the group sees it (on the latest app), and anyone can turn it off.")
+            } else {
+                Text("Balances go back to who owes whom, pair by pair. Totals stay exactly the same; payments made the simplified way can show up as people owing each other in a circle.")
             }
         }
     }
@@ -275,6 +268,120 @@ struct GroupPage: View {
         .controlSize(.large)
         .tint(.hRed)
         .padding(.top, 12)
+    }
+}
+
+// MARK: - All balances
+
+/// Everyone in the group and where each of them stands: their total, and who they owe
+/// or are owed by, as it actually stands. Opened from the group page's "All balances",
+/// which itself shows only your side. Long-press someone to remind them, pay them back,
+/// or remove them from the group.
+struct AllBalancesView: View {
+    let id: String
+    @Environment(AppModel.self) private var m
+    @State private var removing: Member?
+
+    var body: some View {
+        Group {
+            if m.flatId == id {
+                ScrollView {
+                    HeimatCard(radius: 24, padding: 0) {
+                        VStack(spacing: 0) {
+                            let rows = m.balanceRoster
+                            // what you owe each person, from the same books — "Pay them back" pays that, not their whole balance
+                            let mine = m.uid.map { Ledger.pairwise(m.book.owes, for: $0) } ?? [:]
+                            ForEach(Array(rows.enumerated()), id: \.element.id) { i, mem in
+                                // whole cents from the ledger: zero is settled, anything else is a real debt
+                                let netMinor = m.book.netMinor[mem.userId] ?? 0
+                                let net = Money.toMajor(netMinor, m.book.currency)
+                                let pairs = Ledger.pairwise(m.book.owes, for: mem.userId)
+                                    .map { (key: $0.key, value: Money.toMajor($0.value, m.book.currency)) }
+                                    .sorted { abs($0.value) != abs($1.value) ? abs($0.value) > abs($1.value) : Ledger.less($0.key, $1.key) }
+                                let owes = pairs.filter { $0.value < 0 }
+                                let gets = pairs.filter { $0.value > 0 }
+                                let iOweThem = -(mine[mem.userId] ?? 0)
+                                NavigationLink(value: GroupsRoute.person(mem.userId)) {
+                                HStack(alignment: .top, spacing: 13) {
+                                    AvatarView(name: mem.displayName, seed: mem.userId, size: 40)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 6) {
+                                            Text(mem.displayName + (mem.userId == m.uid ? " (you)" : ""))
+                                                .font(.system(size: 15.5, weight: .semibold))
+                                            if mem.isPending || mem.hasLeft {
+                                                Text(mem.hasLeft ? "left" : "invited")
+                                                    .font(.system(size: 10.5, weight: .bold))
+                                                    .padding(.horizontal, 7).padding(.vertical, 2)
+                                                    .background(Color.secondary.opacity(0.16), in: Capsule())
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                        }
+                                        if owes.isEmpty && gets.isEmpty {
+                                            Text("settled up").font(.system(size: 12.5)).foregroundStyle(.tertiary)
+                                        }
+                                        ForEach(owes, id: \.key) { other, amt in
+                                            Text("owes \(Text(m.fH(-amt)).bold().foregroundColor(.hRed)) to \(other == m.uid ? "you" : m.nameOf(other))")
+                                                .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                                        }
+                                        ForEach(gets, id: \.key) { other, amt in
+                                            Text("gets \(Text(m.fH(amt)).bold().foregroundColor(.hGreen)) from \(other == m.uid ? "you" : m.nameOf(other))")
+                                                .font(.system(size: 12.5)).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    Spacer(minLength: 8)
+                                    Text(netMinor > 0 ? "+\(m.fH(net))" : netMinor < 0 ? "−\(m.fH(-net))" : "—")
+                                        .font(.system(size: 15, weight: .bold)).monospacedDigit()
+                                        .foregroundStyle(netMinor > 0 ? Color.hGreen : netMinor < 0 ? Color.hRed : Color.secondary)
+                                }
+                                .padding(.horizontal, 16).padding(.vertical, 12)
+                                .contentShape(Rectangle())
+                                }
+                                .buttonStyle(PressStyle())
+                                .foregroundStyle(.primary)
+                                .disabled(mem.userId == m.uid)
+                                .contextMenu {
+                                    if mem.userId != m.uid && !mem.hasLeft {
+                                        // the server sends a reminder only when they owe *you* at least 0,50 € (see
+                                        // nudge()) — pairwise, or the simplified plan — and offering it below that would just fail
+                                        let theyOweMe = mine[mem.userId] ?? 0
+                                        if theyOweMe >= Ledger.nudgeMinimum {
+                                            Button { Task { await m.nudge(mem) } } label: {
+                                                Label("Remind them about \(m.fH(Money.toMajor(theyOweMe, m.book.currency)))", systemImage: "bell.badge")
+                                            }
+                                        }
+                                        if iOweThem > 0 {
+                                            Button { m.sheet = .settle(Calc.Suggestion(from: m.uid ?? "", to: mem.userId, amount: Money.toMajor(iOweThem, m.book.currency))) } label: {
+                                                Label("Pay them back \(m.fH(Money.toMajor(iOweThem, m.book.currency)))", systemImage: "arrow.left.arrow.right")
+                                            }
+                                        }
+                                        Button(role: .destructive) { removing = mem } label: {
+                                            Label("Remove from \(m.flat?.noun ?? "flat")", systemImage: "person.badge.minus")
+                                        }
+                                    }
+                                }
+                                if i < rows.count - 1 { RowDivider(inset: 69) }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 24)
+                }
+                .refreshable { await m.loadFlat() }
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle(m.isSimplified(id) ? "All balances · simplified" : "All balances")
+        .navigationBarTitleDisplayMode(.inline)
+        .heimatScreen()
+        // opened while another group was open (back from a person page in another group)
+        .onAppear { if m.flatId != id { m.switchFlat(id) } }
+        .confirmationDialog(
+            removing.map { "Remove \($0.displayName)? Their past expenses stay, so the balances still add up." } ?? "",
+            isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Remove", role: .destructive) { if let r = removing { Task { await m.remove(r) } } }
+        }
     }
 }
 
@@ -694,111 +801,6 @@ struct AnalyticsView: View {
     }
 }
 
-
-// MARK: - History
-
-/// Everything that has happened in this flat, newest first. The rows come
-/// from database triggers rather than the app, so an expense edited on the
-/// web, added by Siri or deleted from a widget all show up the same way.
-struct HistoryView: View {
-    @Environment(AppModel.self) private var m
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if m.activity.isEmpty {
-                    ContentUnavailableView("Nothing yet", systemImage: "clock",
-                                           description: Text("Everything anyone adds, changes or deletes shows up here."))
-                        .padding(.top, 60)
-                } else {
-                    ForEach(Array(days.enumerated()), id: \.element.key) { _, day in
-                        SectionLabel(day.label)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16).padding(.top, 18).padding(.bottom, 8)
-                        HeimatCard(radius: 22, padding: 0) {
-                            VStack(spacing: 0) {
-                                ForEach(Array(day.list.enumerated()), id: \.element.id) { i, a in
-                                    row(a)
-                                    if i < day.list.count - 1 { RowDivider(inset: 56) }
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 16)
-                    }
-                }
-            }
-            .padding(.bottom, 24)
-        }
-        .navigationTitle("History")
-        .navigationBarTitleDisplayMode(.inline)
-        .heimatScreen()
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        .task { await m.loadActivity() }
-        .refreshable { await m.loadActivity() }
-    }
-
-    /// grouped by day, because "when" is the question being asked
-    private var days: [(key: String, label: String, list: [Activity])] {
-        var out: [(key: String, label: String, list: [Activity])] = []
-        for a in m.activity {
-            // the day it was here, not the day it was in UTC: slicing the
-            // timestamp files anything after local midnight under yesterday
-            let k = ISO8601DateFormatter.heimat.date(from: a.at).map(Fmt.ymd) ?? String(a.at.prefix(10))
-            if out.last?.key != k { out.append((k, Fmt.relDay(k), [])) }
-            out[out.count - 1].list.append(a)
-        }
-        return out
-    }
-
-    private func row(_ a: Activity) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: a.symbol)
-                .font(.system(size: 19))
-                .foregroundStyle(a.isGone ? Color.secondary : Color.accentColor)
-                .frame(width: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(line(a)).font(.system(size: 14.5))
-                Text(time(a.at)).font(.system(size: 12)).foregroundStyle(.tertiary)
-            }
-            Spacer(minLength: 8)
-            if let amt = a.amount {
-                Text(m.fH(amt))
-                    .font(.system(size: 14.5, weight: .semibold)).monospacedDigit()
-                    .foregroundStyle(a.isGone ? Color.secondary : Color.primary)
-                    .strikethrough(a.isGone, color: .secondary)
-            }
-        }
-        .padding(.horizontal, 16).padding(.vertical, 11)
-    }
-
-    private func line(_ a: Activity) -> AttributedString {
-        let who = a.actor.map { m.nameOf($0) } ?? "Someone"
-        let what = a.subject ?? "an expense"
-        let text: String
-        switch a.kind {
-        case "expense_added":    text = "\(who) added \(what)"
-        case "expense_edited":   text = "\(who) changed \(what)"
-        case "expense_deleted":  text = "\(who) deleted \(what)"
-        case "settled":          text = "\(who) settled up with \(what)"
-        case "settle_undone":    text = "\(who) undid a payment to \(what)"
-        case "joined":           text = "\(what) joined"
-        case "invited":          text = "\(who) invited \(what)"
-        case "left":             text = "\(what) left"
-        case "invite_withdrawn": text = "\(who) withdrew the invite to \(what)"
-        default:                 text = "\(who) \(a.kind)"
-        }
-        var s = AttributedString(text)
-        // the thing it happened to, picked out of the sentence
-        if let r = s.range(of: what) { s[r].font = .system(size: 14.5, weight: .semibold) }
-        return s
-    }
-
-    private func time(_ iso: String) -> String {
-        guard let d = ISO8601DateFormatter.heimat.date(from: iso) else { return "" }
-        return d.formatted(date: .omitted, time: .shortened)
-    }
-}
 
 extension ISO8601DateFormatter {
     /// Postgres timestamptz comes back with fractional seconds, which the

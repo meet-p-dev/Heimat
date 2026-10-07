@@ -238,10 +238,12 @@ extension AppModel {
     /// non-group expenses first. Once a day, over 0,50 € (the server's rules).
     func remind(_ person: String) async {
         let owed = lines(with: person).filter { $0.minor > 0 && $0.currency == (placeBooks[$0.place]?.currency ?? $0.currency) }
-        guard let place = owed.sorted(by: { a, b in
+        guard !owed.isEmpty else { show("They don't owe you anything right now"); return }
+        // the server reminds only where they owe you at least 0,50 € (nudge())
+        guard let place = owed.filter({ $0.minor >= Ledger.nudgeMinimum }).sorted(by: { a, b in
             if isCircle(a.place) != isCircle(b.place) { return isCircle(a.place) }
             return a.minor != b.minor ? a.minor > b.minor : Ledger.less(a.place, b.place)
-        }).first?.place else { show("They don't owe you anything right now"); return }
+        }).first?.place else { show("Too little in any one group to remind them about"); return }
         struct P: Encodable { let p_flat: String, p_uid: String }
         #if DEBUG
         if Self.fixtureMode { show("Demo mode — nothing is sent"); return }

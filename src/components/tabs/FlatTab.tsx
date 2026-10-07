@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
-import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, ChevronRight } from 'lucide-react'
+import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, ChevronRight, Split } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ListItem, Cat, ModalId } from '../../lib/types'
 import { hasLeft, isPending } from '../../lib/types'
 import { haptic } from '../../lib/haptic'
@@ -9,11 +9,11 @@ import { pairwiseFor, toMajor } from '../../lib/ledger'
 import type { Ledger } from '../../lib/ledger'
 import { monthLabel, money } from '../../lib/format'
 import { copyText } from '../../lib/native'
-import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, TINT } from '../ui'
+import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, Toggle, TINT } from '../ui'
 import ExpenseRow from '../ExpenseRow'
 
 /* One group's page (a flat is a group), pushed from its card on the Groups tab. */
-export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra }: {
+export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra, simplified = false, setSimplify }: {
   T: Theme; flat: Flat; members: Member[]; ledger: Ledger; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
@@ -22,12 +22,12 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
   /* whether the shopping list is switched on, and what goes above the shortcuts (Bills) */
   showList?: boolean; extra?: React.ReactNode
   showToast: (m: string) => void; onPerson: (id: string) => void
+  /* "simplify debts": the balances show the fewest payments; anyone in the group can switch it */
+  simplified?: boolean; setSimplify?: (on: boolean) => void
 }) {
-  /* Who owes whom, as it actually stands — not the shortest way to square up.
-     Those are different numbers: simplifying moves a debt onto whoever makes
-     the fewest payments, so it would say you owe Kevin when you owe Kartik.
-     The suggestion belongs in Settle up, where it is offered as one; these
-     lines are the pairwise figures, the same as the iOS app shows.
+  /* Who owes whom: as it actually stands, pair by pair — or, with "simplify debts" on,
+     the fewest payments that square everyone up (the ledger arrives simplified, so these
+     lines are the plan; every balance is the same either way). The same as the iOS app.
      Everyone still carrying a balance gets a row — including someone who has
      left, and anyone with money on the books but no member row at all. */
   const rows = useMemo(() => {
@@ -77,7 +77,7 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
         </div>
       </Card>
 
-      <SectionLabel T={T}>Balances</SectionLabel>
+      <SectionLabel T={T}>{simplified ? 'Balances · simplified' : 'Balances'}</SectionLabel>
       <div className="glass" style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 12 }}>
         {rows.map((r) => (
           <div key={r.id} className="h-item" role={r.id !== uid ? 'button' : undefined} tabIndex={r.id !== uid ? 0 : undefined}
@@ -115,6 +115,16 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
       <Group T={T}>
         {showList && <Item T={T} icon={ShoppingCart} tint={TINT.pink} label="Shopping list" sub={open ? `${open} to buy` : 'Nothing to buy'} onClick={() => { haptic(8); openList() }} />}
         <Item T={T} icon={LineChart} tint={TINT.blue} label="Analytics" sub="Spend trend, categories and who paid" onClick={openAnalytics} />
+        {setSimplify && (
+          <Item T={T} icon={Split} tint={TINT.teal} label="Simplify debts"
+            sub={simplified ? 'Fewest payments · nobody’s total changes' : 'Fewer payments for everyone'}
+            right={<Toggle label="Simplify debts" on={simplified} disabled={!uid} onChange={(v) => {
+              const ok = v
+                ? confirm('Simplify debts for everyone in this group?\n\nSplitlife works out the fewest payments that square everyone up. Nobody’s total changes and nobody pays more than they owe — but you may pay someone who didn’t pay for your share. Everyone in the group sees it (on the latest app), and anyone can turn it off.')
+                : confirm('Show who owes whom again?\n\nBalances go back to who owes whom, pair by pair. Totals stay exactly the same; payments made the simplified way can show up as people owing each other in a circle.')
+              if (ok) setSimplify(v)
+            }} />} />
+        )}
       </Group>
 
       {months.length === 0 ? (

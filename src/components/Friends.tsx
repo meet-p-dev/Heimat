@@ -16,7 +16,7 @@ import { toMajor, minorToInput, parseMinor } from '../lib/ledger'
 import { money } from '../lib/format'
 import { haptic } from '../lib/haptic'
 import { webOrigin, shareText, copyText } from '../lib/native'
-import { friendLines, linesWith, totals, knownPeople, personName, sharedExpenses, pairCircle } from '../lib/places'
+import { friendLines, linesWith, totals, knownPeople, personName, sharedExpenses, pairCircle, isSimplified } from '../lib/places'
 import type { PersonPick, PlaceLine, Amount } from '../lib/places'
 import { findPerson, settleParts, PAIR } from '../lib/friends'
 import { Card, Btn, Avatar, SectionLabel, Page, Sheet, Field, SegmentedControl, EmptyState } from './ui'
@@ -285,7 +285,11 @@ export function PersonPage({ c, person, onBack }: { c: FriendsCtx; person: strin
       const key = (circle ? '\u0000friends' : l.place) + '\u0000' + l.currency
       const had = out.find((r) => r.key === key)
       if (had) had.minor += l.minor
-      else out.push({ key, place: circle ? null : l.place, label: circle ? 'Non-group expenses' : (c.groups.find((g) => g.id === l.place)?.name || ''), currency: l.currency, minor: l.minor })
+      else {
+        const g = c.groups.find((x) => x.id === l.place)
+        // a group with "simplify debts" on: this is the plan's payment between you, not a pairwise debt
+        out.push({ key, place: circle ? null : l.place, label: circle ? 'Non-group expenses' : (g?.name || '') + (isSimplified(g) ? ' · simplified' : ''), currency: l.currency, minor: l.minor })
+      }
     }
     return out.filter((r) => r.minor).sort((a, b) => Math.abs(b.minor) - Math.abs(a.minor) || (a.key < b.key ? -1 : 1))
   }, [lines, c.circles, c.groups])

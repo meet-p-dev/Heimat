@@ -112,7 +112,7 @@ struct ExpensePrefill: Hashable {
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
 /// system's own, so iOS draws them in Liquid Glass.
 enum SheetRoute: Identifiable, Hashable {
-    case settings, profile, editProfile, invite, categories, list, analytics, myAnalytics, history
+    case settings, profile, editProfile, invite, categories, list, analytics, myAnalytics, activity
     case auth(AuthMode)
     case flat(FlatMode)
     case expense(Expense?, ExpensePrefill?)
@@ -139,7 +139,7 @@ struct SheetHost: View {
         case .list: NavigationStack { ShoppingListView() }
         case .analytics: NavigationStack { AnalyticsView() }
         case .myAnalytics: NavigationStack { AnalyticsView(personal: true) }
-        case .history: NavigationStack { HistoryView() }
+        case .activity: NavigationStack { ActivityView() }
         case .auth(let mode): AuthView(start: mode)
         case .flat(let mode): CreateJoinForm(mode: mode)
         case .expense(let e, let prefill): ExpenseForm(editing: e, prefill: prefill)

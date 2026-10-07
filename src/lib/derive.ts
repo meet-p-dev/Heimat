@@ -2,6 +2,7 @@ import type { Expense, Shift, Runway } from './types'
 import { deriveShift } from './shift'
 import { tod } from './format'
 import { settlePlan, sharesOf, toMajor } from './ledger'
+import type { Ledger } from './ledger'
 
 /* Balances, who owes whom and the settle-up plan all come from the ledger
    (./ledger.ts), in whole cents. What is left here is the per-person
@@ -12,6 +13,12 @@ export interface SettleSuggestion { from: string; to: string; amount: number }
 /* the fewest payments that square everyone up — see settlePlan */
 export function settleSuggestions(netMinor: Map<string, number>, cur?: string): SettleSuggestion[] {
   return settlePlan(netMinor, cur).map(({ from, to, amount }) => ({ from, to, amount }))
+}
+
+/* what Settle up suggests: the book's who-owes-whom — with "simplify debts" on that is the
+   fewest payments (settlePlan), otherwise what each person actually owes each other */
+export function ledgerSuggestions(L: Ledger): SettleSuggestion[] {
+  return L.owes.map(({ from, to, amount }) => ({ from, to, amount }))
 }
 
 export interface RunwayCalc { left: number; monthsLeft: number; burn: number; spentSince: number; elapsed: number }

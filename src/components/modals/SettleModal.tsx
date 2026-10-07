@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import type { Theme, Member } from '../../lib/types'
-import { settleSuggestions } from '../../lib/derive'
+import { ledgerSuggestions } from '../../lib/derive'
 import { minorToInput, toMinor } from '../../lib/ledger'
 import type { Ledger } from '../../lib/ledger'
 import { Sheet, Field, Btn, Chip, Avatar } from '../ui'
@@ -16,7 +16,7 @@ export default function SettleModal({ open, onClose, T, members, ledger, uid, na
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
   const [amt, setAmt] = useState('')
-  const suggestions = useMemo(() => settleSuggestions(ledger.netMinor, ledger.currency), [ledger])
+  const suggestions = useMemo(() => ledgerSuggestions(ledger), [ledger])
   // straight from whole cents, so the field says exactly what the button said
   const fill = (s: { from: string; to: string; amount: number }) => { setFrom(s.from); setTo(s.to); setAmt(minorToInput(toMinor(s.amount, ledger.currency), ledger.currency)) }
   useEffect(() => {
@@ -41,7 +41,9 @@ export default function SettleModal({ open, onClose, T, members, ledger, uid, na
     <Sheet open={open} onClose={onClose} title="Settle up" T={T}
       footer={<Btn full disabled={!valid} onClick={() => { if (!valid) return; settleUp(from, to, v); onClose() }}>{valid ? `Record ${fH(v)} payment` : 'Record payment'}</Btn>}>
       {suggestions.length > 0 && (
-        <Field T={T} label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Sparkles size={13} /> Suggested</span>} hint="The fewest payments that square everyone up. Tap one to fill it in.">
+        <Field T={T} label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Sparkles size={13} /> Suggested</span>} hint={ledger.simplified
+          ? 'The fewest payments that square everyone up (simplify debts is on). Tap one to fill it in.'
+          : 'What each person owes, as it stands. Tap one to fill it in — or turn on Simplify debts on the group page for fewer payments.'}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             {suggestions.map((s) => {
               const on = s.from === from && s.to === to

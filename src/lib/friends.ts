@@ -86,6 +86,9 @@ export async function remind(person: string, lines: PlaceLine[], isCircle: (id: 
   const owed = lines.filter((l) => l.minor > 0 && l.currency === mainCurrencyOf(l.place))
     .sort((a, b) => (isCircle(a.place) !== isCircle(b.place) ? (isCircle(a.place) ? -1 : 1) : b.minor - a.minor || (a.place < b.place ? -1 : 1)))
   if (!owed.length) return "They don't owe you anything right now"
-  const { error } = await sb.rpc('nudge', { p_flat: owed[0].place, p_uid: person })
+  // the server reminds only where they owe you at least 0,50 € (nudge())
+  const place = owed.find((l) => l.minor >= 50)
+  if (!place) return 'Too little in any one group to remind them about'
+  const { error } = await sb.rpc('nudge', { p_flat: place.place, p_uid: person })
   return error ? friendsMessage(error, "Couldn't send that reminder.") : null
 }

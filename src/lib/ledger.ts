@@ -461,6 +461,8 @@ export interface Ledger extends Book {
   excluded: Expense[]
   /* rows that could not be read (no amount, no payer, a split that does not add up) */
   invalid: (Expense | Settlement)[]
+  /* who owes whom is the fewest-payments plan: the group has "simplify debts" on */
+  simplified?: boolean
 }
 
 /* the currency most of a flat's live expenses are in (ties: alphabetical); a flat
@@ -682,37 +684,92 @@ export function spread(pay: number, places: SpreadPlace[], fallback: string): Sp
 
 export interface Transfer { from: string; to: string; minor: number; amount: number }
 
-/* the exact solver's size limit: 2^12 subsets, about 0.6 ms on a phone */
-export const EXACT_LIMIT = 12
+/* the exact solver's size limit: n·2^n steps — 14 people is 229k, under a millisecond on a
+   phone and quick enough for the database's copy (settle_plan) too */
+export const EXACT_LIMIT = 14
 
 /*
-  The fewest payments that bring every balance to exactly zero.
+  The fewest payments that bring every balance to exactly zero — what "simplify
+  debts" shows, and what Settle up suggests in a group that has it on.
 
-  Finding that is NP-hard in general (it contains PARTITION), and the usual
-  greedy — largest debtor pays largest creditor — needs more payments than
-  necessary in about 30% of random flats, while the app promised "the fewest".
-  For up to EXACT_LIMIT people with money outstanding this solves it exactly:
-  a partition of the balances into the most groups that each sum to zero needs
-  (people − groups) payments, which is the minimum; a bitmask dynamic
-  programme over subsets finds that partition in O(3^n). Beyond the limit it
-  falls back to the greedy, which never needs more than people − 1.
-
-  Every tie is broken by id, so the plan is a pure function of the balances —
-  identical across launches, devices and the two apps.
+  What it guarantees (tests/ledger.test.ts proves each over thousands of books):
+  - everyone ends at exactly zero: each person pays, or is paid, exactly their
+    balance, to the cent — so nobody's total changes and nobody pays more than
+    they owe overall;
+  - nobody both pays and receives, so the money moved is the least possible
+    (the sum of what is owed);
+  - the fewest payments, for up to EXACT_LIMIT people with money outstanding.
+    Finding that is NP-hard in general (it contains PARTITION): a plan needs
+    (people − groups) payments for the most groups the balances split into that
+    each sum to zero, and a dynamic programme over subsets finds that split.
+    Beyond the limit (splitGroups): exact pairs first, then the exact split if
+    few enough are left — never more than people − 1;
+  - stable while the groups stay the same: within a group the plan is the
+    "north-west corner" one — debtors and creditors each in id order, laid end
+    to end like two rulers, each payment the overlap of one debtor with one
+    creditor — so paying a suggestion, in full or in part, just closes up its
+    gap and the others stay as they were. A payment that creates a new zero-sum
+    group, or flips a tie between equally good splits, can re-pair people (in
+    tests the rest stays identical after ~99% of payments); it never makes the
+    plan longer. (A largest-to-largest greedy re-pairs everyone after each payment.)
+  - a pure function of the balances: every tie by id, the same on every device,
+    in the web app, the iPhone app and the database.
+  Books that don't balance (bad data) get no plan, never one that leaves money
+  owing; so do amounts too large to add up exactly (beyond 2^53 minor units).
 */
 export function settlePlan(net: Map<string, number> | Record<string, number>, cur?: string | null): Transfer[] {
   const entries = (net instanceof Map ? [...net] : Object.entries(net).map(([u, v]) => [u, toMinor(v, cur)] as [string, number]))
-    .filter(([u, v]) => !!u && v !== 0 && Number.isSafeInteger(v))
+    .filter(([u, v]) => !!u && v !== 0)
     .sort((a, b) => cmp(a[0], b[0]))
-  const groups = entries.length <= EXACT_LIMIT ? zeroSumGroups(entries.map(([, v]) => v)) : [entries.map((_, i) => i)]
+  if (entries.some(([, v]) => !Number.isSafeInteger(v))) return []
+  let sum = 0, total = 0
+  for (const [, v] of entries) { sum += v; total += Math.abs(v) }
+  if (sum !== 0 || total > Number.MAX_SAFE_INTEGER) return []
+  const groups = splitGroups(entries.map(([, v]) => v))
   const out: Transfer[] = []
   for (const g of groups) {
-    for (const t of greedy(g.map((i) => entries[i]))) out.push({ ...t, amount: toMajor(t.minor, cur) })
+    for (const t of corner(g.map((i) => entries[i]))) out.push({ ...t, amount: toMajor(t.minor, cur) })
   }
   return out.sort(byTransfer)
 }
 
-/* indices of `vals` partitioned into the most subsets that each sum to zero */
+/*
+  The groups a plan is made in. Up to EXACT_LIMIT people: the most zero-sum groups
+  (zeroSumGroups). Beyond it, first everyone who owes exactly what someone is owed is
+  paired with them — each debtor, in id order, with the first such creditor in id order —
+  as the people who only share with each other (a couple, a pair of friends) usually are;
+  then the exact split on whoever is left if that is now few enough, otherwise one group.
+*/
+export function splitGroups(vals: number[]): number[][] {
+  if (vals.length <= EXACT_LIMIT) return zeroSumGroups(vals)
+  const used = new Array(vals.length).fill(false)
+  const groups: number[][] = []
+  for (let i = 0; i < vals.length; i++) {
+    if (vals[i] >= 0 || used[i]) continue
+    for (let j = 0; j < vals.length; j++) {
+      if (!used[j] && vals[j] === -vals[i]) { used[i] = used[j] = true; groups.push([Math.min(i, j), Math.max(i, j)]); break }
+    }
+  }
+  const rest = vals.map((_, i) => i).filter((i) => !used[i])
+  if (rest.length && rest.length <= EXACT_LIMIT) {
+    for (const g of zeroSumGroups(rest.map((i) => vals[i]))) groups.push(g.map((k) => rest[k]))
+  } else if (rest.length) groups.push(rest)
+  return groups
+}
+
+/*
+  Indices of `vals` (which sum to zero) split into the most groups that each sum
+  to zero; each group in index order.
+
+  Lay everyone out in some order: every point where the running total is zero
+  ends a group, so the most groups is the most zero points over all orders —
+  best[m] = max over i in m of best[m without i], plus one if m sums to zero
+  (O(n·2^n)). Walking back from everyone, the lowest index that keeps the best
+  count is taken off each time, and a group ends wherever what is left sums to
+  zero. A group found this way has no smaller zero-sum group inside it (else
+  there would be more groups), which is what makes its plan take exactly
+  (its size − 1) payments.
+*/
 export function zeroSumGroups(vals: number[]): number[][] {
   const n = vals.length
   if (!n) return []
@@ -722,31 +779,32 @@ export function zeroSumGroups(vals: number[]): number[][] {
     const low = m & -m
     sums[m] = sums[m ^ low] + vals[31 - Math.clz32(low)]
   }
-  const best = new Uint8Array(full + 1), pick = new Int32Array(full + 1)
+  const best = new Uint8Array(full + 1)
   for (let m = 1; m <= full; m++) {
-    const low = m & -m
-    let b = best[m ^ low], p = 0 // the lowest person in no zero-sum group
-    for (let sub = m; sub > 0; sub = (sub - 1) & m) {
-      if (sub & low && sums[sub] === 0 && 1 + best[m ^ sub] > b) { b = 1 + best[m ^ sub]; p = sub }
-    }
-    best[m] = b; pick[m] = p
+    let b = 0
+    for (let r = m; r; r &= r - 1) { const k = best[m ^ (r & -r)]; if (k > b) b = k }
+    best[m] = b + (sums[m] === 0 ? 1 : 0)
   }
-  const groups: number[][] = [], rest: number[] = []
-  for (let m = full; m > 0;) {
-    const low = m & -m, p = pick[m]
-    if (p) { groups.push(bits(p)); m ^= p } else { rest.push(31 - Math.clz32(low)); m ^= low }
+  const groups: number[][] = []
+  let group: number[] = []
+  for (let m = full; m;) {
+    const want = best[m] - (sums[m] === 0 ? 1 : 0)
+    let r = m
+    while (best[m ^ (r & -r)] !== want) r &= r - 1 // the lowest index that keeps the count
+    const low = r & -r
+    group.push(31 - Math.clz32(low))
+    m ^= low
+    if (!m || sums[m] === 0) { groups.push(group.sort((a, b) => a - b)); group = [] }
   }
-  if (rest.length) groups.push(rest) // unreachable when the balances sum to zero
   return groups
 }
 
-const bits = (m: number) => { const o: number[] = []; for (let i = 0; m; i++, m >>>= 1) if (m & 1) o.push(i); return o }
-
-/* largest debtor pays largest creditor; ties by id. Within a zero-sum group of k people this makes exactly k − 1 payments. */
-function greedy(entries: [string, number][]): { from: string; to: string; minor: number }[] {
-  const byAmount = (a: { u: string; v: number }, b: { u: string; v: number }) => b.v - a.v || cmp(a.u, b.u)
-  const debt = entries.filter(([, v]) => v < 0).map(([u, v]) => ({ u, v: -v })).sort(byAmount)
-  const cred = entries.filter(([, v]) => v > 0).map(([u, v]) => ({ u, v })).sort(byAmount)
+/* north-west corner: debtors and creditors each in id order (entries come sorted), each
+   payment what is left of the one against what is left of the other. Within a group with
+   no smaller zero-sum group inside it, exactly (people − 1) payments. */
+function corner(entries: [string, number][]): { from: string; to: string; minor: number }[] {
+  const debt = entries.filter(([, v]) => v < 0).map(([u, v]) => ({ u, v: -v }))
+  const cred = entries.filter(([, v]) => v > 0).map(([u, v]) => ({ u, v }))
   const out: { from: string; to: string; minor: number }[] = []
   for (let i = 0, j = 0; i < debt.length && j < cred.length;) {
     const pay = Math.min(debt[i].v, cred[j].v)
@@ -756,6 +814,23 @@ function greedy(entries: [string, number][]): { from: string; to: string; minor:
     if (!cred[j].v) j++
   }
   return out
+}
+
+/*
+  A book as "simplify debts" shows it: who owes whom becomes the fewest-payments
+  plan, per currency, while every balance stays exactly as it was. It is only a
+  way of looking at the books — expenses and payments are never rewritten, and
+  with the switch off the pairwise figures are back as they were.
+*/
+export function simplifyBook<B extends Book>(b: B): B {
+  const owes = settlePlan(b.netMinor, b.currency).map(({ from, to, minor, amount }) => ({ from, to, minor, amount }))
+  return { ...b, owes }
+}
+
+/* the same for every currency book of a flat */
+export function simplifyLedger(L: Ledger): Ledger {
+  const books = new Map([...L.books].map(([c, b]) => [c, simplifyBook(b)]))
+  return { ...L, owes: books.get(L.currency)?.owes ?? simplifyBook(L).owes, books, simplified: true }
 }
 
 /* ids in UTF-16 code-unit order, the order Swift's Ledger.less and Postgres's collate "C" use for uuids */

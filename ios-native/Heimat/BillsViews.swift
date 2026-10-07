@@ -2,34 +2,47 @@ import SwiftUI
 
 // MARK: - Bills (docs/bills-screens.md)
 
-/// A group's bills (flatId) or your own (nil): one row each with a tick circle for
-/// the due date it is at, and Add bill. Tapping the row edits the bill.
+/// A group's bills (flatId) or your own (nil). The ones that need doing come first —
+/// overdue, due today, then by date, paid last — each with its due date at a glance and
+/// a "Paid" button that says what it does. Tap a bill to change it; Add sits in the header.
 struct BillsSection: View {
     @Environment(AppModel.self) private var m
     let flatId: String?
 
     var body: some View {
-        let list = m.bills(in: flatId)
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Bills").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).padding(.leading, 4)
+        let list = ordered
+        VStack(spacing: 0) {
+            SectionLabel(text: "Bills") {
+                if !list.isEmpty { AddButton { m.sheet = .bill(nil, flatId) }.disabled(m.uid == nil) }
+            }
+            .padding(.bottom, 10)
             HeimatCard(radius: 22, padding: 0) {
-                VStack(spacing: 0) {
-                    ForEach(list) { b in
-                        BillRowView(bill: b)
-                        RowDivider(inset: 56)
+                if list.isEmpty {
+                    EmptyPrompt(symbol: "doc.text.fill", tint: Tint.orange,
+                                title: flatId == nil ? "Your own bills" : "Shared bills",
+                                text: flatId == nil ? "Phone, insurance, gym — you get a reminder on the day each is due."
+                                                    : "Rent, electricity, internet — whoever pays gets a reminder on the day.",
+                                action: "Add a bill") { m.sheet = .bill(nil, flatId) }
+                        .disabled(m.uid == nil)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(list.enumerated()), id: \.element.id) { i, b in
+                            BillRowView(bill: b)
+                            if i < list.count - 1 { RowDivider(inset: 68) }
+                        }
                     }
-                    Button { m.sheet = .bill(nil, flatId) } label: {
-                        Label(list.isEmpty ? (flatId == nil ? "Add your phone, insurance or gym" : "Add rent, electricity or internet") : "Add bill",
-                              systemImage: "plus.circle.fill")
-                            .font(.system(size: 15, weight: .semibold))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16).padding(.vertical, 14)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PressStyle())
-                    .disabled(m.uid == nil)
                 }
             }
+        }
+    }
+
+    /// what needs doing first: overdue, due today, then the next ones by date; paid at the end
+    private var ordered: [Bill] {
+        let rank = ["overdue": 0, "due": 1, "upcoming": 2, "paid": 3]
+        return m.bills(in: flatId).sorted { a, b in
+            let sa = m.billStatus[a.id], sb = m.billStatus[b.id]
+            return (rank[sa?.state ?? "upcoming"] ?? 2, sa?.dueOn ?? a.anchorOn, a.name)
+                 < (rank[sb?.state ?? "upcoming"] ?? 2, sb?.dueOn ?? b.anchorOn, b.name)
         }
     }
 }
@@ -38,60 +51,159 @@ struct BillRowView: View {
     @Environment(AppModel.self) private var m
     let bill: Bill
     @State private var busy = false
+    @State private var confirmUndo = false
 
     var body: some View {
         let s = m.billStatus[bill.id]
         let line = m.billLine(bill, s)
         let paid = s?.state == "paid"
         HStack(spacing: 12) {
-            Button {
-                guard let s, !busy else { return }
-                Haptic.tap()
-                busy = true
-                Task {
-                    // ticked: take back the latest tick; otherwise tick the date it is at
-                    if paid, let on = s.paidOn { await m.tickBill(bill, due: on, paid: false) }
-                    else { await m.tickBill(bill, due: s.dueOn, paid: true) }
-                    busy = false
-                }
-            } label: {
-                Image(systemName: paid ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 26, weight: .regular))
-                    .foregroundStyle(paid ? AnyShapeStyle(Color.hGreen) : line.urgent ? AnyShapeStyle(Color.orange) : AnyShapeStyle(.tertiary))
-                    .frame(width: 30, height: 30)
-                    .opacity(busy ? 0.4 : 1)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(paid ? "Paid — tap to undo" : "Mark \(bill.name) as paid")
-
             Button { m.sheet = .bill(bill, bill.flatId) } label: {
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
+                    DateBadge(day: s?.dueOn ?? bill.anchorOn, tone: paid ? .done : line.urgent ? .urgent : .calm)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(bill.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
-                        Text(line.text + payerText)
+                        HStack(spacing: 6) {
+                            Text(bill.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
+                            if let a = bill.amount {
+                                Text(Fmt.money(a, bill.currency))
+                                    .font(.system(size: 14, weight: .medium)).monospacedDigit().foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                        // the badge already says which day, so an overdue bill just says it is overdue
+                        Text((s?.state == "overdue" || line.text.hasPrefix("Overdue") ? "Overdue" : line.text) + payerText)
                             .font(.system(size: 12.5))
                             .foregroundStyle(line.urgent ? Color.orange : Color.secondary)
                             .lineLimit(1)
-                        if let cb = s?.cancelBy, let d = Fmt.date(cb), let t = Fmt.date(Fmt.today()),
-                           let left = Calendar(identifier: .gregorian).dateComponents([.day], from: t, to: d).day, left >= 0, left <= 60 {
-                            Text("Cancel by \(Fmt.relDay(cb)) if you want to end it")
-                                .font(.system(size: 12)).foregroundStyle(Color.orange).lineLimit(1)
+                        if let cb = cancelSoon(s) {
+                            Label("Cancel by \(Fmt.relDay(cb)) to end it", systemImage: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11.5, weight: .medium)).foregroundStyle(Color.orange)
+                                .labelStyle(TightLabel()).lineLimit(1)
                         }
                     }
                     Spacer(minLength: 6)
-                    if let a = bill.amount { Text(Fmt.money(a, bill.currency)).font(.system(size: 15, weight: .semibold)).monospacedDigit() }
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(PressStyle())
             .foregroundStyle(.primary)
+
+            if let s {
+                if paid {
+                    // already ticked: a plain mark, and taking it back asks first
+                    Button { confirmUndo = true } label: {
+                        Label("Paid", systemImage: "checkmark")
+                            .font(.system(size: 13, weight: .semibold)).labelStyle(TightLabel())
+                            .foregroundStyle(Color.hGreen)
+                            .padding(.horizontal, 10).padding(.vertical, 6)
+                            .background(Color.hGreen.opacity(0.14), in: Capsule())
+                    }
+                    .buttonStyle(PressStyle())
+                    .accessibilityLabel("\(bill.name) is paid. Tap to mark it not paid")
+                } else {
+                    Button {
+                        guard !busy else { return }
+                        Haptic.tap(); busy = true
+                        Task { await m.tickBill(bill, due: s.dueOn, paid: true); busy = false }
+                    } label: {
+                        Text("Mark paid").font(.system(size: 13, weight: .semibold))
+                    }
+                    .glassButton()
+                    .controlSize(.small)
+                    .opacity(busy ? 0.5 : 1)
+                    .accessibilityLabel("Mark \(bill.name) as paid")
+                }
+            }
         }
-        .padding(.horizontal, 14).padding(.vertical, 10)
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .confirmationDialog("Mark \(bill.name) as not paid?", isPresented: $confirmUndo, titleVisibility: .visible) {
+            Button("Not paid", role: .destructive) {
+                guard let on = s?.paidOn else { return }
+                Task { await m.tickBill(bill, due: on, paid: false) }
+            }
+        }
     }
 
     private var payerText: String {
         guard bill.flatId != nil, let p = bill.payer else { return "" }
         return " · " + (p == m.uid ? "you pay" : "\(m.personName(p)) pays")
+    }
+
+    /// the last day to cancel a contract, when it is within two months
+    private func cancelSoon(_ s: BillStatus?) -> String? {
+        guard let cb = s?.cancelBy, let d = Fmt.date(cb), let t = Fmt.date(Fmt.today()),
+              let left = Calendar(identifier: .gregorian).dateComponents([.day], from: t, to: d).day,
+              left >= 0, left <= 60 else { return nil }
+        return cb
+    }
+}
+
+/// A day at a glance — "SEP" over "15" — coloured for what it means: orange when it is
+/// due or overdue, green once done, quiet otherwise.
+struct DateBadge: View {
+    enum Tone { case calm, urgent, done }
+    let day: String
+    var tone: Tone = .calm
+
+    var body: some View {
+        let d = Fmt.date(day)
+        let color: Color = tone == .urgent ? .orange : tone == .done ? .hGreen : .secondary
+        VStack(spacing: 0) {
+            Text(d.map { $0.formatted(.dateTime.month(.abbreviated)).uppercased() } ?? "")
+                .font(.system(size: 10, weight: .bold)).foregroundStyle(color)
+            Text(d.map { $0.formatted(.dateTime.day()) } ?? "–")
+                .font(.system(size: 18, weight: .bold)).monospacedDigit()
+                .foregroundStyle(tone == .calm ? Color.primary : color)
+        }
+        .frame(width: 44, height: 44)
+        .background(color.opacity(tone == .calm ? 0.10 : 0.15), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityHidden(true)
+    }
+}
+
+/// "+ Add" for a section's header
+struct AddButton: View {
+    var title = "Add"
+    let action: () -> Void
+    var body: some View {
+        Button { Haptic.tap(); action() } label: {
+            Label(title, systemImage: "plus").font(.system(size: 13.5, weight: .semibold)).labelStyle(TightLabel())
+        }
+    }
+}
+
+/// what an empty section says, with the one thing to do about it
+struct EmptyPrompt: View {
+    let symbol: String
+    let tint: Color
+    let title: String
+    let text: String
+    let action: String
+    let perform: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                SettingIcon(symbol: symbol, color: tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title).font(.system(size: 15, weight: .semibold))
+                    Text(text).font(.system(size: 12.5)).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Button { Haptic.tap(); perform() } label: {
+                Label(action, systemImage: "plus").frame(maxWidth: .infinity)
+            }
+            .glassButton()
+        }
+        .padding(14)
+    }
+}
+
+/// an icon and its words, close together
+struct TightLabel: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 4) { configuration.icon; configuration.title }
     }
 }
 
@@ -175,13 +287,13 @@ struct BillForm: View {
                         TextField("Amount (optional)", text: $amount).keyboardType(.decimalPad)
                         Text(cur).foregroundStyle(.secondary)
                     }
-                } footer: { Text("Leave the amount empty if it changes every time.") }
+                } header: { Text("Bill") } footer: { Text("Leave the amount empty if it changes every time.") }
                 Section {
                     Picker("How often", selection: $cadence) { ForEach(Bill.cadences, id: \.0) { Text($0.1).tag($0.0) } }
-                    DatePicker(editing == nil ? "Next due" : "First due", selection: $first, displayedComponents: .date)
+                    DatePicker(editing == nil ? "Next due date" : "First due date", selection: $first, displayedComponents: .date)
                     if flatId != nil {
                         Picker("Who pays", selection: $payer) {
-                            Text("Nobody set").tag("")
+                            Text("Not decided").tag("")
                             ForEach(people) { p in Text(p.userId == m.uid ? "You" : p.displayName).tag(p.userId) }
                         }
                     }

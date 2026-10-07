@@ -97,6 +97,30 @@ const plans = []
   const net = ids.map((u, k) => [u, vals[k]] as [string, number])
   plans.push({ net, plan: settlePlan(new Map(net)).map(({ from, to, minor }) => ({ from, to, minor })) })
 }
+/* simplify debts: up to the exact limit and past it, whole euros (many zero-sum groups and ties)
+   and odd cents, and books that must get no plan at all */
+{
+  const r = rng(51)
+  const add = (net: [string, number][]) => plans.push({ net, plan: settlePlan(new Map(net)).map(({ from, to, minor }) => ({ from, to, minor })) })
+  for (let i = 0; i < 60; i++) {
+    const n = i < 50 ? 9 + Math.floor(r() * 6) : 15 + Math.floor(r() * 16) // 9…14, then 15…30
+    const ids = Array.from({ length: n }, () => uuid(r))
+    const vals = ids.map(() => (i % 2 ? (Math.floor(r() * 9) - 4) * 1000 : Math.floor(r() * 20001) - 10000))
+    vals[0] -= vals.reduce((a, b) => a + b, 0)
+    add(ids.map((u, k) => [u, vals[k]] as [string, number]))
+  }
+  add([[uuid(r), 500]])
+  add([[uuid(r), 100], [uuid(r), -50]])
+  add([[uuid(r), 2 ** 52], [uuid(r), 2 ** 52], [uuid(r), -(2 ** 52)], [uuid(r), -(2 ** 52)]])
+  add([[uuid(r), 2 ** 53], [uuid(r), -(2 ** 53)], [uuid(r), 1], [uuid(r), -1]])
+  // past the limit: couples who only share with each other, and cliques of three with a few pairs
+  for (let c = 0; c < 6; c++) {
+    const net: [string, number][] = []
+    for (let k = 0; k < 8 + c; k++) { const v = 1000 + Math.floor(r() * 9000); net.push([uuid(r), -v], [uuid(r), v]) }
+    if (c % 2) for (let k = 0; k < 3; k++) { const a = 500 + Math.floor(r() * 5000), b = 500 + Math.floor(r() * 5000); net.push([uuid(r), -a], [uuid(r), -b], [uuid(r), a + b]) }
+    add(net)
+  }
+}
 
 // ------------------------------------------------------------- engine v2
 

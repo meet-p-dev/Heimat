@@ -9,7 +9,7 @@
   currency — never one currency added to another.
 */
 import type { Flat, Member, Expense, Settlement } from './types'
-import { buildLedger, pairwiseFor } from './ledger'
+import { buildLedger, pairwiseFor, simplifyLedger } from './ledger'
 import type { Ledger } from './ledger'
 
 export interface PlaceLine { place: string; currency: string; minor: number }   // positive: they owe you
@@ -24,13 +24,19 @@ export const pickJson = (p: PersonPick) => (p.userId ? { user_id: p.userId } : p
 
 export const isDirect = (f: Flat) => f.kind === 'direct'
 
-/* every group's and circle's books, by its id */
-export function placeBooks(expenses: Expense[], settles: Settlement[], fallback: string): Map<string, Ledger> {
+/* does this group show "simplify debts" — the fewest payments instead of who owes whom? never a circle */
+export const isSimplified = (f: Flat | null | undefined) => !!f && !!f.simplify_debts && !isDirect(f)
+
+/* every group's and circle's books, by its id; the groups in `simplified` as "simplify debts" shows them */
+export function placeBooks(expenses: Expense[], settles: Settlement[], fallback: string, simplified: Set<string> = new Set()): Map<string, Ledger> {
   const ex = new Map<string, Expense[]>(), st = new Map<string, Settlement[]>()
   for (const e of expenses) ex.set(e.flat_id, [...(ex.get(e.flat_id) || []), e])
   for (const s of settles) st.set(s.flat_id, [...(st.get(s.flat_id) || []), s])
   const out = new Map<string, Ledger>()
-  for (const id of [...new Set([...ex.keys(), ...st.keys()])].sort()) out.set(id, buildLedger(ex.get(id) || [], st.get(id) || [], fallback))
+  for (const id of [...new Set([...ex.keys(), ...st.keys()])].sort()) {
+    const L = buildLedger(ex.get(id) || [], st.get(id) || [], fallback)
+    out.set(id, simplified.has(id) ? simplifyLedger(L) : L)
+  }
   return out
 }
 

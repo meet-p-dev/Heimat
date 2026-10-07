@@ -32,7 +32,7 @@ final class AppModel {
 
     // the shared flat
     /// your groups (flats included). The hidden circles behind non-group expenses are kept apart, in `circles`
-    var flats: [Flat] = []
+    var flats: [Flat] = [] { didSet { if simplifiedIds(oldValue) != simplifiedIds(flats) { rebuildBook(); rebuildOverview() } } }
     var circles: [Flat] = []
     /// bills you can see (your groups' and your own) and where each stands today (my_bills)
     var bills: [Bill] = []
@@ -66,6 +66,8 @@ final class AppModel {
     private(set) var placeBooks: [String: Ledger.Book] = [:]
     var items: [ListItem] = []
     var flatCats: [FlatCategory] = []
+    /// every group's own categories, for lists that mix groups (Home's recent activity)
+    var allCats: [FlatCategory] = []
 
     @ObservationIgnored let client: SupabaseClient
     @ObservationIgnored private var channel: RealtimeChannelV2?
@@ -96,6 +98,8 @@ final class AppModel {
     var homeFlats: [Flat] { flats.filter { !$0.isGroup } }
     var groups: [Flat] { flats.filter { $0.isGroup } }
     var cats: [Cat] { Cats.merged(flatCats) }
+    /// the categories of the group an expense is in, which may not be the one open now
+    func cats(for flat: String) -> [Cat] { flat == flatId ? cats : Cats.merged(allCats.filter { $0.flatId == flat }) }
     /// Who is actually in the flat now. `members` keeps everyone who ever was,
     /// because the balance maths and every past expense still need their name.
     var roster: [Member] { members.filter { !$0.hasLeft } }
@@ -105,7 +109,18 @@ final class AppModel {
     var balances: [String: Double] { book.net }
     var myNet: Double { uid.flatMap { book.net[$0] } ?? 0 }
 
-    private func rebuildBook() { book = Ledger.build(expenses, settles, fallback: hostCur) }
+    private func rebuildBook() {
+        let b = Ledger.build(expenses, settles, fallback: hostCur)
+        book = isSimplified(flatId) ? Ledger.simplified(b) : b
+    }
+
+    /// Does this group show "simplify debts" — the fewest payments instead of who owes whom
+    /// pair by pair? Never a non-group circle. Every balance is the same either way.
+    func isSimplified(_ id: String?) -> Bool {
+        guard let id, let f = flats.first(where: { $0.id == id }) else { return false }
+        return f.simplifyDebts == true && !f.isDirect
+    }
+    private func simplifiedIds(_ fs: [Flat]) -> Set<String> { Set(fs.filter { $0.simplifyDebts == true && !$0.isDirect }.map(\.id)) }
 
     /// Each flat keeps its own books — a split is allocated within its flat —
     /// and only then are the pairs added up. Flats whose money is in another
@@ -116,7 +131,10 @@ final class AppModel {
         let exp = Dictionary(grouping: allExpenses, by: \.flatId), set = Dictionary(grouping: allSettles, by: \.flatId)
         let ids = Set(exp.keys).union(set.keys).sorted()
         var byPlace: [String: Ledger.Book] = [:]
-        for id in ids { byPlace[id] = Ledger.build(exp[id] ?? [], set[id] ?? [], fallback: hostCur) }
+        for id in ids {
+            let b = Ledger.build(exp[id] ?? [], set[id] ?? [], fallback: hostCur)
+            byPlace[id] = isSimplified(id) ? Ledger.simplified(b) : b
+        }
         placeBooks = byPlace
         let books = ids.compactMap { byPlace[$0] }
         var count: [String: Int] = [:]
@@ -163,6 +181,20 @@ final class AppModel {
     /// the people in one flat, from the overview rather than the open flat
     func members(of flatId: String) -> [Member] { allMembers.filter { $0.flatId == flatId && !$0.hasLeft } }
     func flatName(_ id: String) -> String { flats.first { $0.id == id }?.name ?? "" }
+    /// Activity as shown: everything in your groups, and in non-group expenses only what
+    /// people did there — not the joining and inviting a circle does behind the scenes
+    var visibleActivity: [Activity] {
+        activity.filter { !($0.isGroupHousekeeping && isCircle($0.flatId)) }
+    }
+    /// Home's recent activity: the newest expenses you are on — paid for or have a share
+    /// of — across every group and your non-group expenses, not just the group open now
+    func myRecent(_ n: Int) -> [Expense] {
+        guard let uid else { return [] }
+        return allExpenses
+            .filter { $0.deletedAt == nil && $0.isOn(uid) }
+            .sorted { a, b in a.spentOn != b.spentOn ? a.spentOn > b.spentOn : (a.createdAt ?? "") > (b.createdAt ?? "") }
+            .prefix(n).map { $0 }
+    }
     var work: Calc.WorkStats { Calc.work(shifts, weekCap: prefs.weekCap, yearDays: prefs.yearDays) }
     var hostCur: String { profile.hostCur }
     var homeCur: String { profile.homeCur }
@@ -311,7 +343,7 @@ final class AppModel {
             struct Row: Decodable { let flat_id: String }
             let mem: [Row] = try await client.from("flat_members").select("flat_id").eq("user_id", value: uid).execute().value
             let ids = Array(Set(mem.map(\.flat_id)))
-            guard !ids.isEmpty else { flats = []; circles = []; flatId = nil; clearFlat(); allMembers = []; allExpenses = []; allSettles = []; return }
+            guard !ids.isEmpty else { flats = []; circles = []; flatId = nil; clearFlat(); allMembers = []; allExpenses = []; allSettles = []; allCats = []; return }
             let all: [Flat] = try await client.from("flats").select().in("id", values: ids).order("created_at").execute().value
             flats = all.filter { !$0.isDirect }
             circles = all.filter(\.isDirect)
@@ -377,7 +409,10 @@ final class AppModel {
             async let s: [Settlement] = client.from("settlements").select().eq("flat_id", value: id).execute().value
             async let it: [ListItem] = client.from("flat_items").select().eq("flat_id", value: id).order("created_at", ascending: true).execute().value
             async let c: [FlatCategory] = client.from("flat_categories").select().eq("flat_id", value: id).order("created_at", ascending: true).execute().value
+            // the group itself too: someone may have switched "simplify debts"
+            async let f: [Flat] = client.from("flats").select().eq("id", value: id).execute().value
             (members, expenses, settles, items, flatCats) = try await (m, e, s, it, c)
+            if let row = try? await f.first { refresh(row) }
         } catch {
             show("Sync error — pull down to retry")
         }
@@ -396,27 +431,65 @@ final class AppModel {
         await loadBills()
         await loadChores()
         let ids = flats.map(\.id) + circles.map(\.id)
-        guard !ids.isEmpty else { allMembers = []; allExpenses = []; allSettles = []; return }
+        guard !ids.isEmpty else { allMembers = []; allExpenses = []; allSettles = []; allCats = []; return }
         do {
             async let m: [Member] = client.from("flat_members").select().in("flat_id", values: ids).execute().value
             async let e: [Expense] = client.from("expenses").select().in("flat_id", values: ids).order("spent_on", ascending: false).execute().value
             async let s: [Settlement] = client.from("settlements").select().in("flat_id", values: ids).execute().value
+            async let fl: [Flat] = client.from("flats").select().in("id", values: ids).execute().value
             (allMembers, allExpenses, allSettles) = try await (m, e, s)
+            for row in (try? await fl) ?? [] { refresh(row) }
         } catch {
             // Home falls back to showing nothing rather than something wrong
             allMembers = []; allExpenses = []; allSettles = []
         }
+        // only how rows look (a group's own category icons), so a failure here costs nothing else
+        allCats = (try? await client.from("flat_categories").select().in("flat_id", values: ids).execute().value) ?? allCats
     }
 
-    private func clearFlat() { members = []; expenses = []; settles = []; items = []; flatCats = []; activity = [] }
+    /// a newer copy of one of your groups (its name, its "simplify debts" switch)
+    private func refresh(_ row: Flat) {
+        if let i = flats.firstIndex(where: { $0.id == row.id }), flats[i] != row { flats[i] = row }
+        if let i = circles.firstIndex(where: { $0.id == row.id }), circles[i] != row { circles[i] = row }
+    }
 
-    /// Only fetched when the History sheet is opened — it is the one thing
-    /// here that grows without bound and nothing else on screen needs it.
+    /// Anyone in a group can switch "simplify debts"; everyone sees who did (Activity), and
+    /// every open app picks it up. Shown at once here, put back if the server says no.
+    func setSimplify(_ on: Bool) async {
+        guard let id = flatId, let i = flats.firstIndex(where: { $0.id == id }), !flats[i].isDirect else { return }
+        let was = flats[i].simplifyDebts
+        flats[i].simplifyDebts = on
+        Haptic.tap()
+        #if DEBUG
+        if Self.fixtureMode { show(on ? "Debts simplified" : "Showing who owes whom"); return }
+        #endif
+        struct P: Encodable { let p_flat: String; let p_on: Bool }
+        do {
+            _ = try await client.rpc("set_simplify_debts", params: P(p_flat: id, p_on: on)).execute()
+            Haptic.success()
+            show(on ? "Debts simplified" : "Showing who owes whom")
+        } catch {
+            if let j = flats.firstIndex(where: { $0.id == id }) { flats[j].simplifyDebts = was }
+            show(raised(error) ?? friendly(error, "Couldn't change that. Try again."))
+        }
+    }
+
+    private func clearFlat() { members = []; expenses = []; settles = []; items = []; flatCats = [] }
+
+    /// Everything that happened in all your groups and non-group expenses, newest first —
+    /// fetched only when Activity is looked at (Home's Everything, or the Activity page): it
+    /// is the one thing here that grows without bound. Nothing in it is ever pushed to you.
     func loadActivity() async {
-        guard let id = flatId else { return }
-        activity = (try? await client.from("activity").select()
-            .eq("flat_id", value: id).order("at", ascending: false).limit(300)
-            .execute().value) ?? []
+        #if DEBUG
+        if Self.fixtureMode { return }
+        #endif
+        let ids = flats.map(\.id) + circles.map(\.id)
+        guard !ids.isEmpty else { activity = []; return }
+        if let rows: [Activity] = try? await client.from("activity").select()
+            .in("flat_id", values: ids).order("at", ascending: false).limit(400)
+            .execute().value {
+            activity = rows
+        }
     }
 
     func switchFlat(_ id: String) {

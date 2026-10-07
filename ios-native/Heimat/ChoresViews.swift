@@ -2,48 +2,77 @@ import SwiftUI
 
 // MARK: - Chores (docs/chores-screens.md)
 
-/// A group's chores: requests waiting for you, this period's turn of each chore
-/// with a tick circle, this month's points, and Add chore. Tapping a chore offers
-/// skip, swap and edit.
+/// A group's chores. Each row shows whose turn it is — their face — and what to do:
+/// "Done" when it's yours, a green tick once someone did it. Requests to take someone's
+/// turn sit at the top until you answer; this month's points close the card. Tap a chore
+/// for the rest: mark it done for someone, skip, ask someone to swap, edit.
 struct ChoresSection: View {
     @Environment(AppModel.self) private var m
     let flatId: String
 
     var body: some View {
-        let list = m.chores(in: flatId)
+        let list = ordered
         let asks = m.choreSwaps.filter { $0.flatId == flatId && $0.toUser == m.uid }
         let board = m.choreBoard(in: flatId)
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Chores").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).padding(.leading, 4)
-            ForEach(asks) { SwapAskCard(swap: $0) }
+        VStack(spacing: 0) {
+            SectionLabel(text: "Chores") {
+                if !list.isEmpty { AddButton { m.sheet = .chore(nil, flatId) }.disabled(m.uid == nil) }
+            }
+            .padding(.bottom, 10)
             HeimatCard(radius: 22, padding: 0) {
-                VStack(spacing: 0) {
-                    ForEach(list) { c in
-                        ChoreRowView(chore: c)
-                        RowDivider(inset: 56)
-                    }
-                    if !board.isEmpty {
-                        HStack(spacing: 10) {
-                            Image(systemName: "trophy.fill").foregroundStyle(.yellow).frame(width: 30)
-                            Text("This month: " + board.prefix(4).map { "\($0.user == m.uid ? "you" : m.personName($0.user)) \($0.points)" }.joined(separator: " · "))
-                                .font(.system(size: 13.5, weight: .medium)).lineLimit(2)
-                            Spacer(minLength: 0)
+                if list.isEmpty {
+                    EmptyPrompt(symbol: "sparkles", tint: Tint.teal, title: "Take turns",
+                                text: "Bathroom, kitchen, trash — Splitlife keeps the rota and tells each person when it's their turn.",
+                                action: "Add a chore") { m.sheet = .chore(nil, flatId) }
+                        .disabled(m.uid == nil)
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(asks) { a in
+                            SwapAskRow(swap: a)
+                            RowDivider(inset: 0)
                         }
-                        .padding(.horizontal, 14).padding(.vertical, 12)
-                        RowDivider(inset: 56)
+                        ForEach(Array(list.enumerated()), id: \.element.id) { i, c in
+                            ChoreRowView(chore: c)
+                            if i < list.count - 1 || !board.isEmpty { RowDivider(inset: 64) }
+                        }
+                        if !board.isEmpty { boardRow(board) }
                     }
-                    Button { m.sheet = .chore(nil, flatId) } label: {
-                        Label(list.isEmpty ? "Add bathroom, kitchen or trash" : "Add chore", systemImage: "plus.circle.fill")
-                            .font(.system(size: 15, weight: .semibold))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16).padding(.vertical, 14)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PressStyle())
-                    .disabled(m.uid == nil)
+                    // the tinted request row follows the card's corners
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
             }
         }
+    }
+
+    /// yours first, then the ones still open, done last
+    private var ordered: [Chore] {
+        func rank(_ c: Chore) -> Int {
+            guard let t = m.turns(of: c).now else { return 2 }
+            if t.state == "done" { return 3 }
+            return t.assignee == m.uid && t.startsOn <= Fmt.today() ? 0 : 1
+        }
+        return m.chores(in: flatId).sorted { (rank($0), $0.name) < (rank($1), $1.name) }
+    }
+
+    /// this month's points: who has done the most
+    private func boardRow(_ board: [(user: String, points: Int, done: Int)]) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "trophy.fill").font(.system(size: 15)).foregroundStyle(.yellow).frame(width: 36)
+            Text("This month").font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(board.prefix(6), id: \.user) { r in
+                        HStack(spacing: 5) {
+                            AvatarView(name: m.personName(r.user), seed: r.user, size: 20)
+                            Text("\(r.points)").font(.system(size: 13, weight: .bold)).monospacedDigit()
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(r.user == m.uid ? "You" : m.personName(r.user)): \(r.points) points")
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 14).padding(.vertical, 11)
     }
 }
 
@@ -58,70 +87,86 @@ struct ChoreRowView: View {
         let started = (now?.startsOn ?? "9999") <= Fmt.today()
         let done = now?.state == "done"
         let mine = now?.assignee == m.uid && now?.state == "open"
-        HStack(spacing: 12) {
-            Button {
-                guard let now, started, !busy else { return }
-                Haptic.tap(); busy = true
-                Task { await m.tickChore(now, done: !done); busy = false }
-            } label: {
-                Image(systemName: done ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 26))
-                    .foregroundStyle(done ? AnyShapeStyle(Color.hGreen) : mine ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.tertiary))
-                    .frame(width: 30, height: 30)
-                    .opacity(busy || !started ? 0.4 : 1)
-            }
-            .buttonStyle(.plain)
-            .disabled(!started)
-            .accessibilityLabel(done ? "Done — tap to undo" : "Mark \(chore.name) as done")
-
-            Button { asking = true } label: {
-                HStack(spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(chore.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
-                        Text(line(now, next, started: started))
-                            .font(.system(size: 12.5)).foregroundStyle(mine ? Color.accentColor : Color.secondary).lineLimit(1)
+        let face = done ? now?.doneBy : now?.assignee
+        Button { asking = true } label: {
+            HStack(spacing: 12) {
+                ZStack(alignment: .bottomTrailing) {
+                    if let face {
+                        AvatarView(name: m.personName(face), seed: face, size: 38)
+                    } else {
+                        Image(systemName: "person.fill.questionmark").font(.system(size: 16))
+                            .foregroundStyle(.secondary).frame(width: 38, height: 38)
+                            .background(Color.secondary.opacity(0.12), in: Circle())
                     }
-                    Spacer(minLength: 6)
-                    Text("\(chore.points) pt\(chore.points == 1 ? "" : "s")")
-                        .font(.system(size: 12, weight: .semibold)).foregroundStyle(.secondary)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(Color.secondary.opacity(0.12), in: Capsule())
+                    if done {
+                        Image(systemName: "checkmark.circle.fill").font(.system(size: 16))
+                            .foregroundStyle(.white, Color.hGreen).offset(x: 3, y: 3)
+                    }
                 }
-                .contentShape(Rectangle())
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(chore.name).font(.system(size: 16, weight: .semibold)).lineLimit(1)
+                        Text("\(chore.points) pt\(chore.points == 1 ? "" : "s")")
+                            .font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .background(Color.secondary.opacity(0.12), in: Capsule())
+                    }
+                    Text(line(now, next, started: started))
+                        .font(.system(size: 12.5)).foregroundStyle(mine && started ? Color.accentColor : Color.secondary).lineLimit(1)
+                }
+                Spacer(minLength: 6)
+                if mine && started, let now {
+                    Button {
+                        guard !busy else { return }
+                        Haptic.tap(); busy = true
+                        Task { await m.tickChore(now, done: true); busy = false }
+                    } label: { Text("Done").font(.system(size: 13, weight: .semibold)) }
+                    .glassProminentButton()
+                    .controlSize(.small)
+                    .opacity(busy ? 0.5 : 1)
+                    .accessibilityLabel("Mark \(chore.name) as done")
+                }
             }
-            .buttonStyle(PressStyle())
-            .foregroundStyle(.primary)
+            .padding(.horizontal, 14).padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 14).padding(.vertical, 10)
+        .buttonStyle(PressStyle())
+        .foregroundStyle(.primary)
         .confirmationDialog(chore.name, isPresented: $asking, titleVisibility: .visible) {
+            if let now, started {
+                if done {
+                    Button("Not done after all") { Task { await m.tickChore(now, done: false) } }
+                } else if !mine {
+                    // someone did it for them: it counts for whoever ticks it
+                    Button("I did it") { Task { await m.tickChore(now, done: true) } }
+                }
+            }
             if mine, let now {
                 if next?.assignee != nil && next?.assignee != m.uid {
                     Button("Skip this turn") { Task { await m.skipChore(now) } }
                 }
-                ForEach(m.members(of: chore.flatId).filter { !$0.isPending && $0.userId != m.uid }) { p in
+                ForEach(m.members(of: chore.flatId).filter { !$0.isPending && !$0.hasLeft && $0.userId != m.uid }) { p in
                     Button("Ask \(p.displayName) to take it") { Task { await m.askSwap(now, to: p.userId) } }
                 }
             }
             Button("Edit chore") { m.sheet = .chore(chore, chore.flatId) }
         } message: {
-            if mine { Text("Skip passes it on and your turn comes back next time. A swap changes only when they say yes.") }
+            if mine { Text("Skip passes it to whoever is next, and your turn comes back after. A swap only happens when they say yes.") }
+            else if !done && started { Text("\"I did it\" counts the points for you.") }
         }
     }
 
-    private func who(_ u: String?) -> String { u == nil ? "nobody" : u == m.uid ? "Your" : "\(m.personName(u!))'s" }
+    private func name(_ u: String?) -> String { u == nil ? "nobody" : u == m.uid ? "you" : m.personName(u!) }
 
     private func line(_ now: ChoreTurn?, _ next: ChoreTurn?, started: Bool) -> String {
         guard let now else { return Chore.label(chore.cadence) }
         if now.state == "done" {
-            let by = now.doneBy.map { $0 == m.uid ? "you" : m.personName($0) } ?? "someone"
-            return "Done ✓ by \(by)" + (next?.assignee).map { " · next: \($0 == m.uid ? "you" : m.personName($0))" }.orEmpty
+            return "Done by \(name(now.doneBy))" + (next?.assignee).map { " · next: \(name($0))" }.orEmpty
         }
-        if !started {
-            let first = now.assignee.map { $0 == m.uid ? "you" : m.personName($0) } ?? "nobody"
-            return "Starts \(Fmt.relDay(now.startsOn)) · \(first) first"
-        }
+        if !started { return "Starts \(Fmt.relDay(now.startsOn)) · \(name(now.assignee)) first" }
         let until = now.endsOn == Fmt.today() ? "last day today" : "until \(Fmt.relDay(now.endsOn))"
-        return "\(who(now.assignee)) turn · \(until)"
+        let whose = now.assignee == m.uid ? "Your turn" : now.assignee == nil ? "Nobody's turn" : "\(m.personName(now.assignee!))'s turn"
+        return "\(whose) · \(until)"
     }
 }
 
@@ -129,24 +174,25 @@ private extension Optional where Wrapped == String {
     var orEmpty: String { self ?? "" }
 }
 
-/// "Bea asks if you can take Bathroom" — Accept / Decline.
-struct SwapAskCard: View {
+/// "Dana asks you to take Vacuuming" — No / Take it, inside the Chores card.
+struct SwapAskRow: View {
     @Environment(AppModel.self) private var m
     let swap: ChoreSwap
 
     var body: some View {
         let name = m.chores.first { $0.id == swap.choreId }?.name ?? "a chore"
-        HeimatCard(radius: 20, padding: 14, tinted: true) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("\(m.personName(swap.fromUser)) asks if you can take their turn: \(name)")
-                    .font(.system(size: 15, weight: .semibold))
-                HStack(spacing: 10) {
-                    Button("Decline") { Task { await m.answerSwap(swap, accept: false) } }.glassButton()
-                    Button("I'll do it") { Task { await m.answerSwap(swap, accept: true) } }.glassProminentButton()
-                }
-                .controlSize(.small)
-            }
+        HStack(spacing: 12) {
+            AvatarView(name: m.personName(swap.fromUser), seed: swap.fromUser, size: 38)
+            Text("\(Text(m.personName(swap.fromUser)).bold()) asks you to take \(Text(name).bold())")
+                .font(.system(size: 14)).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 6)
+            Button("No") { Task { await m.answerSwap(swap, accept: false) } }.glassButton()
+            Button("Take it") { Task { await m.answerSwap(swap, accept: true) } }.glassProminentButton()
         }
+        .controlSize(.small)
+        .font(.system(size: 13, weight: .semibold))
+        .padding(.horizontal, 14).padding(.vertical, 11)
+        .background(Color.accentColor.opacity(0.08))
     }
 }
 
@@ -161,6 +207,8 @@ struct ChoreForm: View {
     @State private var start = Date()
     @State private var points = 1
     @State private var rota: [String] = []
+    /// a cadence that isn't one of the presets: shown as a number and a unit
+    @State private var custom = false
     @State private var saving = false
     @State private var confirmDelete = false
 
@@ -169,23 +217,26 @@ struct ChoreForm: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section { TextField("e.g. Bathroom", text: $name) }
+                Section { TextField("e.g. Bathroom", text: $name) } header: { Text("Chore") }
                 Section {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Chore.presets, id: \.self) { p in
-                                Button(Chore.label(p)) { Haptic.tap(); cadence = p }
-                                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                                    .tint(cadence == p ? .accentColor : .secondary)
-                            }
+                    // the usual ones in one menu; "Other" opens any number of days, weeks or months
+                    Picker("How often", selection: Binding(
+                        get: { custom ? "other" : cadence },
+                        set: { v in
+                            Haptic.tap()
+                            withAnimation { if v == "other" { custom = true } else { custom = false; cadence = v } }
+                        })) {
+                        ForEach(Chore.presets, id: \.self) { Text(Chore.label($0)).tag($0) }
+                        Text("Other…").tag("other")
+                    }
+                    if custom {
+                        Stepper(Chore.label(cadence), value: Binding(get: { Chore.parse(cadence).n }, set: { cadence = Chore.cadence($0, Chore.parse(cadence).unit) }), in: 1...99)
+                        Picker("Unit", selection: Binding(get: { Chore.parse(cadence).unit }, set: { cadence = Chore.cadence(Chore.parse(cadence).n, $0) })) {
+                            Text("Days").tag("d"); Text("Weeks").tag("w"); Text("Months").tag("m")
                         }
+                        .pickerStyle(.segmented)
                     }
-                    Stepper(Chore.label(cadence), value: Binding(get: { Chore.parse(cadence).n }, set: { cadence = Chore.cadence($0, Chore.parse(cadence).unit) }), in: 1...99)
-                    Picker("Unit", selection: Binding(get: { Chore.parse(cadence).unit }, set: { cadence = Chore.cadence(Chore.parse(cadence).n, $0) })) {
-                        Text("Days").tag("d"); Text("Weeks").tag("w"); Text("Months").tag("m")
-                    }
-                    .pickerStyle(.segmented)
-                } header: { Text("How often") } footer: { Text("Pick one, or set any number of days, weeks or months.") }
+                } footer: { Text("Each turn lasts this long, then it's the next person's.") }
                 Section {
                     DatePicker("First turn starts", selection: $start, displayedComponents: .date)
                     Picker("Size", selection: $points) { ForEach(Chore.sizes, id: \.0) { Text("\($0.1) · \($0.0) pt\($0.0 == 1 ? "" : "s")").tag($0.0) } }
@@ -230,6 +281,7 @@ struct ChoreForm: View {
             .onAppear {
                 if let c = editing {
                     name = c.name; cadence = c.cadence; start = Fmt.date(c.anchorOn) ?? Date(); points = c.points
+                    custom = !Chore.presets.contains(c.cadence)
                     rota = c.rota.filter { u in people.contains { $0.userId == u } }
                 } else {
                     rota = people.map(\.userId)

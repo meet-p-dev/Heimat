@@ -9,7 +9,7 @@ import { haptic, setHapticsEnabled } from './lib/haptic'
 import { DK, LT } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeRunway, computeWorkStats } from './lib/derive'
-import { buildLedger, shareOf, pairwiseFor, toMajor, participantsOf } from './lib/ledger'
+import { buildLedger, shareOf, pairwiseFor, toMajor, participantsOf, simplifyLedger } from './lib/ledger'
 import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId, PageId, AuthMode } from './lib/types'
 import { hasLeft } from './lib/types'
@@ -27,7 +27,7 @@ import type { ExpenseSave, ExpensePrefill } from './components/modals/ExpenseMod
 import { GroupsTab, NonGroupPage, PersonPage, PersonSettle } from './components/Friends'
 import type { FriendsCtx } from './components/Friends'
 import { Page } from './components/ui'
-import { placeBooks, personName, isDirect, linesWith } from './lib/places'
+import { placeBooks, personName, isDirect, linesWith, isSimplified } from './lib/places'
 import type { PersonPick, PlaceLine } from './lib/places'
 import { friendCircle, saveFriendExpense, settleWithPerson, remind as remindRpc, friendsMessage } from './lib/friends'
 import ExpenseDetailModal from './components/modals/ExpenseDetailModal'
@@ -200,12 +200,19 @@ export default function App() {
     reloadBills()
     reloadChores()
     if (!list.length) { setAllMembers([]); setAllExpenses([]); setAllSettles([]); return }
-    const [m, e, st] = await Promise.all([
+    const [m, e, st, fl] = await Promise.all([
       sb.from('flat_members').select('*').in('flat_id', list),
       sb.from('expenses').select('*').in('flat_id', list).order('spent_on', { ascending: false }),
       sb.from('settlements').select('*').in('flat_id', list),
+      // the groups themselves too: someone may have switched "simplify debts"
+      sb.from('flats').select('*').in('id', list),
     ])
     if (!m.error && !e.error && !st.error) { setAllMembers((m.data as Member[]) || []); setAllExpenses((e.data as Expense[]) || []); setAllSettles((st.data as Settlement[]) || []) }
+    if (!fl.error && fl.data) {
+      const byId = new Map((fl.data as Flat[]).map((f) => [f.id, f]))
+      setMyFlats((xs) => xs.map((f) => byId.get(f.id) || f))
+      setCircles((xs) => xs.map((f) => byId.get(f.id) || f))
+    }
   }
   useEffect(() => { if (uid) loadMyFlats() }, [uid])
   /* this device's notifications follow whoever is signed in: a guest who signs in, or
@@ -616,14 +623,41 @@ export default function App() {
 
   /* derived */
   const cats = useMemo(() => mergeCats(flatCats), [flatCats])
-  const ledger = useMemo(() => buildLedger(expenses, settles, hostCur), [expenses, settles, hostCur])
+  /* "simplify debts": the groups that show the fewest payments instead of who owes whom (the open
+     one as last loaded, the rest from the overview); every balance is the same either way */
+  const simplifiedIds = useMemo(() => {
+    const ids = new Set(myFlats.filter(isSimplified).map((f) => f.id))
+    // myFlats is refreshed after every load of the open group, so it is the fresher copy;
+    // the open group's own row only counts while it isn't among them yet
+    if (flat && !myFlats.some((f) => f.id === flat.id) && isSimplified(flat)) ids.add(flat.id)
+    return ids
+  }, [myFlats, flat])
+  const openSimplified = !!flat && simplifiedIds.has(flat.id)
+  const ledger = useMemo(() => {
+    const L = buildLedger(expenses, settles, hostCur)
+    return openSimplified ? simplifyLedger(L) : L
+  }, [expenses, settles, hostCur, openSimplified])
   const balances = ledger.net
   const myNet = uid ? balances[uid] || 0 : 0
   const runwayCalc = useMemo(() => computeRunway(runway, expenses, uid), [runway, expenses, uid])
   /* every group's and circle's own books, and where you stand across all of them — in the
      currency most of them use; places in another currency are left out of the total rather
      than added to it as bare numbers (the same rule as the iOS app) */
-  const books = useMemo(() => placeBooks(allExpenses, allSettles, hostCur), [allExpenses, allSettles, hostCur])
+  const books = useMemo(() => placeBooks(allExpenses, allSettles, hostCur, simplifiedIds), [allExpenses, allSettles, hostCur, simplifiedIds])
+  /* anyone in a group can switch "simplify debts"; everyone sees who did, and every open app
+     picks it up. Shown at once here, put back if the server says no. */
+  const setSimplify = async (on: boolean) => {
+    if (!sb || !flat || isDirect(flat)) return
+    const was = flat.simplify_debts
+    const put = (v: boolean | undefined) => {
+      setFlat((f) => (f && f.id === flat.id ? { ...f, simplify_debts: v } : f))
+      setMyFlats((xs) => xs.map((f) => (f.id === flat.id ? { ...f, simplify_debts: v } : f)))
+    }
+    put(on)
+    const { error } = await sb.rpc('set_simplify_debts', { p_flat: flat.id, p_on: on })
+    if (error) { put(was); showToast(friendsMessage(error, "Couldn't change that. Try again.")); return }
+    haptic(12); showToast(on ? 'Debts simplified' : 'Showing who owes whom')
+  }
   useEffect(() => onAppLink((url) => {
     const m = /^heimat:\/\/(join|invite)\/([^/?#]+)/.exec(url)
     const u = m ? null : (() => { try { return new URL(url) } catch { return null } })()
@@ -901,7 +935,7 @@ export default function App() {
         : (
           <Page key={p} T={T} title={myFlats.find((f) => f.id === p.slice(6))?.name || ''} onBack={closePage}>
             {flat && flat.id === p.slice(6)
-              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
+              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), simplified: openSimplified, setSimplify, extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
               : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
           </Page>
         ))}

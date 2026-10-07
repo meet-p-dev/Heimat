@@ -10,7 +10,8 @@ struct Flat: Codable, Identifiable, Hashable {
     var joinCode: String
     /// "flat" for the place you live, "group" for people you split with
     var kind: String?
-    /// engine v2: show the fewest payments rather than who owes whom, as a flat setting
+    /// "simplify debts": the group shows the fewest payments rather than who owes whom pair
+    /// by pair (AppModel.isSimplified; switched with set_simplify_debts)
     var simplifyDebts: Bool?
     var isGroup: Bool { kind == "group" }
     /// a hidden circle that holds expenses between friends, outside any group (see docs/friends-screens.md)
@@ -69,10 +70,12 @@ struct Expense: Codable, Identifiable, Hashable {
     var shares: [String: Double]?
     var recurringId: String?
     var deletedAt: String?
+    /// when it was added (read only — the apps never write it): orders a day's expenses newest first
+    var createdAt: String?
     enum CodingKeys: String, CodingKey {
         case id, description, amount, currency, category, split, payers, shares
         case flatId = "flat_id", paidBy = "paid_by", splitAmong = "split_among", spentOn = "spent_on", createdBy = "created_by"
-        case splitType = "split_type", recurringId = "recurring_id", deletedAt = "deleted_at"
+        case splitType = "split_type", recurringId = "recurring_id", deletedAt = "deleted_at", createdAt = "created_at"
     }
     var storedShares: [String: Double]? { shares }
     /// everyone the bill is split between (each once); an empty split means the payer alone
@@ -107,6 +110,8 @@ enum GroupsRoute: Hashable {
     case nonGroup
     case myBills
     case person(String)
+    /// everyone's balances in a group (the group page shows only yours)
+    case balances(String)
 }
 
 struct Settlement: Codable, Identifiable, Hashable {
@@ -123,8 +128,9 @@ struct Settlement: Codable, Identifiable, Hashable {
 
 extension Settlement: LedgerSettlement {}
 
-/// One line of a flat's history. Written by database triggers, never by the
-/// app, so nothing that changes the money can quietly skip it.
+/// One thing that happened in a group: an expense, a payment, someone joining, the
+/// shopping list, a bill, a chore. Written by database triggers, never by the app, so
+/// nothing can quietly skip it — and never pushed to anyone (see Activity on Home).
 struct Activity: Codable, Identifiable, Hashable {
     let id: String
     let flatId: String
@@ -133,22 +139,85 @@ struct Activity: Codable, Identifiable, Hashable {
     let subject: String?
     let amount: Double?
     let at: String
-    enum CodingKeys: String, CodingKey { case id, actor, kind, subject, amount, at, flatId = "flat_id" }
+    /// who else it is about: `to` (a chore passed on, a swap asked of someone) or `from`
+    /// (who had asked); uuids. Other values in it are not needed and not read.
+    var meta: [String: String] = [:]
+    enum CodingKeys: String, CodingKey { case id, actor, kind, subject, amount, at, meta, flatId = "flat_id" }
+
+    init(id: String, flatId: String, actor: String?, kind: String, subject: String?, amount: Double?, at: String, meta: [String: String] = [:]) {
+        self.id = id; self.flatId = flatId; self.actor = actor; self.kind = kind
+        self.subject = subject; self.amount = amount; self.at = at; self.meta = meta
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        flatId = try c.decode(String.self, forKey: .flatId)
+        actor = try c.decodeIfPresent(String.self, forKey: .actor)
+        kind = try c.decode(String.self, forKey: .kind)
+        subject = try c.decodeIfPresent(String.self, forKey: .subject)
+        amount = try c.decodeIfPresent(Double.self, forKey: .amount)
+        at = try c.decode(String.self, forKey: .at)
+        // meta holds numbers and dates too; only its text values are kept, and a meta that
+        // can't be read costs the row nothing
+        let raw = (try? c.decodeIfPresent([String: MetaValue].self, forKey: .meta)) ?? nil
+        meta = (raw ?? [:]).compactMapValues(\.text)
+    }
+
+    private struct MetaValue: Decodable {
+        let text: String?
+        init(from decoder: Decoder) throws { text = try? decoder.singleValueContainer().decode(String.self) }
+    }
 
     var symbol: String {
         switch kind {
         case "expense_added": "plus.circle.fill"
         case "expense_edited": "pencil.circle.fill"
         case "expense_deleted": "trash.circle.fill"
+        case "expense_restored": "arrow.uturn.backward.circle.fill"
         case "settled": "arrow.left.arrow.right.circle.fill"
         case "settle_undone": "arrow.uturn.backward.circle.fill"
         case "joined": "person.crop.circle.badge.plus"
         case "invited": "envelope.circle.fill"
         case "left", "invite_withdrawn": "person.crop.circle.badge.minus"
+        case "recurring_added", "recurring_edited": "repeat.circle.fill"
+        case "recurring_deleted", "recurring_stopped", "recurring_paused": "pause.circle.fill"
+        case "simplify_on", "simplify_off": "arrow.triangle.branch"
+        case "item_added": "cart.badge.plus"
+        case "item_bought": "checkmark.circle.fill"
+        case "item_removed": "cart.badge.minus"
+        case "bill_added", "bill_edited": "doc.text.fill"
+        case "bill_removed": "doc.text"
+        case "bill_paid": "checkmark.seal.fill"
+        case "bill_unpaid": "xmark.seal"
+        case "chore_added", "chore_edited": "sparkles"
+        case "chore_removed": "sparkles"
+        case "chore_done": "checkmark.circle.fill"
+        case "chore_undone": "arrow.uturn.backward.circle"
+        case "chore_skipped", "swap_asked", "swap_accepted", "swap_declined": "arrow.2.squarepath"
         default: "circle.fill"
         }
     }
-    var isGone: Bool { kind == "expense_deleted" || kind == "left" || kind == "invite_withdrawn" || kind == "settle_undone" }
+    /// the part of group life it belongs to, for its colour
+    var tint: Color {
+        switch kind {
+        case _ where kind.hasPrefix("item_"): Tint.pink
+        case _ where kind.hasPrefix("bill_"): Tint.orange
+        case _ where kind.hasPrefix("chore_") || kind.hasPrefix("swap_"): Tint.teal
+        case "joined", "invited", "left", "invite_withdrawn": Tint.indigo
+        case "settled", "settle_undone": Tint.blue
+        default: Tint.green
+        }
+    }
+    var isGone: Bool {
+        ["expense_deleted", "left", "invite_withdrawn", "settle_undone", "item_removed", "bill_removed",
+         "bill_unpaid", "chore_removed", "chore_undone", "recurring_deleted", "recurring_stopped", "swap_declined"].contains(kind)
+    }
+    /// who joined or left, invites and the debt setting: what a non-group circle does behind
+    /// the scenes when you add a friend, and nothing anyone did — not shown for those
+    var isGroupHousekeeping: Bool {
+        ["joined", "left", "invited", "invite_withdrawn", "simplify_on", "simplify_off"].contains(kind)
+    }
 }
 
 struct ListItem: Codable, Identifiable, Hashable {

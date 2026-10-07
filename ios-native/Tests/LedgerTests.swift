@@ -199,7 +199,17 @@ struct LedgerTests {
             // same data, fresh dictionaries in a different order: same plan (the launch-to-launch bug)
             let shuffled = Dictionary(uniqueKeysWithValues: book.netMinor.shuffled(using: &rng))
             expect(Ledger.plan(shuffled, "EUR") == Ledger.plan(book.netMinor, "EUR"), "flat \(f): plan depends on dictionary order")
+            // simplify debts: same balances, each person's lines still add up to them, nobody both pays and receives
+            let simple = Ledger.simplified(book)
+            expect(simple.netMinor == book.netMinor && simple.simplified, "flat \(f): simplifying changed a balance")
+            for (u, n) in simple.netMinor { expect(Ledger.pairwise(simple.owes, for: u).values.reduce(0, +) == n, "flat \(f): simplified \(u)'s lines ≠ balance") }
+            expect(Set(simple.owes.map(\.from)).isDisjoint(with: simple.owes.map(\.to)), "flat \(f): someone both pays and receives")
+            expect(simple.owes.count <= max(0, book.netMinor.values.filter { $0 != 0 }.count - 1), "flat \(f): more than people − 1 payments")
         }
+        // books that don't balance, or can't be added exactly, get no plan
+        expect(Ledger.plan(["ana": 500], "EUR").isEmpty, "unbalanced: one person owed")
+        expect(Ledger.plan(["ana": 100, "ben": -50], "EUR").isEmpty, "unbalanced: money left owing")
+        expect(Ledger.plan(["a": Int.max, "b": 1, "c": -Int.max, "d": -1], "EUR").isEmpty, "overflow")
 
         let t0 = Date()
         var big: [String: Int] = [:]

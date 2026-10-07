@@ -79,16 +79,23 @@ struct Pill: View {
 struct ExpenseRowView: View {
     @Environment(AppModel.self) private var m
     let e: Expense
+    /// a list that mixes groups (Home): say which group each one is in
+    var showsPlace = false
 
     var body: some View {
-        let c = Cats.of(m.cats, e.category)
+        let c = Cats.of(showsPlace ? m.cats(for: e.flatId) : m.cats, e.category)
         HStack(spacing: 12) {
             CatIcon(cat: c)
             VStack(alignment: .leading, spacing: 2) {
                 Text((e.description ?? "").isEmpty ? c.label : e.description!)
                     .font(.body.weight(.semibold)).lineLimit(1)
-                Text("\(m.nameOf(e.paidBy)) paid · \(Fmt.relDay(e.spentOn))")
-                    .font(.caption).foregroundStyle(.secondary)
+                Text("\(showsPlace ? m.nameOf(e.paidBy, in: e.flatId) : m.nameOf(e.paidBy)) paid · \(Fmt.relDay(e.spentOn))")
+                    .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                if showsPlace {
+                    Label(m.placeName(e.flatId), systemImage: m.isCircle(e.flatId) ? "person.2.fill" : "house.fill")
+                        .font(.caption2.weight(.medium)).foregroundStyle(.tertiary)
+                        .labelStyle(PlaceLabel()).lineLimit(1)
+                }
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
@@ -110,6 +117,13 @@ struct ExpenseRowView: View {
         }
         guard let mine = shares.first(where: { $0.uid == uid }) else { return ("not involved", .secondary) }
         return ("you owe \(Fmt.money(Money.toMajor(mine.minor, e.currency), e.currency))", .hRed)
+    }
+}
+
+/// a small icon and the group's name, tight together
+private struct PlaceLabel: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 4) { configuration.icon.imageScale(.small); configuration.title }
     }
 }
 
@@ -395,17 +409,17 @@ struct HeaderButtons: View {
 }
 
 extension View {
-    /// A tab's title. From iOS 26 it is the system's own large title, with the
-    /// kicker ("Good morning", the date) under it and settings and profile in the
-    /// bar: as you scroll, iOS shrinks it into the small glass bar its own apps
-    /// have, and blurs what passes under it. Splitlife's own header stayed full
+    /// A tab's title. From iOS 26 it is the system's own large title, set in the
+    /// same row as settings and profile (`.inlineLarge`), with the kicker ("Good
+    /// morning", the date) under it: as you scroll, iOS moves it to the centre of
+    /// the small glass bar its own apps have, and blurs what passes under it. Splitlife's own header stayed full
     /// height, so cards scrolling under it showed through the title like a smudge.
     /// Before iOS 26: that header, pinned above the page with a frosted fade.
     @ViewBuilder func heimatHeader(kicker: String?, title: String) -> some View {
         if #available(iOS 26.0, *), !Compat.legacy {
             navigationTitle(title)
                 .navigationSubtitle(kicker ?? "")
-                .navigationBarTitleDisplayMode(.large)
+                .toolbarTitleDisplayMode(.inlineLarge)
                 .modifier(TitleBarEdge())
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) { HeaderButtons() }

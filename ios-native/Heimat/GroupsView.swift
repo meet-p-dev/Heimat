@@ -50,6 +50,7 @@ struct GroupsView: View {
                 case .nonGroup: NonGroupView()
                 case .myBills: MyBillsView()
                 case .person(let p): PersonView(person: p)
+                case .balances(let id): AllBalancesView(id: id)
                 }
             }
         }
@@ -569,7 +570,7 @@ struct PersonView: View {
                             HStack {
                                 Image(systemName: r.place == nil ? "person.2.fill" : "person.3.fill")
                                     .font(.system(size: 13, weight: .semibold)).foregroundStyle(.secondary).frame(width: 24)
-                                Text(r.label).font(.system(size: 15)).lineLimit(1)
+                                Text(r.label + (r.place.map { m.isSimplified($0) } == true ? " · simplified" : "")).font(.system(size: 15)).lineLimit(1)
                                 Spacer()
                                 Text((r.minor > 0 ? "owes you " : "you owe ") + Fmt.money(Money.toMajor(abs(r.minor), r.currency), r.currency))
                                     .font(.system(size: 14, weight: .semibold)).monospacedDigit()

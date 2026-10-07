@@ -9,6 +9,9 @@ struct HomeView: View {
     /// iOS hasn't asked yet — read once Home appears, since asking is async
     @State private var canAsk = false
     @AppStorage(Push.askedKey) private var pushAsked = false
+    /// Activity on Home: your own newest expenses, or everything happening in your groups
+    @AppStorage("mt-h-home-activity") private var feed: Feed = .mine
+    enum Feed: String { case mine, everything }
 
     var body: some View {
         NavigationStack {
@@ -20,13 +23,16 @@ struct HomeView: View {
                     if m.profile.on(.limit) { tiles }
                     if askPush { pushCard.transition(.opacity.combined(with: .scale(scale: 0.96))) }
                     if m.flat != nil && m.isAnon { guest }
-                    if m.flat != nil { recent }
+                    if m.flat != nil || !m.circles.isEmpty { recent }
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 4)
                 .padding(.bottom, 24)
             }
-            .refreshable { await m.reload() }
+            .refreshable {
+                await m.reload()
+                if feed == .everything { await m.loadActivity() }
+            }
             .task { canAsk = await Push.shared.permission() == .notDetermined }
             .animation(.smooth, value: askPush)
             .animation(.smooth, value: m.update)
@@ -272,35 +278,65 @@ struct HomeView: View {
         }
     }
 
+    /// Activity: your five newest expenses wherever they are (only the ones you are on,
+    /// each with the group it is in), or — one tap — the five newest things anyone did in
+    /// any of your groups. Nothing here notifies anyone; See all opens the whole of it.
     private var recent: some View {
-        VStack(spacing: 0) {
-            SectionLabel(text: "Recent activity") {
-                if !m.expenses.isEmpty {
-                    Button("See all") { m.tab = .flat }
-                        .font(.system(size: 13.5, weight: .semibold))
-                }
+        let mine = m.myRecent(5)
+        let all = Array(m.visibleActivity.prefix(5))
+        let places = m.flats.count + (m.circles.isEmpty ? 0 : 1)
+        return VStack(spacing: 0) {
+            SectionLabel(text: "Activity") {
+                Button("See all") { Haptic.tap(); m.sheet = .activity }
+                    .font(.system(size: 13.5, weight: .semibold))
             }
+            .padding(.bottom, 8)
+
+            Picker("Show", selection: $feed) {
+                Text("Your expenses").tag(Feed.mine)
+                Text("Everything").tag(Feed.everything)
+            }
+            .pickerStyle(.segmented)
             .padding(.bottom, 10)
 
             HeimatCard(radius: 24, padding: 0) {
-                if m.expenses.isEmpty {
-                    Text("No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.")
-                        .font(.system(size: 14)).foregroundStyle(.secondary)
-                        .padding(18)
-                } else {
-                    VStack(spacing: 0) {
-                        ForEach(Array(m.expenses.prefix(5).enumerated()), id: \.element.id) { i, e in
-                            Button { m.open(e) } label: {
-                                ExpenseRowView(e: e).padding(.horizontal, 14).padding(.vertical, 11)
+                switch feed {
+                case .mine:
+                    if mine.isEmpty {
+                        empty("No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.")
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(Array(mine.enumerated()), id: \.element.id) { i, e in
+                                Button { m.open(e) } label: {
+                                    ExpenseRowView(e: e, showsPlace: places > 1).padding(.horizontal, 14).padding(.vertical, 11)
+                                }
+                                .buttonStyle(PressStyle())
+                                if i < mine.count - 1 { Divider().padding(.leading, 64) }
                             }
-                            .buttonStyle(PressStyle())
-                            if i < min(m.expenses.count, 5) - 1 {
-                                Divider().padding(.leading, 64)
+                        }
+                    }
+                case .everything:
+                    if all.isEmpty {
+                        empty("Nothing has happened in your groups yet. Expenses, payments, the shopping list, bills and chores all show up here.")
+                    } else {
+                        VStack(spacing: 0) {
+                            ForEach(Array(all.enumerated()), id: \.element.id) { i, a in
+                                ActivityRowView(a: a, showsPlace: places > 1)
+                                if i < all.count - 1 { Divider().padding(.leading, 56) }
                             }
                         }
                     }
                 }
             }
+            .animation(.smooth, value: feed)
         }
+        // what happened since you last looked: fetched when Everything is showing, never pushed
+        .task(id: feed) { if feed == .everything { await m.loadActivity() } }
+    }
+
+    private func empty(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 14)).foregroundStyle(.secondary)
+            .padding(18)
     }
 }

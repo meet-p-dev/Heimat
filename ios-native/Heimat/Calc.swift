@@ -92,9 +92,11 @@ enum Fmt {
 enum Calc {
     struct Suggestion: Hashable { let from: String, to: String, amount: Double }
 
-    /// the fewest payments that square everyone up — see Ledger.plan
+    /// what Settle up suggests: the book's who-owes-whom — in a group with "simplify debts" on
+    /// that is the fewest payments that square everyone up (Ledger.plan), otherwise what each
+    /// person actually owes each other, pair by pair
     static func suggestions(_ book: Ledger.Book) -> [Suggestion] {
-        Ledger.plan(book.netMinor, book.currency).map { Suggestion(from: $0.from, to: $0.to, amount: $0.amount) }
+        book.owes.map { Suggestion(from: $0.from, to: $0.to, amount: $0.amount) }
     }
 
     static func minutes(_ t: String) -> Int {
