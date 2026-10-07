@@ -28,10 +28,7 @@ struct HomeView: View {
             .refreshable { await m.reload() }
             .task { canAsk = await Push.shared.permission() == .notDetermined }
             .animation(.smooth, value: askPush)
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top) {
-                HeimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Splitlife" : m.firstName)
-            }
+            .heimatHeader(kicker: Fmt.greeting(), title: m.firstName.isEmpty ? "Splitlife" : m.firstName)
             .heimatScreen()
         }
     }

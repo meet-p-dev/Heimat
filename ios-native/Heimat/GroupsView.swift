@@ -42,21 +42,15 @@ struct GroupsView: View {
                 .padding(.bottom, 24)
             }
             .refreshable { await m.reload() }
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top) { HeimatHeader(kicker: Fmt.longToday(), title: "Groups") }
+            .heimatHeader(kicker: Fmt.longToday(), title: "Groups")
             .heimatScreen()
             .navigationDestination(for: GroupsRoute.self) { route in
-                Group {
-                    switch route {
-                    case .group(let id): GroupPage(id: id)
-                    case .nonGroup: NonGroupView()
-                    case .myBills: MyBillsView()
-                    case .person(let p): PersonView(person: p)
-                    }
+                switch route {
+                case .group(let id): GroupPage(id: id)
+                case .nonGroup: NonGroupView()
+                case .myBills: MyBillsView()
+                case .person(let p): PersonView(person: p)
                 }
-                // a pushed page doesn't get the tab bar as safe area: without this its
-                // last rows ("Leave …") stay under the bar however far you scroll
-                .contentMargins(.bottom, GlassTabBar.clearance, for: .scrollContent)
             }
         }
     }

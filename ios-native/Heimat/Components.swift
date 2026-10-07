@@ -336,12 +336,11 @@ struct RowDivider: View {
     var body: some View { Divider().padding(.leading, inset) }
 }
 
-/// Heimat's own header, in place of the system navigation bar: the kicker and
-/// title on the left, settings and profile on the same row — the arrangement
-/// the app has on the web. Pinned with `safeAreaInset`, so content scrolls
-/// under it and the fade keeps the text legible while it does.
+/// Heimat's own header, in place of the system navigation bar, before iOS 26:
+/// the kicker and title on the left, settings and profile on the same row — the
+/// arrangement the app has on the web. Pinned by `.heimatHeader(kicker:title:)`,
+/// so content scrolls under it and the fade keeps the text legible while it does.
 struct HeimatHeader: View {
-    @Environment(AppModel.self) private var m
     var kicker: String? = nil
     let title: String
 
@@ -358,22 +357,9 @@ struct HeimatHeader: View {
                     .lineLimit(1).minimumScaleFactor(0.65)
             }
             Spacer(minLength: 8)
-            HStack(spacing: 4) {
-                Button { Haptic.tap(); m.sheet = .settings } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 38, height: 38)
-                }
-                .accessibilityLabel("Settings")
-                Button { Haptic.tap(); m.sheet = .profile } label: {
-                    AvatarView(name: m.profile.name, color: m.profile.avatar, seed: m.uid, size: 34)
-                }
-                .accessibilityLabel("Your profile")
-            }
-            .buttonStyle(PressStyle())
-            .foregroundStyle(.primary)
-            .padding(.horizontal, 5).padding(.vertical, 4)
-            .glassSurface(in: .capsule, interactive: true)
+            HeaderButtons()
+                .padding(.horizontal, 5).padding(.vertical, 4)
+                .glassSurface(in: .capsule, interactive: true)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
@@ -383,6 +369,65 @@ struct HeimatHeader: View {
                 .fill(.ultraThinMaterial)
                 .mask(LinearGradient(colors: [.black, .black, .clear], startPoint: .top, endPoint: .bottom))
                 .ignoresSafeArea(edges: .top)
+        }
+    }
+}
+
+/// Settings and your profile, top right on every tab.
+struct HeaderButtons: View {
+    @Environment(AppModel.self) private var m
+    var body: some View {
+        HStack(spacing: 4) {
+            Button { Haptic.tap(); m.sheet = .settings } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 18, weight: .semibold))
+                    .frame(width: 38, height: 38)
+            }
+            .accessibilityLabel("Settings")
+            Button { Haptic.tap(); m.sheet = .profile } label: {
+                AvatarView(name: m.profile.name, color: m.profile.avatar, seed: m.uid, size: 34)
+            }
+            .accessibilityLabel("Your profile")
+        }
+        .buttonStyle(PressStyle())
+        .foregroundStyle(.primary)
+    }
+}
+
+extension View {
+    /// A tab's title. From iOS 26 it is the system's own large title, with the
+    /// kicker ("Good morning", the date) under it and settings and profile in the
+    /// bar: as you scroll, iOS shrinks it into the small glass bar its own apps
+    /// have, and blurs what passes under it. Splitlife's own header stayed full
+    /// height, so cards scrolling under it showed through the title like a smudge.
+    /// Before iOS 26: that header, pinned above the page with a frosted fade.
+    @ViewBuilder func heimatHeader(kicker: String?, title: String) -> some View {
+        if #available(iOS 26.0, *), !Compat.legacy {
+            navigationTitle(title)
+                .navigationSubtitle(kicker ?? "")
+                .navigationBarTitleDisplayMode(.large)
+                .modifier(TitleBarEdge())
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) { HeaderButtons() }
+                }
+        } else {
+            toolbar(.hidden, for: .navigationBar)
+                .safeAreaInset(edge: .top) { HeimatHeader(kicker: kicker, title: title) }
+        }
+    }
+}
+
+/// What scrolls under the shrunken title bar. iOS 27's default blur hides it well;
+/// iOS 26's is lighter, and a green button passing under the bar showed through as
+/// a blot, so iOS 26 gets the firmer edge, which frosts the whole bar evenly.
+private struct TitleBarEdge: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 27.0, *) {
+            content
+        } else if #available(iOS 26.0, *) {
+            content.scrollEdgeEffectStyle(.hard, for: .top)
+        } else {
+            content
         }
     }
 }

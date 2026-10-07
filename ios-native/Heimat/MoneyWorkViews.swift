@@ -26,8 +26,7 @@ struct WorkView: View {
                 .padding(.top, 4)
                 .padding(.bottom, 24)
             }
-            .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .top) { HeimatHeader(kicker: Fmt.longToday(), title: "Work") }
+            .heimatHeader(kicker: Fmt.longToday(), title: "Work")
             .heimatScreen()
         }
     }

@@ -19,16 +19,6 @@ enum Compat {
         if #available(iOS 18.2, *) { return "receipt" }
         return "doc.text"
     }
-
-    /// Swiping sideways between the tabs. Its drag sits over every page's own
-    /// scrolling, and iOS 18 changed how such gestures share a touch — it has
-    /// stopped scroll views scrolling in some 18.x releases, and this pager has
-    /// never run there. Scrolling matters more than swiping, so before iOS 26
-    /// the tabs change by tapping the bar only.
-    static var swipeTabs: Bool {
-        if #available(iOS 26.0, *) { return !legacy }
-        return false
-    }
 }
 
 extension View {

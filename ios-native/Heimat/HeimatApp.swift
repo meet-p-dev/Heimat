@@ -49,15 +49,19 @@ struct HeimatApp: App {
 
 enum AppTab: Hashable, CaseIterable, Identifiable {
     case home, flat, work
+    /// "Add expense", the separate glass button at the end of the bar (iOS 27):
+    /// it opens the form rather than being a page of its own
+    case add
     var id: Self { self }
     var title: String {
-        switch self { case .home: "Home"; case .flat: "Groups"; case .work: "Work" }
+        switch self { case .home: "Home"; case .flat: "Groups"; case .work: "Work"; case .add: "Add expense" }
     }
     var symbol: String {
         switch self {
         case .home: "house.fill"
         case .flat: "person.3.fill"
         case .work: "clock.fill"
+        case .add: "plus"
         }
     }
     /// the tabs this person sees: Work only with shifts, Groups unless everything in it is switched off
@@ -67,6 +71,7 @@ enum AppTab: Hashable, CaseIterable, Identifiable {
             case .home: true
             case .flat: p.on(.groups) || p.on(.bills) || p.on(.chores) || p.on(.list)
             case .work: p.on(.work) || p.on(.limit)
+            case .add: false
             }
         }
     }
@@ -98,29 +103,6 @@ struct ExpensePrefill: Hashable {
     var category = "groceries"
     /// start as an expense outside any group, with these people
     var people: [PersonPick]? = nil
-}
-
-/// Sideways scrolling inside a page — the flat chips, anything else laid out
-/// in a row — should scroll rather than turn the page. Such a scroller marks
-/// itself with `.blocksTabSwipe()`, and while it is moving the pager leaves
-/// the drag to it.
-@Observable final class PagerGate { var busy = false }
-
-private struct BlocksTabSwipe: ViewModifier {
-    @Environment(PagerGate.self) private var gate
-    func body(content: Content) -> some View {
-        // Claimed on touch-down rather than on the scroll phase: the pager
-        // makes up its mind 22pt into the drag, and a phase change does not
-        // reliably land before that.
-        content.simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in gate.busy = true }
-                .onEnded { _ in gate.busy = false }
-        )
-    }
-}
-extension View {
-    func blocksTabSwipe() -> some View { modifier(BlocksTabSwipe()) }
 }
 
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
@@ -172,14 +154,11 @@ struct SheetHost: View {
 struct RootView: View {
     @Environment(AppModel.self) private var m
 
-    @State private var gate = PagerGate()
-
     var body: some View {
         @Bindable var m = m
         Group {
             if m.profile.onboarded { MainTabs() } else { OnboardingView() }
         }
-        .environment(gate)
         .overlay(alignment: .top) {
             if let t = m.toast {
                 ToastView(text: t).transition(.move(edge: .top).combined(with: .opacity))
@@ -190,110 +169,62 @@ struct RootView: View {
     }
 }
 
-/// The three sections. The stock `TabView` cuts from one tab to the next; this
-/// one carries the page with your thumb, and the bar below reads the same
-/// offset, which is what lets its selection travel with the swipe.
-///
-/// The pages are scroll views, so the sideways drag has to be ours rather than
-/// a horizontal `ScrollView` wrapped around them: nested the other way, the
-/// page's own vertical scrolling wins every drag that starts even slightly off
-/// the horizontal — which is every drag a thumb makes. We take the gesture
-/// alongside the page's (`simultaneousGesture`) and decide, once, from the
-/// first few points, whether this drag is ours or the page's.
+/// The three sections, in the system's own tab bar. On iOS 26 and later iOS draws it
+/// in Liquid Glass — the lens you can slide along it, the bar that shrinks while you
+/// scroll down, and from iOS 27 the glass it has there and the Liquid Glass slider in
+/// Settings — and on iOS 27 "Add expense" sits beside it as a glass button of its own.
+/// Before iOS 26 it is the classic bar. A tab changes in place, as in Apple's own
+/// apps: the pager Splitlife had before slid the whole page across and bounced.
 struct MainTabs: View {
     @Environment(AppModel.self) private var m
-    @Environment(PagerGate.self) private var gate
-    @State private var progress: Double = 0   // where the pager sits, in page widths
-    @State private var base: Double?          // progress when the drag took hold
-    @State private var origin: CGFloat?       // and how far the finger had come by then
-    @State private var sideways: Bool?        // nil until the drag commits to an axis
 
     private var tabs: [AppTab] { AppTab.shown(m.profile) }
-    private func index(_ tab: AppTab) -> Double { Double(tabs.firstIndex(of: tab) ?? 0) }
-    private var lastPage: Double { Double(tabs.count - 1) }
+    /// Add expense belongs to splitting costs: only when groups are switched on
+    private var adds: Bool { m.profile.on(.groups) }
+    /// What the bar has picked. It follows `m.tab`, except that the + only opens
+    /// the form: the bar goes straight back to the tab you were on.
+    @State private var picked: AppTab = .home
 
     var body: some View {
-        GeometryReader { geo in
-            let w = max(geo.size.width, 1)
-            HStack(spacing: 0) {
-                ForEach(tabs) { tab in
-                    page(tab).frame(width: w, height: geo.size.height)
-                }
+        TabView(selection: $picked) {
+            ForEach(tabs) { tab in
+                Tab(tab.title, systemImage: tab.symbol, value: tab) { page(tab) }
+                    .badge(tab == .flat ? m.openItems : 0)
             }
-            .frame(width: w * Double(tabs.count), height: geo.size.height, alignment: .leading)
-            // once the drag is ours the page goes inert: it stops scrolling under
-            // the swipe (otherwise the sideways flick's vertical share carries on
-            // into the page we land on) and it drops the press it was holding, so
-            // a half-swipe that snaps back doesn't open whatever it started on
-            .scrollDisabled(sideways == true)
-            .disabled(sideways == true)
-            .offset(x: -progress * w)
-            .frame(width: w, height: geo.size.height, alignment: .leading)
-            .contentShape(Rectangle())
-            // off before iOS 26 (Compat.swipeTabs): the bar still switches tabs
-            .simultaneousGesture(pan(width: w), including: Compat.swipeTabs ? .all : .subviews)
+            // The + sits apart from the tabs, in its own glass circle: on iOS 27 as the
+            // `.prominent` tab, made for this; on iOS 26 in the one place iOS 26 sets
+            // apart, the search tab's. (`.prominent` needs the iOS 27 SDK — Xcode 27,
+            // Swift 6.4 — and an older Xcode uses the iOS 26 way everywhere.) Its page
+            // is the app's own background, should iOS show it for a moment.
+            if adds {
+                #if compiler(>=6.4)
+                if #available(iOS 27.0, *) {
+                    Tab(AppTab.add.title, systemImage: AppTab.add.symbol, value: AppTab.add, role: .prominent) { HeimatBackground() }
+                } else if #available(iOS 26.0, *), !Compat.legacy {
+                    Tab(AppTab.add.title, systemImage: AppTab.add.symbol, value: AppTab.add, role: .search) { HeimatBackground() }
+                }
+                #else
+                if #available(iOS 26.0, *), !Compat.legacy {
+                    Tab(AppTab.add.title, systemImage: AppTab.add.symbol, value: AppTab.add, role: .search) { HeimatBackground() }
+                }
+                #endif
+            }
         }
-        // a tap on the bar, or `m.tab` set from a card, glides the pager over;
-        // while a finger is on it the drag is in charge instead.
-        .onChange(of: m.tab) { _, tab in
-            guard sideways != true, abs(progress - index(tab)) > 0.01 else { return }
-            withAnimation(.snappy(duration: 0.44, extraBounce: 0.18)) { progress = index(tab) }
+        .modifier(ShrinkOnScroll())
+        .onChange(of: picked) { was, now in
+            guard now == .add else { if m.tab != now { m.tab = now }; return }
+            picked = was
+            m.startAddExpense()
         }
-        // a part switched off in Settings: its tab goes, and the pager stays on a real page
+        .onChange(of: m.tab) { _, tab in if picked != tab { picked = tab } }
+        // a part switched off in Settings: its tab goes, and you land on Home
+        // (also on opening, should the app have been left on a tab that has gone since)
         .onChange(of: tabs) { _, now in
             if !now.contains(m.tab) { m.tab = .home }
-            progress = index(m.tab)
         }
-        .background { HeimatBackground() }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            GlassTabBar(selection: Binding { m.tab } set: { m.tab = $0 }, progress: progress, badge: m.openItems)
-        }
-    }
-
-    /// A thumb's first few points are mostly vertical even when it is heading
-    /// sideways, so the axis is decided later — once one of them has passed
-    /// `slop` — and the page picks up from there rather than jumping.
-    private static let slop: CGFloat = 22
-
-    private func pan(width w: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: 8)
-            .onChanged { v in
-                let dx = v.translation.width, dy = v.translation.height
-                if sideways == nil {
-                    if gate.busy || (m.tab == .flat && !m.groupsPath.isEmpty) {
-                        // a row inside the page has it — or a pushed page, whose drag is the way back
-                        sideways = false
-                    } else if abs(dx) > Self.slop && abs(dx) > abs(dy) {
-                        sideways = true; base = progress; origin = dx
-                    } else if abs(dy) > Self.slop {
-                        sideways = false                    // the page's drag, not ours
-                    } else { return }                       // still too early to tell
-                }
-                guard sideways == true, let base, let origin else { return }
-                progress = bounded(base - (dx - origin) / w)
-            }
-            .onEnded { v in
-                let ours = sideways, from = base, start = origin
-                sideways = nil; base = nil; origin = nil; gate.busy = false
-                guard ours == true, let from, let start else { return }
-                // where the flick would have carried us, never more than one page
-                let predicted = from - (v.predictedEndTranslation.width - start) / w
-                let near = from.rounded()
-                settle(to: min(max(min(max(predicted.rounded(), near - 1), near + 1), 0), lastPage))
-            }
-    }
-
-    /// past the first and last page the drag pulls back, so the edge has give
-    private func bounded(_ p: Double) -> Double {
-        p < 0 ? p / 3 : p > lastPage ? lastPage + (p - lastPage) / 3 : p
-    }
-
-    private func settle(to target: Double) {
-        let tab = tabs[Int(target)]
-        if tab != m.tab { Haptic.tap() }
-        withAnimation(.snappy(duration: 0.38, extraBounce: 0.16)) {
-            progress = target
-            m.tab = tab
+        .onAppear {
+            if !tabs.contains(m.tab) { m.tab = .home }
+            picked = m.tab
         }
     }
 
@@ -302,131 +233,19 @@ struct MainTabs: View {
         case .home: HomeView()
         case .flat: GroupsView()
         case .work: WorkView()
+        case .add: EmptyView()
         }
     }
 }
 
-/// The bottom bar: one piece of the system's Liquid Glass, with the selection
-/// riding on the pager's offset. `progress` is fractional during a swipe, so
-/// the pill and the icon tints cross over gradually instead of snapping.
-struct GlassTabBar: View {
-    @Binding var selection: AppTab
-    var progress: Double
-    var badge: Int
-    @Environment(AppModel.self) private var m
-
-    private var tabs: [AppTab] { AppTab.shown(m.profile) }
-
-    /// How far the pill's two edges lag or lead each other mid-crossing.
-    /// Both curves start at 0 and end at 1, so the pill always settles to an
-    /// exact capsule; in between, the front edge is ahead of the back one.
-    private static let bend = 1.7
-
-    /// How much of the screen the bar takes above the home indicator. The tab pages
-    /// get it as safe area; a page pushed inside a tab's NavigationStack doesn't,
-    /// so those add it to their scrolling themselves (GroupsView's destinations).
-    static let height: CGFloat = 60
-    static let bottomGap: CGFloat = 4
-    static var clearance: CGFloat { height + bottomGap }
-    private func lead(_ t: Double) -> Double { 1 - pow(1 - t, Self.bend) }
-    private func trail(_ t: Double) -> Double { pow(t, Self.bend) }
-
-    var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width / CGFloat(tabs.count)
-            let p = min(max(progress, 0), Double(tabs.count - 1))
-
-            // Where the crossing is: `i` is the tab being left, `f` how far
-            // along we are towards the next one.
-            let i = p.rounded(.down)
-            let f = p - i
-
-            // The leading edge runs ahead and the trailing edge lags, so the
-            // pill pulls out of the tab it is leaving and gathers into the one
-            // it is entering — the liquid part. Symmetric, so it reads the same
-            // dragging either way.
-            let left = w * (i + trail(f))
-            let right = w * (i + lead(f)) + w
-            let width = right - left
-            // 0 at rest, ~0.35 at the midpoint of a crossing
-            let stretch = width / w - 1
-
-            HStack(spacing: 0) {
-                ForEach(tabs) { tab in item(tab).frame(width: w) }
-            }
-            .background(alignment: .leading) {
-                Capsule(style: .continuous)
-                    .fill(Color.accentColor.opacity(0.22 - stretch * 0.05))
-                    .overlay {
-                        // a brighter rim while stretched, so the leading edge
-                        // catches the light the way a moving droplet would
-                        Capsule(style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.10 + stretch * 0.22), lineWidth: 0.8)
-                    }
-                    .frame(width: max(width - 12, 0))
-                    // squashes as it lengthens, which is what sells it as volume
-                    .padding(.vertical, 6 + stretch * 4)
-                    .offset(x: left + 6)
-            }
-        }
-        .frame(height: Self.height)
-        .glassSurface(in: .capsule, interactive: true)
-        .padding(.horizontal, 20)
-        .padding(.bottom, Self.bottomGap)
-    }
-
-    private func item(_ tab: AppTab) -> some View {
-        // 0 when this tab fills the screen, 1 once the next one does
-        let d = min(abs(progress - Double(tabs.firstIndex(of: tab) ?? 0)), 1)
-        let on = d < 0.5
-        return Button {
-            if tab == selection { return }
-            Haptic.tap()
-            selection = tab
-        } label: {
-            VStack(spacing: 3) {
-                Image(systemName: tab.symbol)
-                    .font(.system(size: 19, weight: .semibold))
-                    .scaleEffect(1 + 0.1 * (1 - d))
-                    .overlay(alignment: .topTrailing) {
-                        if tab == .flat && badge > 0 {
-                            Text(badge > 99 ? "99+" : "\(badge)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 5).padding(.vertical, 1)
-                                .background(.red, in: Capsule())
-                                .offset(x: 12, y: -8)
-                                .transition(.scale.combined(with: .opacity))
-                        }
-                    }
-                Text(tab.title).font(.system(size: 10.5, weight: .semibold))
-            }
-            .foregroundStyle(Color.secondary.mix(with: .accentColor, by: 1 - d))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(tab.title)
-        .accessibilityAddTraits(on ? [.isButton, .isSelected] : [.isButton])
-    }
-}
-
-/// Settings and profile, top right on every tab — one glass capsule, drawn by iOS.
-struct AppToolbar: ViewModifier {
-    @Environment(AppModel.self) private var m
-
+/// iOS 26 and later: the bar shrinks to a small capsule while you scroll down a
+/// page and comes back when you scroll up, so more of the page shows.
+private struct ShrinkOnScroll: ViewModifier {
     func body(content: Content) -> some View {
-        content.toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { m.sheet = .settings } label: { Image(systemName: "gearshape") }
-                    .accessibilityLabel("Settings")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { m.sheet = .profile } label: {
-                    AvatarView(name: m.profile.name, color: m.profile.avatar, seed: m.uid, size: 28)
-                }
-                .accessibilityLabel("Your profile")
-            }
+        if #available(iOS 26.0, *), !Compat.legacy {
+            content.tabBarMinimizeBehavior(.onScrollDown)
+        } else {
+            content
         }
     }
 }

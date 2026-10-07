@@ -37,21 +37,28 @@ not sign.
 **Design.** All tabs are free-form card columns, not grouped `List`s, because
 the grids have no `List` equivalent. Shared primitives in `Components.swift`
 mirror the web's `ui.tsx`: `HeimatCard` (real Liquid Glass on iOS 26), `QuickAction`,
-`Chip`, `HeimatRow`, `SectionLabel`, `PressStyle`, `Tint`. `HeimatHeader`
-replaces the system navigation bar so titles sit on the same 16pt gutter as
-content. `Surface.swift` draws the ambient background.
+`Chip`, `HeimatRow`, `SectionLabel`, `PressStyle`, `Tint`. A tab's title comes
+from `.heimatHeader(kicker:title:)`: on iOS 26 and later the system large title,
+the kicker as its subtitle and settings/profile in the bar, so it shrinks into the
+glass bar as you scroll (a full-height header of our own let cards show through
+the title like a smudge); before iOS 26, `HeimatHeader`, pinned above the page.
+`Surface.swift` draws the ambient background.
 
 **iOS 18 and up.** The app and the widget target iOS 18. Liquid Glass is iOS 26
 only, so no view calls it directly: `Compat.swift` has `.glassButton()`,
 `.glassProminentButton()` and `.glassSurface(in:tint:interactive:)`, which are
 the real glass on iOS 26 and a bordered capsule or a frosted material before
 it. In a debug build, `-HeimatLegacyLook` (with `-HeimatFixture`) shows the
-iOS 18 look on an iOS 26 simulator.
+iOS 18 look on an iOS 26 simulator — except the tab bar, which iOS draws itself
+(the flag only stops it shrinking on scroll).
 
-**Tabs** (`HeimatApp.swift`) are an offset `HStack` driven by our own
-`DragGesture`, not a `TabView` and not a horizontal `ScrollView`, so a drag
-carries the page. `GlassTabBar` reads the same offset, so its indicator travels
-with the finger and stretches between tabs mid-crossing.
+**Tabs** (`HeimatApp.swift`) are the system `TabView` with `Tab`s, so iOS draws
+the bar: Liquid Glass on iOS 26 and later (it shrinks while you scroll down,
+`tabBarMinimizeBehavior(.onScrollDown)`), the classic bar on iOS 18. On iOS 27
+"Add expense" is a `.prominent` tab beside the bar; picking it opens the form
+and the selection stays where it was. Tabs change in place — the earlier
+hand-made pager slid the page across and bounced, and was dropped for this.
+The + needs Xcode 27 to build (`#if compiler(>=6.4)`); an older Xcode leaves it out.
 
 **Groups and invites.** A `flats` row is either the flat you live in
 (`kind = 'flat'`) or a group you split with (`kind = 'group'`); everything
