@@ -22,41 +22,102 @@ enum Compat {
 }
 
 extension View {
-    /// `.buttonStyle(.glass)`; a bordered capsule before iOS 26. Tint, role
-    /// and control size come from the environment, so both honour them.
-    @ViewBuilder func glassButton() -> some View {
-        if #available(iOS 26.0, *), !Compat.legacy {
-            buttonStyle(.glass)
-        } else {
-            buttonStyle(.bordered).buttonBorderShape(.capsule)
-        }
-    }
+    /// `.buttonStyle(.glass)` in light mode; in dark mode a matte frosted capsule,
+    /// since dark glass catches a bright reflection along its edge. A bordered
+    /// capsule before iOS 26. Tint, role and control size come from the environment.
+    func glassButton() -> some View { modifier(GlassButton()) }
 
-    /// `.buttonStyle(.glassProminent)`; a filled capsule in the tint before iOS 26.
-    @ViewBuilder func glassProminentButton() -> some View {
-        if #available(iOS 26.0, *), !Compat.legacy {
-            buttonStyle(.glassProminent)
-        } else {
-            buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
-        }
-    }
+    /// `.buttonStyle(.glassProminent)` in light mode; in dark mode a plain capsule
+    /// filled with the tint, without glass's reflection. A filled capsule in the
+    /// tint before iOS 26.
+    func glassProminentButton() -> some View { modifier(GlassButton(prominent: true)) }
 
     /// `.glassEffect(.regular, in: shape)`, with `.tint` and `.interactive()`
     /// added only when asked for. Before iOS 26: a material in the same shape
     /// with a hairline edge, and the tint as a light wash over it.
-    func glassSurface<S: Shape>(in shape: S, tint: Color? = nil, interactive: Bool = false) -> some View {
+    func glassSurface<S: InsettableShape>(in shape: S, tint: Color? = nil, interactive: Bool = false) -> some View {
         modifier(GlassSurface(shape: shape, tint: tint, interactive: interactive))
     }
 }
 
-private struct GlassSurface<S: Shape>: ViewModifier {
+private struct GlassButton: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
+    var prominent = false
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *), !Compat.legacy {
+            if scheme == .dark {
+                content.buttonStyle(MatteButtonStyle(prominent: prominent))
+            } else if prominent {
+                content.buttonStyle(.glassProminent)
+            } else {
+                content.buttonStyle(.glass)
+            }
+        } else if prominent {
+            content.buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
+        } else {
+            content.buttonStyle(.bordered).buttonBorderShape(.capsule)
+        }
+    }
+}
+
+/// Dark mode's stand-in for the glass buttons: the same capsule and sizes, on the
+/// matte fill the cards have (or the tint, for the prominent one), with no reflection.
+private struct MatteButtonStyle: ButtonStyle {
+    var prominent = false
+    @Environment(\.controlSize) private var size
+    @Environment(\.isEnabled) private var enabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        let (h, v): (CGFloat, CGFloat) = switch size {
+        case .mini: (10, 3)
+        case .small: (12, 5)
+        case .large: (20, 14)
+        case .extraLarge: (22, 17)
+        default: (14, 7)
+        }
+        configuration.label
+            .foregroundStyle(prominent ? Color.white : configuration.role == .destructive ? Color.hRed : Color.primary)
+            .padding(.horizontal, h).padding(.vertical, v)
+            .background {
+                if prominent { Capsule().fill(.tint) } else { MatteFill(shape: Capsule()) }
+            }
+            .contentShape(Capsule())
+            .opacity(enabled ? (configuration.isPressed ? 0.6 : 1) : 0.4)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(.smooth(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+/// The dark mode card: frosted, so what scrolls behind it blurs away, with a faint
+/// even edge instead of glass's bright highlight.
+private struct MatteFill<S: InsettableShape>: View {
+    let shape: S
+    var tint: Color? = nil
+
+    var body: some View {
+        ZStack {
+            shape.fill(.ultraThinMaterial)
+            shape.fill(Color.white.opacity(0.05))
+            if let tint { shape.fill(tint.opacity(0.14)) }
+            shape.strokeBorder(Color.white.opacity(0.07), lineWidth: 0.75)
+        }
+    }
+}
+
+private struct GlassSurface<S: InsettableShape>: ViewModifier {
+    @Environment(\.colorScheme) private var scheme
     let shape: S
     let tint: Color?
     let interactive: Bool
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *), !Compat.legacy {
-            content.glassEffect(glass, in: shape)
+            if scheme == .dark {
+                content.background { MatteFill(shape: shape, tint: tint) }
+            } else {
+                content.glassEffect(glass, in: shape)
+            }
         } else {
             // all behind the content, the way glass sits behind it
             content.background {
