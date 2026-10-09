@@ -39,6 +39,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: Splitlife uses the camera to scan a receipt into an expense. The photo is read on your iPhone and never uploaded.
         UILaunchScreen: {}
         UIBackgroundModes: [remote-notification]
         CFBundleURLTypes:

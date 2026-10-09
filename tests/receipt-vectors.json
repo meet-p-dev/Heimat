@@ -1,0 +1,579 @@
+{
+ "now": "2026-10-08",
+ "cases": [
+  {
+   "name": "REWE, weight line under an item, Pfand, card",
+   "rows": [
+    "REWE",
+    "REWE Markt GmbH",
+    "Münchener Str. 12",
+    "01139 Dresden",
+    "UID Nr.: DE812706034",
+    "EUR",
+    "BIO HAFERDRINK  1,49 B",
+    "BANANE  1,29 B",
+    "1,076 kg x 1,20 EUR/kg",
+    "PFAND 0,25 EURO  0,25 A",
+    "TOAST VOLLKORN  1,19 B",
+    "--------------------------",
+    "SUMME  EUR  4,22",
+    "==========================",
+    "Geg. Visa  EUR  4,22",
+    "Steuer %  Netto  Steuer  Brutto",
+    "A= 19,0%  0,21  0,04  0,25",
+    "B= 7,0%  3,71  0,26  3,97",
+    "Gesamtbetrag  3,92  0,30  4,22",
+    "TSE-Signatur: abc123",
+    "03.10.2026  18:42  Bon-Nr.:4711"
+   ],
+   "want": {
+    "store": "REWE",
+    "date": "2026-10-03",
+    "total": 422,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Bio Haferdrink",
+      149
+     ],
+     [
+      "Banane",
+      129
+     ],
+     [
+      "Pfand 0,25 Euro",
+      25
+     ],
+     [
+      "Toast Vollkorn",
+      119
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Lidl, Preisvorteil folds into the line above, zu zahlen",
+   "rows": [
+    "Lidl",
+    "Lidl Dienstleistung GmbH & Co. KG",
+    "Leipziger Str. 5, 01097 Dresden",
+    "EUR",
+    "Haferdrink  0,95 A",
+    "Bananen  1,29 A",
+    "Preisvorteil  -0,30",
+    "Pfand 0,25  0,25 B",
+    "Schokolade Vollmilch  0,79 A",
+    "--------",
+    "zu zahlen  2,98",
+    "Karte  2,98",
+    "MwSt-Satz  MwSt  Netto  Brutto",
+    "A 7%  0,18  2,55  2,73",
+    "Summe  0,22  2,76  2,98",
+    "03.10.26  18:42"
+   ],
+   "want": {
+    "store": "Lidl",
+    "date": "2026-10-03",
+    "total": 298,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Haferdrink",
+      95
+     ],
+     [
+      "Bananen",
+      99
+     ],
+     [
+      "Pfand 0,25",
+      25
+     ],
+     [
+      "Schokolade Vollmilch",
+      79
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "ALDI SÜD, quantity line under a name printed alone, cash with change",
+   "rows": [
+    "ALDI SÜD",
+    "Filiale 123",
+    "Hauptstraße 1",
+    "80331 München",
+    "Milch 1,5%",
+    "2 x 0,99  1,98 A",
+    "Gurken  0,69 A",
+    "Eier 10 Stück  2,29 A",
+    "Summe  4,96",
+    "Gegeben Bar  10,00",
+    "Rückgeld  5,04",
+    "07.10.2026 09:15"
+   ],
+   "want": {
+    "store": "ALDI SÜD",
+    "date": "2026-10-07",
+    "total": 496,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Milch 1,5%",
+      198
+     ],
+     [
+      "Gurken",
+      69
+     ],
+     [
+      "Eier 10 Stück",
+      229
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "EDEKA, Posten count on the total line, Leergut returned",
+   "rows": [
+    "EDEKA Center",
+    "Kesselsdorfer Str. 80",
+    "Tel. 0351 123456",
+    "LEERGUT  -0,75",
+    "APFEL ELSTAR  2,49 B",
+    "KAFFEE CREMA  6,99 B",
+    "SUMME [3]  8,73",
+    "Kartenzahlung girocard  8,73",
+    "Datum: 05.10.2026"
+   ],
+   "want": {
+    "store": "EDEKA",
+    "date": "2026-10-05",
+    "total": 873,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Apfel Elstar",
+      249
+     ],
+     [
+      "Kaffee Crema",
+      699
+     ]
+    ],
+    "discount": 75,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "dm, household",
+   "rows": [
+    "dm-drogerie markt",
+    "Prager Str. 2",
+    "01069 Dresden",
+    "Balea Duschgel  0,95 1",
+    "Zahnpasta  1,45 1",
+    "Toilettenpapier 8x  3,25 1",
+    "SUMME EUR  5,65",
+    "EC-Karte  5,65",
+    "06.10.2026 12:01"
+   ],
+   "want": {
+    "store": "dm",
+    "date": "2026-10-06",
+    "total": 565,
+    "totalSure": true,
+    "category": "household",
+    "items": [
+     [
+      "Balea Duschgel",
+      95
+     ],
+     [
+      "Zahnpasta",
+      145
+     ],
+     [
+      "Toilettenpapier 8x",
+      325
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Restaurant, unknown name from the first line, Total, tip not on the receipt",
+   "rows": [
+    "PIZZERIA DA MARIO",
+    "Louisenstraße 7",
+    "01099 Dresden",
+    "Tisch 4",
+    "1 Pizza Margherita  8,50",
+    "1 Pizza Diavolo  10,50",
+    "2 Cola 0,4l  7,00",
+    "Total  26,00",
+    "MwSt 19%  4,15",
+    "Datum 04.10.2026 Uhrzeit 20:31"
+   ],
+   "want": {
+    "store": "Pizzeria Da Mario",
+    "date": "2026-10-04",
+    "total": 2600,
+    "totalSure": true,
+    "category": null,
+    "items": [
+     [
+      "1 Pizza Margherita",
+      850
+     ],
+     [
+      "1 Pizza Diavolo",
+      1050
+     ],
+     [
+      "2 Cola 0,4l",
+      700
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Item name and price on separate lines (OCR split them)",
+   "rows": [
+    "PENNY",
+    "Markt 3311",
+    "Spaghetti",
+    "0,89 A",
+    "Tomaten passiert",
+    "0,65 A",
+    "SUMME",
+    "1,54",
+    "Karte 1,54",
+    "02.10.2026"
+   ],
+   "want": {
+    "store": "PENNY",
+    "date": "2026-10-02",
+    "total": 154,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Spaghetti",
+      89
+     ],
+     [
+      "Tomaten passiert",
+      65
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Items don't add up (a line was missed): total still read, items not offered",
+   "rows": [
+    "Kaufland",
+    "Dresden-Mickten",
+    "Reis 1kg  1,79 A",
+    "Hähnchen  4,49 A",
+    "Summe  9,27",
+    "Karte  9,27",
+    "01.10.2026"
+   ],
+   "want": {
+    "store": "Kaufland",
+    "date": "2026-10-01",
+    "total": 927,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Reis 1kg",
+      179
+     ],
+     [
+      "Hähnchen",
+      449
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": false
+   }
+  },
+  {
+   "name": "No total line: the card line is used",
+   "rows": [
+    "Kiosk am Bahnhof",
+    "Wasser  1,50",
+    "Brezel  1,20",
+    "Kartenzahlung  2,70",
+    "06.10.2026"
+   ],
+   "want": {
+    "store": "Kiosk am Bahnhof",
+    "date": "2026-10-06",
+    "total": 270,
+    "totalSure": true,
+    "category": null,
+    "items": [
+     [
+      "Wasser",
+      150
+     ],
+     [
+      "Brezel",
+      120
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Weak word 'Betrag' confirmed by the card line",
+   "rows": [
+    "Bäckerei Müller",
+    "2 Brötchen  0,80",
+    "Kaffee  2,40",
+    "Betrag  3,20",
+    "girocard  3,20",
+    "08.10.2026"
+   ],
+   "want": {
+    "store": "Bäckerei Müller",
+    "date": "2026-10-08",
+    "total": 320,
+    "totalSure": true,
+    "category": null,
+    "items": [
+     [
+      "2 Brötchen",
+      80
+     ],
+     [
+      "Kaffee",
+      240
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Dot decimals, English receipt, future date ignored, Subtotal is not the total",
+   "rows": [
+    "Starbucks Coffee",
+    "Hauptbahnhof",
+    "Latte Grande  4.20",
+    "Muffin  2.95",
+    "Subtotal  7.15",
+    "Total  7.15",
+    "Visa  7.15",
+    "Valid until 31.12.2027",
+    "08/10/2026"
+   ],
+   "want": {
+    "store": "Starbucks",
+    "date": "2026-10-08",
+    "total": 715,
+    "totalSure": true,
+    "category": "eatout",
+    "items": [
+     [
+      "Latte Grande",
+      420
+     ],
+     [
+      "Muffin",
+      295
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Thousands separator, Mwst line between items and total is not an item",
+   "rows": [
+    "MediaMarkt",
+    "Dresden Waltherstraße",
+    "MacBook Air 13  1.199,00",
+    "USB-C Kabel  19,99",
+    "Gesamtsumme  1.218,99",
+    "enthaltene MwSt 19%  194,63",
+    "Karte  1.218,99",
+    "28.09.2026"
+   ],
+   "want": {
+    "store": "MediaMarkt",
+    "date": "2026-09-28",
+    "total": 121899,
+    "totalSure": true,
+    "category": null,
+    "items": [
+     [
+      "MacBook Air 13",
+      119900
+     ],
+     [
+      "USB-C Kabel",
+      1999
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Coupon at the end with no line above it to belong to",
+   "rows": [
+    "NETTO Marken-Discount",
+    "Coupon 10%  -0,50",
+    "Kaese Gouda  2,49",
+    "Butter  2,51",
+    "Summe  4,50",
+    "Bar  5,00",
+    "Rückgeld  0,50",
+    "03.10.2026"
+   ],
+   "want": {
+    "store": "Netto",
+    "date": "2026-10-03",
+    "total": 450,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Kaese Gouda",
+      249
+     ],
+     [
+      "Butter",
+      251
+     ]
+    ],
+    "discount": 50,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Summe and the card line disagree: total read but flagged",
+   "rows": [
+    "Kaufland",
+    "Reis 1kg  1,79 A",
+    "Hähnchen  4,49 A",
+    "Summe  4,49",
+    "Karte  6,28",
+    "01.10.2026"
+   ],
+   "want": {
+    "store": "Kaufland",
+    "date": "2026-10-01",
+    "total": 449,
+    "totalSure": false,
+    "category": "groceries",
+    "items": [
+     [
+      "Reis 1kg",
+      179
+     ],
+     [
+      "Hähnchen",
+      449
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": false
+   }
+  },
+  {
+   "name": "Nothing that looks like money",
+   "rows": [
+    "Danke für Ihren Einkauf",
+    "Bis bald"
+   ],
+   "want": {
+    "store": null,
+    "date": null,
+    "total": null,
+    "totalSure": false,
+    "category": null,
+    "items": [],
+    "discount": 0,
+    "itemsMatch": false
+   }
+  }
+ ],
+ "amounts": [
+  [
+   "1,49 B",
+   [
+    149
+   ]
+  ],
+  [
+   "-0,30",
+   [
+    -30
+   ]
+  ],
+  [
+   "0,30-",
+   [
+    -30
+   ]
+  ],
+  [
+   "1.234,56",
+   [
+    123456
+   ]
+  ],
+  [
+   "03.10.2026 18:42",
+   []
+  ],
+  [
+   "19,00% 0,21",
+   [
+    21
+   ]
+  ],
+  [
+   "PFAND 0,25 EURO 0,25 A",
+   [
+    25,
+    25
+   ]
+  ],
+  [
+   "12.50",
+   [
+    1250
+   ]
+  ],
+  [
+   "1,5%",
+   []
+  ],
+  [
+   "Tel. 0351 123456",
+   []
+  ]
+ ]
+}

@@ -12,3 +12,7 @@ swiftc -O -parse-as-library ios-native/Heimat/Suggest.swift ios-native/Tests/Sug
 "$out/suggest-tests" tests/suggest-vectors.json
 swiftc -O -parse-as-library ios-native/Heimat/ShiftImport.swift ios-native/Tests/ShiftImportTests.swift -o "$out/shift-import-tests"
 "$out/shift-import-tests" tests/shift-import-vectors.json
+swiftc -O -parse-as-library ios-native/Heimat/Receipt.swift ios-native/Tests/ReceiptTests.swift -o "$out/receipt-tests"
+"$out/receipt-tests" tests/receipt-vectors.json
+swiftc -O -parse-as-library ios-native/Heimat/SiriAnswers.swift ios-native/Tests/SiriAnswersTests.swift -o "$out/siri-tests"
+"$out/siri-tests" tests/siri-vectors.json

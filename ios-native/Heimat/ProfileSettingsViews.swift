@@ -3,99 +3,205 @@ import UniformTypeIdentifiers
 
 // MARK: - Profile
 
+/// Who you are and your account: the avatar button top right, or the card at the top
+/// of Settings. How the app behaves lives in Settings; nothing is in both.
 struct ProfileView: View {
     @Environment(AppModel.self) private var m
-    @Environment(\.dismiss) private var dismiss
+    /// pushed from Settings: no close button of its own (the sheet has one)
+    var pushed = false
     @State private var sheet: SheetRoute?
+    @State private var confirmSignOut = false
+    @State private var confirmDelete = false
 
     var body: some View {
         let p = m.profile
         let home = Countries.home.first { $0.name == p.homeCountry }
         let host = Countries.host.first { $0.name == p.hostCountry }
         List {
-            Section {
-                VStack(spacing: 10) {
-                    AvatarView(name: p.name, color: p.avatar, seed: m.uid, size: 92)
-                    Text(p.name.isEmpty ? "You" : p.name).font(.title.bold())
-                    if m.isAnon {
-                        Pill(text: "Guest · this phone only", color: .orange)
-                    } else {
-                        Pill(text: m.email ?? "Signed in", color: .green)
-                    }
-                    Text("\(home?.flag ?? "🌍") \(p.homeCountry)  →  \(host?.flag ?? "🌍") \(p.hostCountry)")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    Button { sheet = .editProfile } label: { Label("Edit profile", systemImage: "pencil") }
-                        .glassButton().padding(.top, 4)
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .listRowBackground(Color.clear)
+            Section { header(p, home: home, host: host) }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 4, trailing: 0))
 
-            if m.isAnon {
-                Section {
-                    Label {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Don't lose your flat").font(.headline)
-                            Text("As a guest, everything lives on this phone. Create a free account so your flat and balances survive a new phone or a reinstall.")
-                                .font(.subheadline).foregroundStyle(.secondary)
-                        }
-                    } icon: { SettingIcon(symbol: "exclamationmark.shield.fill", color: .orange) }
-                    HStack(spacing: 10) {
-                        Button { sheet = .auth(.signup) } label: { Text("Create account").frame(maxWidth: .infinity) }.glassProminentButton()
-                        Button { sheet = .auth(.signin) } label: { Text("Sign in").frame(maxWidth: .infinity) }.glassButton()
-                    }
-                    .controlSize(.large)
-                }
-            }
+            if m.isAnon { guestCard }
             if let pending = m.pendingEmail {
                 Section { Label("Confirm \(pending) — open the link we sent to finish.", systemImage: "envelope.badge.fill").font(.subheadline) }
             }
 
-            Section("At a glance") {
-                LabeledContent("Earned from work", value: m.fH(m.earnedTotal))
-                LabeledContent("Your share of flat bills", value: m.fH(m.spentTotal))
-                LabeledContent("Shifts logged", value: "\(m.shifts.count)")
-                LabeledContent("Groups", value: "\(m.flats.count)")
-            }
+            Section { stats }
 
             Section {
-                ForEach(m.flats) { f in
-                    Button { m.switchFlat(f.id); m.tab = .flat; m.groupsPath = [.group(f.id)]; dismiss() } label: {
-                        Label {
-                            HStack { Text(f.name).foregroundStyle(.primary); Spacer(); if f.id == m.flatId { Image(systemName: "checkmark").foregroundStyle(.tint) } }
-                        } icon: { SettingIcon(symbol: "house.fill", color: .green) }
-                    }
+                Button { sheet = .editProfile } label: { info("Name", p.name.isEmpty ? "Add your name" : p.name) }
+                Button { sheet = .editProfile } label: { info("Home country", "\(home?.flag ?? "🌍") \(p.homeCountry)") }
+                Button { sheet = .editProfile } label: { info("Living in", "\(host?.flag ?? "🌍") \(p.hostCountry)") }
+                Button { sheet = .editProfile } label: {
+                    info("Currency", p.homeCur == p.hostCur ? p.hostCur : "\(p.hostCur) · home \(p.homeCur)")
                 }
-                if m.flat != nil { Button { sheet = .invite } label: { Label { Text("Invite people") } icon: { SettingIcon(symbol: "person.badge.plus", color: .blue) } } }
-                Button { sheet = .flat(.group) } label: { Label { Text("New group") } icon: { SettingIcon(symbol: "plus", color: .gray) } }
-                Button { sheet = .flat(.join) } label: { Label { Text("Join with a code") } icon: { SettingIcon(symbol: "key.fill", color: .gray) } }
-            } header: { Text("Your flats") } footer: { Text("Flats sync live with your flatmates. Everything else here stays on this phone.") }
+            } header: { Text("Personal info") } footer: { Text("People in your groups see your name and colour.") }
             .tint(.primary)
 
             Section {
-                NavigationLink { LifeSettingsView() } label: {
-                    Label { Text("Your Splitlife") } icon: { SettingIcon(symbol: "slider.horizontal.3", color: .indigo) }
+                ForEach(m.flats) { f in
+                    Button { m.switchFlat(f.id); m.tab = .flat; m.groupsPath = [.group(f.id)]; m.sheet = nil } label: { groupRow(f) }
                 }
-            } footer: { Text("Who you share with and what you do — and the parts of the app that shows.") }
+                Button { sheet = .flat(.group) } label: { Label("New group", systemImage: "plus.circle.fill") }
+                Button { sheet = .flat(.join) } label: { Label("Join with a code", systemImage: "key.fill") }
+            } header: { Text("Your groups") }
 
-            Section("Home & money") {
-                LabeledContent("Home", value: "\(p.homeCountry) · \(p.homeCur)")
-                LabeledContent("Studying in", value: "\(p.hostCountry) · \(p.hostCur)")
-                if p.homeCur != p.hostCur { LabeledContent("Exchange rate", value: "1 \(p.hostCur) = \(Fmt.rate(p.rate)) \(p.homeCur)") }
+            if !m.isAnon {
+                Section {
+                    Button { sheet = .auth(.email) } label: { info("Email", m.email ?? "", chevron: true) }
+                    Button { sheet = .auth(.password) } label: { info("Password", "Change", chevron: true) }
+                } header: { Text("Sign-in & security") } footer: {
+                    if let pending = m.pendingEmail { Text("Waiting for you to confirm \(pending).") }
+                }
+                .tint(.primary)
+
+                Section {
+                    Button(role: .destructive) { confirmSignOut = true } label: { Text("Sign out").frame(maxWidth: .infinity) }
+                }
             }
 
             Section {
-                NavigationLink { SettingsView() } label: { Label { Text("Settings") } icon: { SettingIcon(symbol: "gearshape.fill", color: .gray) } }
+                Button(role: .destructive) { confirmDelete = true } label: { Text("Delete account").frame(maxWidth: .infinity) }
+            } footer: {
+                Text("Leaves every group and removes everything stored about you on the server. Shared expenses stay with the group, without your name. This cannot be undone.")
             }
         }
         .navigationTitle("Profile")
         .heimatSurface()
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Image(systemName: "xmark") }.accessibilityLabel("Close") }
+            if !pushed {
+                ToolbarItem(placement: .cancellationAction) { Button { m.sheet = nil } label: { Image(systemName: "xmark") }.accessibilityLabel("Close") }
+            }
             ToolbarItem(placement: .primaryAction) { Button("Edit") { sheet = .editProfile } }
         }
         .sheet(item: $sheet) { SheetHost(route: $0) }
+        .confirmationDialog("Sign out? Your groups stay safe — sign back in any time with your email.", isPresented: $confirmSignOut, titleVisibility: .visible) {
+            Button("Sign out", role: .destructive) { Task { await m.signOut(); m.sheet = nil } }
+        }
+        .confirmationDialog("Delete your Splitlife account? You leave every group and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete account", role: .destructive) { Task { if let e = await m.deleteAccount() { m.show(e) } } }
+        } message: {
+            // money still open somewhere: say where, and how it can come back
+            let open = (m.flats + m.circles).compactMap { f -> String? in
+                let b = m.myBalance(in: f.id)
+                guard b.minor != 0 else { return nil }
+                let amt = Fmt.money(Money.toMajor(abs(b.minor), b.currency), b.currency)
+                let place = f.isDirect ? "with friends" : "in \(f.name)"
+                return b.minor > 0 ? "You're still owed \(amt) \(place)." : "You still owe \(amt) \(place)."
+            }
+            if !open.isEmpty {
+                Text(open.joined(separator: "\n") + "\n\nYour expenses stay with the group. To get them back after deleting, someone in it has to invite you back.")
+            }
+        }
+    }
+
+    /// avatar (tap to change it), name, email, where you're from and where you live
+    private func header(_ p: Profile, home: Country?, host: Country?) -> some View {
+        VStack(spacing: 6) {
+            Button { sheet = .editProfile } label: {
+                AvatarView(name: p.name, color: p.avatar, seed: m.uid, size: 96)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .frame(width: 30, height: 30)
+                            .background(.regularMaterial, in: Circle())
+                            .overlay(Circle().strokeBorder(.background, lineWidth: 2.5))
+                    }
+            }
+            .buttonStyle(PressStyle())
+            .accessibilityLabel("Edit profile")
+            .padding(.bottom, 6)
+            Text(p.name.isEmpty ? "You" : p.name).font(.title2.bold())
+            if m.isAnon {
+                Pill(text: "Guest · this phone only", color: .orange)
+            } else if let email = m.email {
+                Text(email).font(.subheadline).foregroundStyle(.secondary)
+            }
+            Text("\(home?.flag ?? "🌍") \(p.homeCountry)  →  \(host?.flag ?? "🌍") \(p.hostCountry)")
+                .font(.footnote).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var guestCard: some View {
+        Section {
+            Label {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Keep your groups safe").font(.headline)
+                    Text("As a guest, everything lives on this phone. A free account keeps your groups and balances on a new phone or after a reinstall.")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+            } icon: { SettingIcon(symbol: "exclamationmark.shield.fill", color: .orange) }
+            HStack(spacing: 10) {
+                Button { sheet = .auth(.signup) } label: { Text("Create account").frame(maxWidth: .infinity) }.glassProminentButton()
+                Button { sheet = .auth(.signin) } label: { Text("Sign in").frame(maxWidth: .infinity) }.glassButton()
+            }
+            .controlSize(.large)
+        }
+    }
+
+    /// three numbers side by side, the way a profile shows them
+    private var stats: some View {
+        HStack(spacing: 0) {
+            stat("\(m.flats.count)", m.flats.count == 1 ? "Group" : "Groups")
+            Divider().frame(height: 34)
+            stat(m.fH(m.spentTotal), "Your share")
+            if m.profile.on(.work) {
+                Divider().frame(height: 34)
+                stat(m.fH(m.earnedTotal), "Earned")
+            }
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func stat(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value).font(.system(size: 17, weight: .bold)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func info(_ label: String, _ value: String, chevron: Bool = false) -> some View {
+        HStack {
+            Text(label).foregroundStyle(.primary)
+            Spacer(minLength: 12)
+            Text(value).foregroundStyle(.secondary).lineLimit(1)
+            if chevron { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+        }
+        .contentShape(Rectangle())
+    }
+
+    /// a group: how many people, and where you stand in it
+    private func groupRow(_ f: Flat) -> some View {
+        let b = m.myBalance(in: f.id)
+        let people = m.members(of: f.id).count
+        let amt = Fmt.money(Money.toMajor(abs(b.minor), b.currency), b.currency)
+        return HStack(spacing: 12) {
+            SettingIcon(symbol: f.kind == "flat" ? "house.fill" : "person.3.fill", color: f.kind == "flat" ? .green : .blue)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(f.name).foregroundStyle(Color.primary).lineLimit(1)
+                Text("\(people) \(people == 1 ? "person" : "people")\(m.isSimplified(f.id) ? " · simplified" : "")")
+                    .font(.caption).foregroundStyle(Color.secondary)
+            }
+            .layoutPriority(1)
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 1) {
+                if b.minor == 0 {
+                    Text("Settled").font(.subheadline).foregroundStyle(Color.secondary)
+                } else {
+                    Text(b.minor > 0 ? "you get" : "you owe").font(.caption).foregroundStyle(Color.secondary)
+                    Text(amt).font(.subheadline.weight(.semibold)).monospacedDigit()
+                        .foregroundStyle(b.minor > 0 ? Color.green : Color.orange)
+                }
+            }
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Color.secondary.opacity(0.6))
+        }
+        .contentShape(Rectangle())
     }
 }
 
@@ -174,93 +280,302 @@ struct EditProfileForm: View {
 
 // MARK: - Settings
 
+/// How the app behaves. One screen of short rows, each showing what it's set to and
+/// opening its own page — the way iOS's own Settings is laid out. Your account sits
+/// at the top as a card that opens your profile.
 struct SettingsView: View {
+    @Environment(AppModel.self) private var m
     @State private var pushOn = false
     @State private var pushDenied = false
-    /// what the last test notification came back with, in words
-    @State private var pushTest: String?
     @State private var cloudOn = CloudBackup.shared.enabled
-    @State private var lastBackup: Date?
-    @State private var confirmRestore = false
-
-    /// On means: the user asked for it *and* iOS still allows it.
-    private func pushState() async -> Bool {
-        // `&&` takes its right side as an autoclosure, which cannot be awaited
-        guard Push.shared.wanted else { return false }
-        return await Push.shared.permission() == .authorized
-    }
-    @Environment(AppModel.self) private var m
-    @Environment(\.dismiss) private var dismiss
-    @State private var sheet: SheetRoute?
-    @State private var confirmSignOut = false
-    @State private var confirmDelete = false
-    @State private var confirmClear = false
-    @State private var picking = false
-    @State private var jsonURL: URL?
-    @State private var csvURL: URL?
+    @State private var taxOpen = false
 
     var body: some View {
         @Bindable var m = m
         let p = m.profile
         Form {
             Section {
-                if m.isAnon {
-                    Button { sheet = .auth(.signup) } label: { row("person.crop.circle.badge.plus", .green, "Create account", sub: "Free — keeps your flat if you change phone") }
-                    Button { sheet = .auth(.signin) } label: { row("person.crop.circle", .blue, "Sign in", sub: "Already have a Splitlife account") }
-                } else {
-                    Button { sheet = .auth(.email) } label: {
-                        Label { LabeledContent("Email", value: m.email ?? "") } icon: { SettingIcon(symbol: "envelope.fill", color: .blue) }
-                    }
-                    Button { sheet = .auth(.password) } label: { row("lock.fill", .gray, "Change password") }
-                    Button { confirmSignOut = true } label: { row("rectangle.portrait.and.arrow.right", .gray, "Sign out") }
+                NavigationLink { ProfileView(pushed: true) } label: { accountCard }
+            }
+
+            Section {
+                NavigationLink { LifeSettingsView() } label: {
+                    settingRow("slider.horizontal.3", .indigo, "Your Splitlife", sub: "Choose what the app shows")
                 }
-            } header: { Text("Account") } footer: {
-                if let pending = m.pendingEmail { Text("Waiting for you to confirm \(pending).") }
-                else if m.isAnon { Text("You're using Splitlife as a guest. An account keeps your flat if you change phone or reinstall.") }
+            }
+
+            Section("Preferences") {
+                Picker(selection: $m.prefs.theme) {
+                    ForEach(ThemeMode.allCases) { Text($0.label).tag($0) }
+                } label: { settingRow("circle.lefthalf.filled", .indigo, "Appearance") }
+                NavigationLink { NotificationSettingsView() } label: {
+                    valueRow("bell.fill", .red, "Notifications", pushDenied ? "Blocked" : pushOn ? "On" : "Off")
+                }
+                Toggle(isOn: $m.prefs.haptics) { settingRow("hand.tap.fill", .pink, "Haptic feedback") }
+            }
+
+            Section("Money & work") {
+                NavigationLink { CurrencySettingsView() } label: {
+                    valueRow("eurosign", .teal, "Currency", p.homeCur == p.hostCur ? p.hostCur : "\(p.hostCur) → \(p.homeCur)")
+                }
+                if p.on(.work) || p.on(.limit) {
+                    NavigationLink { WorkLimitsView() } label: {
+                        valueRow("timer", .orange, "Work limits", "\(m.prefs.weekCap) h · \(m.prefs.yearDays) days")
+                    }
+                }
+                if p.on(.work) && p.hostIso == "de" {
+                    Button { taxOpen = true } label: {
+                        valueRow("building.columns.fill", .indigo, "Tax details", p.tax == nil ? "Not set" : "Set", chevron: true)
+                    }
+                }
             }
             .tint(.primary)
 
-            Section("Appearance") {
-                Picker(selection: $m.prefs.theme) {
-                    ForEach(ThemeMode.allCases) { Text($0.label).tag($0) }
-                } label: { row("circle.lefthalf.filled", .indigo, "Theme") }
-            }
+            Section {
+                NavigationLink { BackupSettingsView() } label: {
+                    valueRow("icloud.fill", .blue, "iCloud backup", cloudOn ? "On" : "Off")
+                }
+                NavigationLink { DataSettingsView() } label: {
+                    settingRow("externaldrive.fill", .gray, "Export & import", sub: "Your data, shifts and timesheets")
+                }
+            } header: { Text("Your data") }
 
+            Section {
+                Link(destination: URL(string: Secrets.publicURL + "legal/privacy.html")!) { linkRow("hand.raised.fill", .blue, "Privacy policy") }
+                Link(destination: URL(string: Secrets.publicURL + "legal/terms.html")!) { linkRow("doc.text.fill", .gray, "Terms of use") }
+            } header: { Text("Legal") }
+            .tint(.primary)
+
+            Section {
+                LabeledContent("Version", value: Self.version)
+                if let uid = m.uid {
+                    Button { UIPasteboard.general.string = uid; m.show("Account ID copied") } label: {
+                        LabeledContent("Account ID", value: String(uid.prefix(8)) + "…")
+                    }
+                    .tint(.primary)
+                }
+            } header: { Text("About") } footer: {
+                Text("Your profile and shifts stay on this phone. What you share in a group syncs only with the people in it.")
+            }
+        }
+        .navigationTitle("Settings")
+        .heimatSurface()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) { Button("Done") { m.sheet = nil } }
+        }
+        .sheet(isPresented: $taxOpen) { TaxSheet() }
+        // coming back from a page: show what it is set to now
+        .onAppear {
+            cloudOn = CloudBackup.shared.enabled
+            Task {
+                pushDenied = await Push.shared.permission() == .denied
+                pushOn = await NotificationSettingsView.isOn()
+            }
+        }
+    }
+
+    static var version: String {
+        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
+        return b.map { "\(v) (\($0))" } ?? v
+    }
+
+    /// your avatar, name and email — opens your profile
+    private var accountCard: some View {
+        HStack(spacing: 14) {
+            AvatarView(name: m.profile.name, color: m.profile.avatar, seed: m.uid, size: 58)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(m.profile.name.isEmpty ? "You" : m.profile.name).font(.title3.weight(.semibold)).foregroundStyle(.primary)
+                Text(m.isAnon ? "Guest — create an account to keep your groups" : "Profile, groups & sign-in")
+                    .font(.subheadline).foregroundStyle(m.isAnon ? .orange : .secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+/// a coloured icon tile and a title (and a line under it)
+private func settingRow(_ symbol: String, _ color: Color, _ title: String, sub: String? = nil) -> some View {
+    Label {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).foregroundStyle(.primary)
+            if let sub { Text(sub).font(.caption).foregroundStyle(.secondary) }
+        }
+    } icon: { SettingIcon(symbol: symbol, color: color) }
+}
+
+/// a row that says what it is set to on the right, as iOS's Settings does
+private func valueRow(_ symbol: String, _ color: Color, _ title: String, _ value: String, chevron: Bool = false) -> some View {
+    Label {
+        HStack {
+            Text(title).foregroundStyle(.primary)
+            Spacer(minLength: 12)
+            Text(value).foregroundStyle(.secondary).lineLimit(1)
+            if chevron { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+        }
+    } icon: { SettingIcon(symbol: symbol, color: color) }
+}
+
+/// a row that leaves the app (a web page)
+private func linkRow(_ symbol: String, _ color: Color, _ title: String) -> some View {
+    Label {
+        HStack {
+            Text(title).foregroundStyle(.primary)
+            Spacer()
+            Image(systemName: "arrow.up.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+        }
+    } icon: { SettingIcon(symbol: symbol, color: color) }
+}
+
+// MARK: Settings pages
+
+struct NotificationSettingsView: View {
+    @State private var pushOn = false
+    @State private var pushDenied = false
+    /// what the last test notification came back with, in words
+    @State private var pushTest: String?
+
+    /// On means: the user asked for it *and* iOS still allows it.
+    static func isOn() async -> Bool {
+        // `&&` takes its right side as an autoclosure, which cannot be awaited
+        guard Push.shared.wanted else { return false }
+        return await Push.shared.permission() == .authorized
+    }
+
+    var body: some View {
+        Form {
             Section {
                 Toggle(isOn: Binding(get: { pushOn }, set: { on in
                     pushTest = nil
                     Task {
                         if on {
-                            if let why = await Push.shared.enable() {
-                                pushDenied = why == "denied"
-                            }
+                            if let why = await Push.shared.enable() { pushDenied = why == "denied" }
                         } else {
                             Push.shared.disable()
                         }
-                        pushOn = await pushState()
+                        pushOn = await Self.isOn()
                     }
                 })) {
-                    Label { Text("Notifications") } icon: { SettingIcon(symbol: "bell.fill", color: .red) }
+                    settingRow("bell.fill", .red, "Allow notifications")
                 }
                 .disabled(pushDenied)
-
-                // the only way to tell "nothing has happened" from "nothing arrives"
-                if pushOn {
-                    AsyncButton(action: { pushTest = await Push.shared.sendTest() }) {
-                        row("paperplane.fill", .blue, "Send a test notification")
+            } footer: {
+                Text(pushDenied
+                     ? "Blocked in iOS Settings — turn Splitlife's notifications back on there."
+                     : "When someone adds an expense with you, settles up, reminds you, or a new version is out.")
+            }
+            if pushDenied {
+                Section {
+                    Button("Open iOS Settings") {
+                        if let u = URL(string: UIApplication.openNotificationSettingsURLString) { UIApplication.shared.open(u) }
                     }
-                    .tint(.primary)
-                }
-            } header: { Text("Notifications") } footer: {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(pushDenied
-                         ? "Blocked in iOS Settings — turn Splitlife's notifications back on there."
-                         : "A nudge when a flatmate adds an expense or settles up.")
-                    if pushOn, let pushTest { Text(pushTest).foregroundStyle(.primary) }
                 }
             }
-            .task { pushOn = await pushState(); pushDenied = await Push.shared.permission() == .denied }
 
+            // the only way to tell "nothing has happened" from "nothing arrives"
+            if pushOn {
+                Section {
+                    AsyncButton(action: { pushTest = await Push.shared.sendTest() }) {
+                        settingRow("paperplane.fill", .blue, "Send a test notification")
+                    }
+                    .tint(.primary)
+                } footer: {
+                    if let pushTest { Text(pushTest).foregroundStyle(.primary) }
+                    else { Text("Not getting any? Send one to each of your phones to check.") }
+                }
+            }
+        }
+        .navigationTitle("Notifications")
+        .heimatSurface()
+        .navigationBarTitleDisplayMode(.inline)
+        .task { pushOn = await Self.isOn(); pushDenied = await Push.shared.permission() == .denied }
+    }
+}
+
+struct CurrencySettingsView: View {
+    @Environment(AppModel.self) private var m
+    @State private var sheet: SheetRoute?
+
+    var body: some View {
+        @Bindable var m = m
+        let p = m.profile
+        Form {
+            Section {
+                Button { sheet = .editProfile } label: { line("Where you live", "\(p.hostCountry) · \(p.hostCur)") }
+                Button { sheet = .editProfile } label: { line("Home", "\(p.homeCountry) · \(p.homeCur)") }
+            } footer: { Text("Splitlife counts in the currency where you live, and shows your home currency beside it.") }
+            .tint(.primary)
+
+            if p.homeCur != p.hostCur {
+                Section {
+                    LabeledContent {
+                        Text("\(Fmt.rate(p.rate)) \(p.homeCur)").monospacedDigit()
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text("1 \(p.hostCur) =")
+                            Text(p.rateAt.map { "Updated \(Fmt.relDay($0).lowercased())" } ?? "Set by hand").font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    Toggle("Update every day", isOn: $m.prefs.autoRate)
+                    AsyncButton(action: {
+                        if let r = await m.refreshRate() { m.show("1 \(p.hostCur) = \(Fmt.num(r, 2)) \(p.homeCur)") } else { m.show("Couldn't reach the rate service") }
+                    }) { Text("Update now") }
+                } header: { Text("Exchange rate") } footer: { Text("Rates come from open.er-api.com and are for reference only.") }
+            }
+        }
+        .navigationTitle("Currency")
+        .heimatSurface()
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $sheet) { SheetHost(route: $0) }
+    }
+
+    private func line(_ label: String, _ value: String) -> some View {
+        HStack { Text(label).foregroundStyle(.primary); Spacer(); Text(value).foregroundStyle(.secondary) }.contentShape(Rectangle())
+    }
+}
+
+struct WorkLimitsView: View {
+    @Environment(AppModel.self) private var m
+    @Environment(\.dismiss) private var dismiss
+    /// opened on its own (from the Work tab), not from Settings
+    var standalone = false
+
+    var body: some View {
+        @Bindable var m = m
+        Form {
+            Section {
+                Stepper(value: $m.prefs.weekCap, in: 1...60) {
+                    LabeledContent("Hours a week", value: "\(m.prefs.weekCap) h")
+                }
+                Stepper(value: $m.prefs.yearDays, in: 10...365, step: 5) {
+                    LabeledContent("Full days a year", value: "\(m.prefs.yearDays)")
+                }
+            } footer: {
+                Text("Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.")
+            }
+            if m.prefs.weekCap != 20 || m.prefs.yearDays != 120 {
+                Section { Button("Reset to Germany's limits") { m.prefs.weekCap = 20; m.prefs.yearDays = 120 } }
+            }
+        }
+        .navigationTitle("Work limits")
+        .heimatSurface()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if standalone { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }
+    }
+}
+
+struct BackupSettingsView: View {
+    @Environment(AppModel.self) private var m
+    @State private var cloudOn = CloudBackup.shared.enabled
+    @State private var lastBackup: Date?
+    @State private var confirmRestore = false
+
+    var body: some View {
+        Form {
             Section {
                 Toggle(isOn: Binding(get: { cloudOn }, set: { on in
                     CloudBackup.shared.enabled = on
@@ -269,11 +584,17 @@ struct SettingsView: View {
                     else { CloudBackup.shared.turnOff() }
                     lastBackup = CloudBackup.shared.lastBackup
                 })) {
-                    Label { Text("Back up to iCloud") } icon: { SettingIcon(symbol: "icloud.fill", color: .blue) }
+                    settingRow("icloud.fill", .blue, "Back up to iCloud")
                 }
                 .disabled(!CloudBackup.shared.available)
+            } footer: {
+                Text(CloudBackup.shared.available
+                     ? "Your profile and shifts are copied to your own iCloud so a new phone can pick them up. Nothing goes to Splitlife's servers. Groups don't need it — they are saved with your account."
+                     : "Sign in to iCloud on this phone to back up your profile and shifts.")
+            }
 
-                if cloudOn {
+            if cloudOn {
+                Section {
                     Button {
                         CloudBackup.shared.back(up: m)
                         lastBackup = CloudBackup.shared.lastBackup
@@ -281,137 +602,57 @@ struct SettingsView: View {
                         m.show("Backed up to iCloud")
                     } label: {
                         LabeledContent {
-                            Text(lastBackup.map { Fmt.relDay(Fmt.ymd($0)) } ?? "Never")
-                                .foregroundStyle(.secondary)
-                        } label: {
-                            Label { Text("Back up now") } icon: { SettingIcon(symbol: "arrow.clockwise.icloud", color: .teal) }
-                        }
+                            Text(lastBackup.map { "Last: \(Fmt.relDay(Fmt.ymd($0)).lowercased())" } ?? "Never").foregroundStyle(.secondary)
+                        } label: { Text("Back up now").foregroundStyle(.tint) }
                     }
                     if CloudBackup.shared.peek() != nil {
-                        Button { confirmRestore = true } label: {
-                            row("arrow.down.circle", .indigo, "Restore from iCloud",
-                                sub: "Replaces the shifts on this phone")
-                        }
+                        Button("Restore from iCloud") { confirmRestore = true }
                     }
                 }
-            } header: { Text("iCloud") } footer: {
-                Text(CloudBackup.shared.available
-                     ? "Your profile and shifts are copied to your own iCloud so a new phone can pick them up. Nothing goes to Splitlife's servers."
-                     : "Sign in to iCloud on this phone to back up your profile and shifts.")
-            }
-            .task { lastBackup = CloudBackup.shared.lastBackup }
-
-            Section {
-                Button { sheet = .editProfile } label: {
-                    Label { LabeledContent("Currencies", value: p.homeCur == p.hostCur ? p.hostCur : "\(p.hostCur) → \(p.homeCur)") } icon: { SettingIcon(symbol: "globe", color: .teal) }
-                }
-                if p.homeCur != p.hostCur {
-                    LabeledContent {
-                        Text("\(Fmt.rate(p.rate)) \(p.homeCur)").monospacedDigit()
-                    } label: {
-                        Label { VStack(alignment: .leading) { Text("Exchange rate"); Text(p.rateAt.map { "Updated \(Fmt.relDay($0).lowercased())" } ?? "Set by hand").font(.caption).foregroundStyle(.secondary) } } icon: { SettingIcon(symbol: "arrow.left.arrow.right", color: .gray) }
-                    }
-                    Toggle(isOn: $m.prefs.autoRate) { row("arrow.clockwise", .green, "Update daily") }
-                    AsyncButton(action: {
-                        if let r = await m.refreshRate() { m.show("1 \(p.hostCur) = \(Fmt.num(r, 2)) \(p.homeCur)") } else { m.show("Couldn't reach the rate service") }
-                    }) { Text("Update rate now") }
-                }
-            } header: { Text("Currency") } footer: { Text("Rates come from open.er-api.com and are for reference only.") }
-            .tint(.primary)
-
-            Section {
-                Stepper(value: $m.prefs.yearDays, in: 10...365, step: 5) {
-                    Label { LabeledContent("Days per year", value: "\(m.prefs.yearDays)") } icon: { SettingIcon(symbol: "calendar", color: .orange) }
-                }
-                Stepper(value: $m.prefs.weekCap, in: 1...60) {
-                    Label { LabeledContent("Hours per week", value: "\(m.prefs.weekCap) h") } icon: { SettingIcon(symbol: "timer", color: .orange) }
-                }
-                if m.prefs.weekCap != 20 || m.prefs.yearDays != 120 {
-                    Button("Reset to Germany's limits") { m.prefs.weekCap = 20; m.prefs.yearDays = 120 }
-                }
-            } header: { Text("Work limits") } footer: {
-                Text("Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.")
-            }
-
-            Section("General") {
-                Toggle(isOn: $m.prefs.haptics) { row("hand.tap.fill", .pink, "Haptic feedback") }
-            }
-            .tint(.primary)
-
-            Section {
-                if let jsonURL {
-                    ShareLink(item: jsonURL) { row("square.and.arrow.up", .blue, "Export my data", sub: "Profile and shifts as JSON") }
-                }
-                if let csvURL, !m.shifts.isEmpty {
-                    ShareLink(item: csvURL) { row("tablecells", .green, "Export shifts", sub: "CSV for timesheets or your tax return") }
-                }
-                Button { picking = true } label: { row("square.and.arrow.down", .orange, "Import shifts", sub: "From a Splitlife export or a timesheet (CSV)") }
-                Button { confirmClear = true } label: { row("trash", .red, "Clear data on this phone", sub: "Removes your logged shifts") }
-                Link(destination: URL(string: Secrets.publicURL + "legal/privacy.html")!) { row("hand.raised.fill", .gray, "Privacy policy") }
-                Link(destination: URL(string: Secrets.publicURL + "legal/terms.html")!) { row("doc.text.fill", .gray, "Terms of use") }
-            } header: { Text("Data & privacy") } footer: {
-                Text("Your profile and shifts are stored only on this phone. Shared flat data syncs only with your flatmates.")
-            }
-            .tint(.primary)
-
-            Section("About") {
-                LabeledContent("Version", value: "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (native)")
-                if let uid = m.uid {
-                    Button { UIPasteboard.general.string = uid; m.show("Account ID copied") } label: {
-                        LabeledContent("Account ID", value: String(uid.prefix(8)) + "…")
-                    }
-                    .tint(.primary)
-                }
-            }
-
-            Section {
-                Button(role: .destructive) { confirmDelete = true } label: { Text("Delete account") }
-            } footer: {
-                Text("Leaves every flat and removes everything stored about you on the server. Shared expenses stay with the flat, without your name. This cannot be undone.")
             }
         }
-        .navigationTitle("Settings")
+        .navigationTitle("iCloud backup")
         .heimatSurface()
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
-        }
-        .sheet(item: $sheet) { SheetHost(route: $0) }
-        .task { jsonURL = m.exportJSON(); csvURL = m.exportCSV() }
+        .task { lastBackup = CloudBackup.shared.lastBackup }
         .confirmationDialog("Restore from iCloud? The shifts on this phone are replaced by the backup.", isPresented: $confirmRestore, titleVisibility: .visible) {
             Button("Restore", role: .destructive) { _ = CloudBackup.shared.restore(into: m) }
         }
-        .confirmationDialog("Sign out? Your flat stays safe — sign back in any time with your email.", isPresented: $confirmSignOut, titleVisibility: .visible) {
-            Button("Sign out", role: .destructive) { Task { await m.signOut(); dismiss() } }
-        }
-        .modifier(ImportShifts(picking: $picking))
-        .confirmationDialog("Clear the shifts stored on this phone? Your account, profile and flats aren't affected.", isPresented: $confirmClear, titleVisibility: .visible) {
-            Button("Clear data", role: .destructive) { m.clearLocal() }
-        }
-        .confirmationDialog("Delete your Splitlife account? You leave every group and everything stored about you on the server is removed. This cannot be undone.", isPresented: $confirmDelete, titleVisibility: .visible) {
-            Button("Delete account", role: .destructive) { Task { if let e = await m.deleteAccount() { m.show(e) } } }
-        } message: {
-            // money still open somewhere: say where, and how it can come back
-            let open = (m.flats + m.circles).compactMap { f -> String? in
-                let b = m.myBalance(in: f.id)
-                guard b.minor != 0 else { return nil }
-                let amt = Fmt.money(Money.toMajor(abs(b.minor), b.currency), b.currency)
-                let place = f.isDirect ? "with friends" : "in \(f.name)"
-                return b.minor > 0 ? "You're still owed \(amt) \(place)." : "You still owe \(amt) \(place)."
-            }
-            if !open.isEmpty {
-                Text(open.joined(separator: "\n") + "\n\nYour expenses stay with the group. To get them back after deleting, someone in it has to invite you back.")
-            }
-        }
     }
+}
 
-    private func row(_ symbol: String, _ color: Color, _ title: String, sub: String? = nil) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).foregroundStyle(.primary)
-                if let sub { Text(sub).font(.caption).foregroundStyle(.secondary) }
-            }
-        } icon: { SettingIcon(symbol: symbol, color: color) }
+struct DataSettingsView: View {
+    @Environment(AppModel.self) private var m
+    @State private var picking = false
+    @State private var confirmClear = false
+    @State private var jsonURL: URL?
+    @State private var csvURL: URL?
+
+    var body: some View {
+        Form {
+            Section {
+                if let jsonURL {
+                    ShareLink(item: jsonURL) { settingRow("square.and.arrow.up", .blue, "Export my data", sub: "Profile and shifts as a file") }
+                }
+                if let csvURL, !m.shifts.isEmpty {
+                    ShareLink(item: csvURL) { settingRow("tablecells", .green, "Export shifts", sub: "A spreadsheet for timesheets or your tax return") }
+                }
+                Button { picking = true } label: { settingRow("square.and.arrow.down", .orange, "Import shifts", sub: "From a Splitlife export or a timesheet (CSV)") }
+            } header: { Text("Export & import") }
+            .tint(.primary)
+
+            Section {
+                Button(role: .destructive) { confirmClear = true } label: { Text("Clear shifts on this phone") }
+            } footer: { Text("Removes the shifts logged on this phone. Your account, profile and groups aren't affected.") }
+        }
+        .navigationTitle("Export & import")
+        .heimatSurface()
+        .navigationBarTitleDisplayMode(.inline)
+        .task { jsonURL = m.exportJSON(); csvURL = m.exportCSV() }
+        .modifier(ImportShifts(picking: $picking))
+        .confirmationDialog("Clear the shifts stored on this phone? Your account, profile and groups aren't affected.", isPresented: $confirmClear, titleVisibility: .visible) {
+            Button("Clear shifts", role: .destructive) { m.clearLocal() }
+        }
     }
 }
 

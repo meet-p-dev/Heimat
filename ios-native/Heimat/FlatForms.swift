@@ -92,6 +92,10 @@ struct ExpenseForm: View {
                                 cat = s
                             }
                     }
+                    // a new expense can start from a photo of the receipt (ReceiptScan.swift)
+                    if editing == nil {
+                        ReceiptScanButton { applyReceipt($0, cur: cur) }
+                    }
                 } header: { Text("How much?") } footer: {
                     if !amount.isEmpty && v <= 0 { Text("Enter an amount like 12,50").foregroundStyle(.red) }
                     else if cur == m.hostCur && m.homeCur != m.hostCur && v > 0 { Text("≈ \(Fmt.money(v * m.profile.rate, m.homeCur)) in your home currency") }
@@ -236,6 +240,27 @@ struct ExpenseForm: View {
 
 extension ExpenseForm {
     static let several = "\u{0}several"
+
+    /// what a scanned receipt says: the total, the shop as what it was for, its day and
+    /// category — and, chosen line by line, each line to tick who had it
+    private func applyReceipt(_ u: ReceiptUse, cur: String) {
+        let r = u.result
+        if let t = r.total { amount = Money.input(t, cur) }
+        if let s = r.store, desc.trimmingCharacters(in: .whitespaces).isEmpty { desc = s }
+        if let c = r.category, m.cats.contains(where: { $0.id == c }) { cat = c; catTouched = true }
+        if let d = r.date.flatMap(Fmt.date) { date = d }
+        if u.byItem {
+            // everyone it is split between to start with; untick who didn't have a line
+            let who = split.among.isEmpty ? Set(people.filter { !$0.hasLeft }.map(\.userId)) : split.among
+            split.lines = r.items.map { SplitState.Line(label: $0.name, amount: Money.input($0.minor, cur), among: who) }
+            split.tax = ""; split.tip = ""
+            split.discount = r.discount > 0 ? Money.input(r.discount, cur) : ""
+            split.mode = .itemized
+        }
+        // the amount is filled in: no keyboard (the field takes focus back as the sheet closes)
+        Task { try? await Task.sleep(for: .milliseconds(450)); amountFocused = false }
+        Haptic.success()
+    }
 
     /// date, where it goes, category — chips that start right and are changed only sometimes
     private var bottomBar: some View {

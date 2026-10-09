@@ -1,0 +1,477 @@
+{
+ "balance": [
+  {
+   "name": "one person, one group, they owe you",
+   "person": "k",
+   "lines": [
+    [
+     "f1",
+     "Münchener Straße 67",
+     "k",
+     "Kevin",
+     "EUR",
+     1230
+    ]
+   ],
+   "want": "Kevin owes you 12,30 €."
+  },
+  {
+   "name": "you owe them",
+   "person": "k",
+   "lines": [
+    [
+     "f1",
+     "Münchener Straße 67",
+     "k",
+     "Kevin",
+     "EUR",
+     -450
+    ]
+   ],
+   "want": "You owe Kevin 4,50 €."
+  },
+  {
+   "name": "two places, net with the breakdown",
+   "person": "k",
+   "lines": [
+    [
+     "f1",
+     "Münchener Straße 67",
+     "k",
+     "Kevin",
+     "EUR",
+     800
+    ],
+    [
+     "c1",
+     "",
+     "k",
+     "Kevin",
+     "EUR",
+     430
+    ]
+   ],
+   "want": "Kevin owes you 12,30 € — 8,00 € in Münchener Straße 67, 4,30 € outside groups."
+  },
+  {
+   "name": "opposite ways in two places",
+   "person": "k",
+   "lines": [
+    [
+     "f1",
+     "Flat",
+     "k",
+     "Kevin",
+     "EUR",
+     1000
+    ],
+    [
+     "f2",
+     "Trip",
+     "k",
+     "Kevin",
+     "EUR",
+     -300
+    ]
+   ],
+   "want": "Kevin owes you 7,00 € — 10,00 € in Flat, 3,00 € in Trip (you owe)."
+  },
+  {
+   "name": "settled",
+   "person": "k",
+   "personName": "Kevin",
+   "lines": [
+    [
+     "f1",
+     "Flat",
+     "k",
+     "Kevin",
+     "EUR",
+     0
+    ]
+   ],
+   "want": "You and Kevin are settled up."
+  },
+  {
+   "name": "no lines at all, the name from the question",
+   "person": "k",
+   "personName": "Kevin",
+   "lines": [],
+   "want": "You and Kevin are settled up."
+  },
+  {
+   "name": "everyone",
+   "person": null,
+   "lines": [
+    [
+     "f1",
+     "Flat",
+     "a",
+     "Alex",
+     "EUR",
+     500
+    ],
+    [
+     "f1",
+     "Flat",
+     "k",
+     "Kai",
+     "EUR",
+     1800
+    ],
+    [
+     "f1",
+     "Flat",
+     "b",
+     "Ben",
+     "EUR",
+     -400
+    ],
+    [
+     "f1",
+     "Flat",
+     "d",
+     "Dana",
+     "EUR",
+     0
+    ]
+   ],
+   "want": "Kai owes you 18,00 € and Alex 5,00 €. You owe Ben 4,00 €."
+  },
+  {
+   "name": "everyone, only debts",
+   "person": null,
+   "lines": [
+    [
+     "f1",
+     "Flat",
+     "b",
+     "Ben",
+     "EUR",
+     -400
+    ]
+   ],
+   "want": "You owe Ben 4,00 €."
+  },
+  {
+   "name": "everyone, more than four",
+   "person": null,
+   "lines": [
+    [
+     "f",
+     "F",
+     "a",
+     "A",
+     "EUR",
+     600
+    ],
+    [
+     "f",
+     "F",
+     "b",
+     "B",
+     "EUR",
+     500
+    ],
+    [
+     "f",
+     "F",
+     "c",
+     "C",
+     "EUR",
+     400
+    ],
+    [
+     "f",
+     "F",
+     "d",
+     "D",
+     "EUR",
+     300
+    ],
+    [
+     "f",
+     "F",
+     "e",
+     "E",
+     "EUR",
+     200
+    ],
+    [
+     "f",
+     "F",
+     "g",
+     "G",
+     "EUR",
+     100
+    ]
+   ],
+   "want": "A owes you 6,00 €, B 5,00 €, C 4,00 € and 3 others 6,00 € between them."
+  },
+  {
+   "name": "everyone settled",
+   "person": null,
+   "lines": [],
+   "want": "You're settled up with everyone."
+  },
+  {
+   "name": "everyone, exactly four",
+   "person": null,
+   "lines": [
+    [
+     "f",
+     "F",
+     "a",
+     "A",
+     "EUR",
+     600
+    ],
+    [
+     "f",
+     "F",
+     "b",
+     "B",
+     "EUR",
+     500
+    ],
+    [
+     "f",
+     "F",
+     "c",
+     "C",
+     "EUR",
+     400
+    ],
+    [
+     "f",
+     "F",
+     "d",
+     "D",
+     "EUR",
+     300
+    ]
+   ],
+   "want": "A owes you 6,00 €, B 5,00 €, C 4,00 € and D 3,00 €."
+  }
+ ],
+ "turn": [
+  {
+   "name": "someone else's turn",
+   "chore": "c1",
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Bathroom",
+     4,
+     "k",
+     "Kai",
+     "open",
+     "2026-10-05",
+     "2026-10-11"
+    ],
+    [
+     "c1",
+     "Bathroom",
+     5,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-12",
+     "2026-10-18"
+    ]
+   ],
+   "want": "It's Kai's turn for Bathroom, until 2026-10-11."
+  },
+  {
+   "name": "your turn",
+   "chore": "c1",
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Bathroom",
+     4,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-05",
+     "2026-10-11"
+    ]
+   ],
+   "want": "It's your turn for Bathroom, until 2026-10-11."
+  },
+  {
+   "name": "done, next named",
+   "chore": "c1",
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Trash",
+     4,
+     "k",
+     "Kai",
+     "done",
+     "2026-10-05",
+     "2026-10-11"
+    ],
+    [
+     "c1",
+     "Trash",
+     5,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-12",
+     "2026-10-18"
+    ]
+   ],
+   "want": "Trash is done for this time. Next it's your turn, from 2026-10-12."
+  },
+  {
+   "name": "yours, two of them, soonest first",
+   "chore": null,
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Bathroom",
+     4,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-05",
+     "2026-10-11"
+    ],
+    [
+     "c2",
+     "Trash",
+     9,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-07",
+     "2026-10-09"
+    ],
+    [
+     "c3",
+     "Kitchen",
+     2,
+     "k",
+     "Kai",
+     "open",
+     "2026-10-05",
+     "2026-10-11"
+    ]
+   ],
+   "want": "Your turn: Trash, until 2026-10-09 and Bathroom, until 2026-10-11."
+  },
+  {
+   "name": "none yours now, one coming",
+   "chore": null,
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Bathroom",
+     4,
+     "k",
+     "Kai",
+     "open",
+     "2026-10-05",
+     "2026-10-11"
+    ],
+    [
+     "c1",
+     "Bathroom",
+     5,
+     "me",
+     "Meet",
+     "open",
+     "2026-10-12",
+     "2026-10-18"
+    ]
+   ],
+   "want": "None of the chores are yours right now. Next: Bathroom, from 2026-10-12."
+  },
+  {
+   "name": "done by you already",
+   "chore": null,
+   "me": "me",
+   "today": "2026-10-08",
+   "turns": [
+    [
+     "c1",
+     "Bathroom",
+     4,
+     "me",
+     "Meet",
+     "done",
+     "2026-10-05",
+     "2026-10-11"
+    ]
+   ],
+   "want": "None of the chores are yours right now."
+  }
+ ],
+ "bills": [
+  {
+   "name": "overdue and due",
+   "bills": [
+    [
+     "Rent",
+     65000,
+     "EUR",
+     "2026-10-01",
+     "overdue"
+    ],
+    [
+     "Phone",
+     1500,
+     "EUR",
+     "2026-10-08",
+     "due"
+    ],
+    [
+     "Internet",
+     3999,
+     "EUR",
+     "2026-10-20",
+     "upcoming"
+    ]
+   ],
+   "want": "Overdue: Rent (650,00 €) since 2026-10-01. Due: Phone (15,00 €) on 2026-10-08."
+  },
+  {
+   "name": "nothing due",
+   "bills": [
+    [
+     "Internet",
+     3999,
+     "EUR",
+     "2026-10-20",
+     "upcoming"
+    ],
+    [
+     "Rent",
+     null,
+     "EUR",
+     "2026-11-01",
+     "upcoming"
+    ]
+   ],
+   "want": "Nothing is due. Next: Internet (39,99 €) on 2026-10-20."
+  },
+  {
+   "name": "no bills",
+   "bills": [],
+   "want": "You have no bills to pay."
+  }
+ ]
+}

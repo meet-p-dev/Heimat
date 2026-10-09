@@ -241,7 +241,7 @@ struct WorkView: View {
         VStack(spacing: 4) {
             Text("Guidance only, not legal advice. Your limits: \(ws.budget) full days a year (a shift under 4 h counts as half) and \(ws.weekCap) h a week in term. Earnings are gross.")
                 .multilineTextAlignment(.center)
-            Button("Change limits") { m.sheet = .settings }
+            Button("Change limits") { m.sheet = .workLimits }
                 .font(.system(size: 12, weight: .semibold))
         }
         .font(.system(size: 12))

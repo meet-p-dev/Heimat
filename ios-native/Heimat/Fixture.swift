@@ -23,6 +23,7 @@ extension AppModel {
         if profile.name.isEmpty { profile.name = "Meet Patel" }
         uid = me
         isAnon = false
+        if email == nil { email = "meet@example.com" }
         flats = [Flat(id: flat, name: "Münchener Straße 67", joinCode: "DD325F", kind: "flat"),
                  Flat(id: meevi, name: "Meevi flat", joinCode: "7KQ2PA", kind: "group")]
         circles = [cNina, cTrio, cSara, cTom].map { Flat(id: $0, name: "", joinCode: "", kind: "direct") }

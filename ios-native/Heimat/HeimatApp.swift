@@ -14,8 +14,10 @@ struct HeimatApp: App {
                 .task {
                     Push.shared.model = model
                     Push.shared.takeDelegate()
-                    Router.shared.model = model
                     await model.start()
+                    // Siri and iPhone search know your groups; a Siri request waiting to open something goes now
+                    model.indexForSearch()
+                    Router.shared.model = model
                     #if DEBUG
                     if AppModel.fixtureMode { return }
                     #endif
@@ -112,7 +114,7 @@ struct ExpensePrefill: Hashable {
 /// Every sheet the app presents. Sheets, toolbars and the tab bar are the
 /// system's own, so iOS draws them in Liquid Glass.
 enum SheetRoute: Identifiable, Hashable {
-    case settings, profile, editProfile, invite, categories, list, analytics, myAnalytics, activity
+    case settings, profile, editProfile, workLimits, invite, categories, list, analytics, myAnalytics, activity
     case auth(AuthMode)
     case flat(FlatMode)
     case expense(Expense?, ExpensePrefill?)
@@ -134,6 +136,7 @@ struct SheetHost: View {
         case .settings: NavigationStack { SettingsView() }
         case .profile: NavigationStack { ProfileView() }
         case .editProfile: EditProfileForm()
+        case .workLimits: NavigationStack { WorkLimitsView(standalone: true) }
         case .invite: InviteView()
         case .categories: CategoriesView()
         case .list: NavigationStack { ShoppingListView() }
@@ -170,6 +173,15 @@ struct RootView: View {
         }
         .animation(.smooth, value: m.toast)
         .sheet(item: $m.sheet) { SheetHost(route: $0) }
+        #if DEBUG
+        // -HeimatSheet settings|profile: open that sheet straight away (demo mode only)
+        .task {
+            let a = ProcessInfo.processInfo.arguments
+            guard AppModel.fixtureMode, let i = a.firstIndex(of: "-HeimatSheet"), i + 1 < a.count else { return }
+            try? await Task.sleep(for: .seconds(1))
+            m.sheet = a[i + 1] == "profile" ? .profile : a[i + 1] == "expense" ? .expense(nil, nil) : .settings
+        }
+        #endif
     }
 }
 
