@@ -2,6 +2,8 @@ import AppIntents
 import CoreSpotlight
 import Foundation
 import Supabase
+import UIKit
+import os
 
 // Siri and the Shortcuts app. Every action here can run while Splitlife isn't on
 // screen, so none of it goes through the app's views: it reads and writes through
@@ -279,6 +281,38 @@ enum SiriData {
     static func day(_ ymd: String) -> String { Fmt.relDay(ymd) }
 }
 
+/// Siri runs Splitlife in the background, and there iOS pauses it every few seconds
+/// unless asked not to — each pause cut the connection to the server mid-handshake,
+/// so on a phone every answer failed ("something went wrong"); the simulator, with
+/// the app on screen, never paused it. Holding this keeps the app running while an
+/// action works; it is let go when the action ends, or when iOS's time runs out.
+@MainActor
+final class Awake {
+    private var id: UIBackgroundTaskIdentifier = .invalid
+    init(_ name: String) {
+        id = UIApplication.shared.beginBackgroundTask(withName: name) { [weak self] in self?.end() }
+    }
+    func end() {
+        guard id != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(id)
+        id = .invalid
+    }
+}
+
+extension SiriData {
+    static let log = Logger(subsystem: "app.heimat.mobile", category: "siri")
+
+    /// an action's work with the app kept awake, and its failure written to the log
+    static func awake<T>(_ name: String, _ work: () async throws -> T) async throws -> T {
+        let hold = await Awake(name)
+        defer { Task { @MainActor in hold.end() } }
+        do { return try await work() } catch {
+            log.error("siri: \(name, privacy: .public) failed: \(String(describing: error), privacy: .public)")
+            throw error
+        }
+    }
+}
+
 // MARK: - Things Siri can name
 
 /// A group: "Add 20 euros to Münchener Straße", and in iPhone search.
@@ -296,12 +330,12 @@ struct GroupEntity: AppEntity, IndexedEntity {
 
 struct GroupQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [GroupEntity] {
-        try await SiriData.groups().filter { identifiers.contains($0.id) }.map(GroupEntity.init)
+        try await SiriData.awake("find groups") { try await SiriData.groups() }.filter { identifiers.contains($0.id) }.map(GroupEntity.init)
     }
     func entities(matching string: String) async throws -> [GroupEntity] {
-        try await SiriData.groups().filter { $0.name.localizedCaseInsensitiveContains(string) }.map(GroupEntity.init)
+        try await SiriData.awake("find groups") { try await SiriData.groups() }.filter { $0.name.localizedCaseInsensitiveContains(string) }.map(GroupEntity.init)
     }
-    func suggestedEntities() async throws -> [GroupEntity] { try await SiriData.groups().map(GroupEntity.init) }
+    func suggestedEntities() async throws -> [GroupEntity] { try await SiriData.awake("find groups") { try await SiriData.groups() }.map(GroupEntity.init) }
 }
 
 /// Someone you share a group with: "How much do I owe Kevin?"
@@ -316,13 +350,13 @@ struct PersonEntity: AppEntity {
 
 struct PersonQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [PersonEntity] {
-        try await SiriData.people().filter { identifiers.contains($0.id) }.map(PersonEntity.init)
+        try await SiriData.awake("find people") { try await SiriData.people() }.filter { identifiers.contains($0.id) }.map(PersonEntity.init)
     }
     func entities(matching string: String) async throws -> [PersonEntity] {
         // "Kevin" finds "Kevin Müller"; first names first
-        try await SiriData.people().filter { $0.name.localizedCaseInsensitiveContains(string) }.map(PersonEntity.init)
+        try await SiriData.awake("find people") { try await SiriData.people() }.filter { $0.name.localizedCaseInsensitiveContains(string) }.map(PersonEntity.init)
     }
-    func suggestedEntities() async throws -> [PersonEntity] { try await SiriData.people().map(PersonEntity.init) }
+    func suggestedEntities() async throws -> [PersonEntity] { try await SiriData.awake("find people") { try await SiriData.people() }.map(PersonEntity.init) }
 }
 
 /// A chore on a rota: "Whose turn is it for the bathroom?"
@@ -338,12 +372,12 @@ struct ChoreEntity: AppEntity {
 
 struct ChoreQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [ChoreEntity] {
-        try await SiriData.chores().filter { identifiers.contains($0.id) }.map(ChoreEntity.init)
+        try await SiriData.awake("find chores") { try await SiriData.chores() }.filter { identifiers.contains($0.id) }.map(ChoreEntity.init)
     }
     func entities(matching string: String) async throws -> [ChoreEntity] {
-        try await SiriData.chores().filter { $0.name.localizedCaseInsensitiveContains(string) }.map(ChoreEntity.init)
+        try await SiriData.awake("find chores") { try await SiriData.chores() }.filter { $0.name.localizedCaseInsensitiveContains(string) }.map(ChoreEntity.init)
     }
-    func suggestedEntities() async throws -> [ChoreEntity] { try await SiriData.chores().map(ChoreEntity.init) }
+    func suggestedEntities() async throws -> [ChoreEntity] { try await SiriData.awake("find chores") { try await SiriData.chores() }.map(ChoreEntity.init) }
 }
 
 /// A bill: "Mark rent as paid."
@@ -358,12 +392,12 @@ struct BillEntity: AppEntity {
 
 struct BillQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [BillEntity] {
-        try await SiriData.bills().filter { identifiers.contains($0.id) }.map(BillEntity.init)
+        try await SiriData.awake("find bills") { try await SiriData.bills() }.filter { identifiers.contains($0.id) }.map(BillEntity.init)
     }
     func entities(matching string: String) async throws -> [BillEntity] {
-        try await SiriData.bills().filter { $0.name.localizedCaseInsensitiveContains(string) }.map(BillEntity.init)
+        try await SiriData.awake("find bills") { try await SiriData.bills() }.filter { $0.name.localizedCaseInsensitiveContains(string) }.map(BillEntity.init)
     }
-    func suggestedEntities() async throws -> [BillEntity] { try await SiriData.bills().map(BillEntity.init) }
+    func suggestedEntities() async throws -> [BillEntity] { try await SiriData.awake("find bills") { try await SiriData.bills() }.map(BillEntity.init) }
 }
 
 // MARK: - Actions
@@ -396,6 +430,10 @@ struct AddExpenseIntent: AppIntent {
     }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("add expense") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         let currency = IntentStore.profile.hostCur
         guard amount > 0, let minor = Money.toMinor(amount, currency), minor > 0, minor < 100_000_000 else {
             return .result(dialog: "That amount doesn't look right.")
@@ -441,6 +479,10 @@ struct BalanceIntent: AppIntent {
     static var parameterSummary: some ParameterSummary { Summary("Balance with \(\.$person)") }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("balance") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         let lines = try await SiriData.balances()
         let text = SiriAnswers.balance(lines, person: person?.id, personName: person?.name, money: SiriData.money)
         return .result(dialog: "\(text)")
@@ -459,6 +501,10 @@ struct ChoreTurnIntent: AppIntent {
     static var parameterSummary: some ParameterSummary { Summary("Whose turn for \(\.$chore)") }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("whose turn") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         let turns = try await SiriData.turns()
         let text = SiriAnswers.turn(turns, chore: chore?.id, me: try await SiriData.me(), today: Fmt.today(), day: SiriData.day)
         return .result(dialog: "\(text)")
@@ -475,6 +521,10 @@ struct ChoreDoneIntent: AppIntent {
     var chore: ChoreEntity
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("chore done") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         let me = try await SiriData.me()
         let now = try await SiriData.turns().filter { $0.chore == chore.id }.min { $0.n < $1.n }
         guard let now else { return .result(dialog: "\(chore.name) has no one on its rota yet.") }
@@ -494,6 +544,10 @@ struct BillsDueIntent: AppIntent {
     static var openAppWhenRun = false
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("bills due") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         let bills = try await SiriData.bills().compactMap { b -> SiriAnswers.BillDue? in
             guard let due = b.dueOn, let state = b.state else { return nil }
             return .init(name: b.name, minor: b.minor, currency: b.currency, dueOn: due, state: state)
@@ -512,6 +566,10 @@ struct BillPaidIntent: AppIntent {
     var bill: BillEntity
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("bill paid") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
         guard let b = try await SiriData.bills().first(where: { $0.id == bill.id }), let due = b.dueOn else {
             return .result(dialog: "Couldn't find that bill.")
         }

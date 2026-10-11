@@ -3,6 +3,7 @@ import CoreImage
 import Foundation
 import ImageIO
 import Vision
+import os
 
 /// A photo of a receipt → its printed lines, top to bottom, for `Receipt.read`.
 ///
@@ -13,6 +14,9 @@ import Vision
 /// flat when its edges show, and the angle that is left is found from its columns.
 /// Runs on the phone — nothing leaves the device.
 enum ReceiptOCR {
+    /// sizes, counts and errors only — never what the receipt says
+    static let log = Logger(subsystem: "app.heimat.mobile", category: "receipt")
+
     struct Piece {
         var text: String
         /// in pixels, y growing upwards as Vision has it
@@ -52,9 +56,7 @@ enum ReceiptOCR {
             let sc = score(r)
             if best == nil || sc > best!.score { best = (sc, Page(rows: rows, steady: steady)) }
         }
-        #if DEBUG
-        NSLog("receipt: \(images.count) readings, column tilt \(images.map { atan(columnTilt($0)) * 180 / .pi }), score \(best?.score ?? -1), steady \(best?.page.steady ?? false)")
-        #endif
+        log.notice("receipt: \(photo.width, privacy: .public)x\(photo.height, privacy: .public), \(images.count, privacy: .public) readings, pieces \(images.map(\.count), privacy: .public), lines \(best?.page.rows.count ?? 0, privacy: .public), score \(best?.score ?? -1, privacy: .public), steady \(best?.page.steady ?? false, privacy: .public)")
         return best?.page ?? Page(rows: [], steady: false)
     }
 
@@ -101,11 +103,27 @@ enum ReceiptOCR {
 
     /// the pieces of text on one image, and how far its lines are tilted
     static func read(_ image: CGImage, orientation: CGImagePropertyOrientation) async throws -> [Piece] {
-        var request = RecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        request.recognitionLanguages = [Locale.Language(identifier: "de-DE"), Locale.Language(identifier: "en-US")]
-        request.usesLanguageCorrection = true
-        let found = try await request.perform(on: image, orientation: orientation)
+        // German and English with their word lists first. A phone can lack one of those
+        // lists (a German one on a phone set to English): then the reading comes back
+        // empty or fails, so read again letting iOS pick the language, without the lists.
+        var found: [RecognizedTextObservation] = []
+        do {
+            var request = RecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.recognitionLanguages = [Locale.Language(identifier: "de-DE"), Locale.Language(identifier: "en-US")]
+            request.usesLanguageCorrection = true
+            found = try await request.perform(on: image, orientation: orientation)
+        } catch {
+            log.error("receipt: reading with word lists failed: \(String(describing: error), privacy: .public)")
+        }
+        if found.isEmpty {
+            var request = RecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.automaticallyDetectsLanguage = true
+            request.usesLanguageCorrection = false
+            found = try await request.perform(on: image, orientation: orientation)
+            log.notice("receipt: read again without word lists: \(found.count, privacy: .public) pieces")
+        }
         // turned a quarter: the picture's width is the text's height
         let sideways = [.left, .right, .leftMirrored, .rightMirrored].contains(orientation)
         let w = Double(sideways ? image.height : image.width), h = Double(sideways ? image.width : image.height)

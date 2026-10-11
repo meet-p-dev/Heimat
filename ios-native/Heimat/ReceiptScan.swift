@@ -112,13 +112,42 @@ struct ReceiptReview: View {
         var rows: [String] = []
         var allSteady = true
         for page in pages {
-            guard let cg = page.cgImage, let p = try? await ReceiptOCR.page(cg, orientation: CGImagePropertyOrientation(page.imageOrientation)) else { allSteady = false; continue }
-            rows += p.rows
-            allSteady = allSteady && p.steady
+            guard let cg = Self.upright(page) else { allSteady = false; continue }
+            do {
+                let p = try await ReceiptOCR.page(cg)
+                rows += p.rows
+                allSteady = allSteady && p.steady
+            } catch {
+                ReceiptOCR.log.error("receipt: couldn't read a page: \(String(describing: error), privacy: .public)")
+                allSteady = false
+            }
         }
         let r = Receipt.read(rows)
         steady = allSteady
         if r.total == nil && r.items.isEmpty { failed = true } else { result = r }
+    }
+
+    /// The photo as plain upright pixels, at a size text recognition reads well: a
+    /// small picture (a screenshot, a photo sent through a messenger) made bigger, a
+    /// huge one smaller. Every picture becomes the same kind of image, whatever
+    /// the camera, the library or its orientation handed over.
+    static func upright(_ page: UIImage) -> CGImage? {
+        let w = page.size.width, h = page.size.height
+        guard w > 0, h > 0 else { return nil }
+        let long = max(w, h)
+        let scale = long < 2400 ? 2400 / long : long > 4200 ? 4200 / long : 1
+        let size = CGSize(width: (w * scale).rounded(), height: (h * scale).rounded())
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let image = UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            ctx.cgContext.interpolationQuality = .high
+            UIColor.white.setFill()
+            ctx.fill(CGRect(origin: .zero, size: size))
+            page.draw(in: CGRect(origin: .zero, size: size))
+        }
+        ReceiptOCR.log.notice("receipt: photo \(Int(w), privacy: .public)x\(Int(h), privacy: .public) → \(Int(size.width), privacy: .public)x\(Int(size.height), privacy: .public)")
+        return image.cgImage
     }
 
     private var nothing: some View {
