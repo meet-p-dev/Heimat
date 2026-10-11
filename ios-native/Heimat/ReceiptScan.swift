@@ -119,10 +119,15 @@ struct ReceiptReview: View {
                 allSteady = allSteady && p.steady
             } catch {
                 ReceiptOCR.log.error("receipt: couldn't read a page: \(String(describing: error), privacy: .public)")
+                ReceiptOCR.debug("couldn't read a page: \(error)")
                 allSteady = false
             }
         }
+        // the sheet was redrawn mid-way and this reading stopped: the next one says what it found
+        if Task.isCancelled { return }
         let r = Receipt.read(rows)
+        ReceiptOCR.debug("\(pages.count) page(s), \(rows.count) lines: \(rows.prefix(40))")
+        ReceiptOCR.debug("total \(String(describing: r.total)) sure \(r.totalSure), \(r.items.count) items, match \(r.itemsMatch), steady \(allSteady)")
         steady = allSteady
         if r.total == nil && r.items.isEmpty { failed = true } else { result = r }
     }
@@ -146,6 +151,7 @@ struct ReceiptReview: View {
             ctx.fill(CGRect(origin: .zero, size: size))
             page.draw(in: CGRect(origin: .zero, size: size))
         }
+        ReceiptOCR.debug("photo \(Int(w))x\(Int(h)) orientation \(page.imageOrientation.rawValue) cgImage \(page.cgImage != nil) → \(Int(size.width))x\(Int(size.height)) result cg \(image.cgImage != nil)")
         ReceiptOCR.log.notice("receipt: photo \(Int(w), privacy: .public)x\(Int(h), privacy: .public) → \(Int(size.width), privacy: .public)x\(Int(size.height), privacy: .public)")
         return image.cgImage
     }

@@ -139,7 +139,12 @@ enum Receipt {
             if has(notItemRE, row) || has(cashRE, row) || has(totalRE, row) && !has(reductionRE, row) || has(dateRE, row) { pendingName = nil; continue }
             let ns = row as NSString
             var name = clean(ns.substring(to: price.at))
-            if has(unitPriceRE, row) || has(qualifierRE, row) && (amt[i].count >= 2 || letters(name) < 3) {
+            // "Paulaner Spezi  4 * 0,95  3,80" (Kaufland): the name, how many at what, and the
+            // line's price, all on one line — an item, named by what comes before the count
+            let lead = qualifierRE.firstMatch(in: row, range: NSRange(location: 0, length: ns.length)).map { clean(ns.substring(to: $0.range.location)) } ?? ""
+            if !has(unitPriceRE, row) && has(qualifierRE, row) && amt[i].count >= 2 && letters(lead) >= 3 {
+                name = lead
+            } else if has(unitPriceRE, row) || has(qualifierRE, row) && (amt[i].count >= 2 || letters(name) < 3) {
                 // "2 x 0,99   1,98" under a name printed alone: that is the line's price
                 if let n = pendingName { name = clean(n) } else { pendingName = nil; continue }
             } else if letters(name) < 2 || has(currencyOnlyRE, name) {
@@ -201,9 +206,13 @@ enum Receipt {
     private static func titled(_ s: String) -> String {
         let t = s.trimmingCharacters(in: .whitespaces)
         guard letters(t) > 4, t == t.uppercased() else { return t }
-        return t.lowercased().split(separator: " ", omittingEmptySubsequences: true).map { w in
-            w.prefix(1).uppercased() + w.dropFirst()
-        }.joined(separator: " ")
+        // a capital after anything that isn't a letter: "G&G ESL-MILCH" → "G&G Esl-Milch"
+        var out = "", after = true
+        for c in t.lowercased() {
+            out += after ? c.uppercased() : String(c)
+            after = !c.isLetter
+        }
+        return out.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
     }
 
     /// the first date that can be the day of the purchase: not in the future, not years ago

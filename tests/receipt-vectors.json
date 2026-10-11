@@ -1,5 +1,5 @@
 {
- "now": "2026-10-08",
+ "now": "2026-10-11",
  "cases": [
   {
    "name": "REWE, weight line under an item, Pfand, card",
@@ -499,6 +499,102 @@
     ],
     "discount": 0,
     "itemsMatch": false
+   }
+  },
+  {
+   "name": "Real Kaufland receipt (iPhone, Oct 2026): count and price on the item's own line",
+   "rows": [
+    "10:42 -  584",
+    "10.10.2026",
+    "Kaufland",
+    "Kaufland  - Münchener Straße 146|",
+    "85051 Ingolstadt",
+    "Preis EUR",
+    "Paulaner Spezi  4 * 0,95  3,80 A",
+    "Pfandartikel  4 * 0,25  1,00 A",
+    "K. Fladenbrot 500g  1,49 łł",
+    "KPur.H.Geschnet.",
+    "2 * 3,79  7,58",
+    "KLC. Sahnejoghurt  2,19",
+    "Romatomaten 500g  2,29",
+    "Summe  18,35",
+    "Kartenzahlung  18,35",
+    "Steuer %  Brutto  Netto  Steuer",
+    "A 19,00%  4,80  4,03  0,77",
+    "B 7,00%  13,55  12,66  0,89",
+    "Kartenzahlung",
+    "-K-U-N-D-E-N-B-E-L-E-G-",
+    "Kartenzahlung",
+    "kontaktlos",
+    "MASTERCARD",
+    "EUR 18,35",
+    "Datum 10.10.26  18:56 Uhr"
+   ],
+   "want": {
+    "store": "Kaufland",
+    "date": "2026-10-10",
+    "total": 1835,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "Paulaner Spezi",
+      380
+     ],
+     [
+      "Pfandartikel",
+      100
+     ],
+     [
+      "K. Fladenbrot 500g",
+      149
+     ],
+     [
+      "KPur.H.Geschnet.",
+      758
+     ],
+     [
+      "KLC. Sahnejoghurt",
+      219
+     ],
+     [
+      "Romatomaten 500g",
+      229
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
+   }
+  },
+  {
+   "name": "Real EDEKA receipt (iPhone, Oct 2026): price × count before the line's price",
+   "rows": [
+    "EDEKA",
+    "Wir 00  Lebensmittel.",
+    "LEBENSMITTELMARKT JOSEF WIEMANN E. K.",
+    "MÖHRENDORFER STRASSE 4",
+    "91056 Erlangen",
+    "EUR",
+    "G&G ESL-MILCH 0,95 € ×  3  2,85 A",
+    "Posten: 3",
+    "SUMME  €  2,85",
+    "EC-Cash  2,85",
+    "-K-U-N-D-E-N-B-E-L-E-G-"
+   ],
+   "want": {
+    "store": "EDEKA",
+    "date": null,
+    "total": 285,
+    "totalSure": true,
+    "category": "groceries",
+    "items": [
+     [
+      "G&G Esl-Milch 0,95 € × 3",
+      285
+     ]
+    ],
+    "discount": 0,
+    "itemsMatch": true
    }
   },
   {

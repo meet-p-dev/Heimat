@@ -83,7 +83,13 @@ enum SiriData {
 
     private static func session() async throws -> (SupabaseClient, String) {
         let c = IntentStore.client()
-        guard let uid = try? await c.auth.session.user.id.uuidString.lowercased() else { throw SiriError.signedOut }
+        let uid: String
+        do { uid = try await c.auth.session.user.id.uuidString.lowercased() } catch {
+            #if DEBUG
+            print("[siri] no session: \(error)")
+            #endif
+            throw SiriError.signedOut
+        }
         return (c, uid)
     }
 
@@ -306,7 +312,19 @@ extension SiriData {
     static func awake<T>(_ name: String, _ work: () async throws -> T) async throws -> T {
         let hold = await Awake(name)
         defer { Task { @MainActor in hold.end() } }
-        do { return try await work() } catch {
+        #if DEBUG
+        print("[siri] \(name) start, app state \(await UIApplication.shared.applicationState.rawValue), protected data \(await UIApplication.shared.isProtectedDataAvailable)")
+        #endif
+        do {
+            let r = try await work()
+            #if DEBUG
+            print("[siri] \(name) done")
+            #endif
+            return r
+        } catch {
+            #if DEBUG
+            print("[siri] \(name) failed: \(error)")
+            #endif
             log.error("siri: \(name, privacy: .public) failed: \(String(describing: error), privacy: .public)")
             throw error
         }
@@ -340,7 +358,7 @@ struct GroupQuery: EntityStringQuery {
 
 /// Someone you share a group with: "How much do I owe Kevin?"
 struct PersonEntity: AppEntity {
-    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Person" }
+    static var typeDisplayRepresentation: TypeDisplayRepresentation { "Group member" }
     static var defaultQuery = PersonQuery()
     var id: String
     var name: String
@@ -467,16 +485,13 @@ struct AddExpenseIntent: AppIntent {
     }
 }
 
-/// "How much do I owe Kevin?" — or "Who owes me?" with no one named.
+/// "Who owes me?" / "How much do I owe?" — everyone you're not square with. No person
+/// in it on purpose: with an optional person, Siri took "who owes me" for a question
+/// for Contacts ("Splitlife or Contacts?") and then failed before Splitlife was asked.
 struct BalanceIntent: AppIntent {
     static var title: LocalizedStringResource = "Check balances"
-    static var description = IntentDescription("Says what you owe someone, or what they owe you, across your groups.")
+    static var description = IntentDescription("Says who owes you and whom you owe, across your groups.")
     static var openAppWhenRun = false
-
-    @Parameter(title: "Person")
-    var person: PersonEntity?
-
-    static var parameterSummary: some ParameterSummary { Summary("Balance with \(\.$person)") }
 
     func perform() async throws -> some IntentResult & ProvidesDialog {
         try await SiriData.awake("balance") { try await run() }
@@ -484,8 +499,28 @@ struct BalanceIntent: AppIntent {
 
     private func run() async throws -> some IntentResult & ProvidesDialog {
         let lines = try await SiriData.balances()
-        let text = SiriAnswers.balance(lines, person: person?.id, personName: person?.name, money: SiriData.money)
-        return .result(dialog: "\(text)")
+        return .result(dialog: "\(SiriAnswers.balance(lines, person: nil, money: SiriData.money))")
+    }
+}
+
+/// "What do I owe Kevin?" — one person, named.
+struct PersonBalanceIntent: AppIntent {
+    static var title: LocalizedStringResource = "Balance with someone"
+    static var description = IntentDescription("Says what you and one person owe each other, across your groups.")
+    static var openAppWhenRun = false
+
+    @Parameter(title: "Person", requestValueDialog: "Who with?")
+    var person: PersonEntity
+
+    static var parameterSummary: some ParameterSummary { Summary("Balance with \(\.$person)") }
+
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        try await SiriData.awake("person balance") { try await run() }
+    }
+
+    private func run() async throws -> some IntentResult & ProvidesDialog {
+        let lines = try await SiriData.balances()
+        return .result(dialog: "\(SiriAnswers.balance(lines, person: person.id, personName: person.name, money: SiriData.money))")
     }
 }
 
@@ -705,11 +740,26 @@ struct HeimatShortcuts: AppShortcutsProvider {
             phrases: [
                 "Who owes me in \(.applicationName)",
                 "How much do I owe in \(.applicationName)",
-                "What do I owe \(\.$person) in \(.applicationName)",
-                "How much does \(\.$person) owe me in \(.applicationName)",
+                "Show my balance in \(.applicationName)",
+                "Show my balances in \(.applicationName)",
+                "What's my balance in \(.applicationName)",
+                "What are my balances in \(.applicationName)",
+                "My balance in \(.applicationName)",
+                "Check my balance in \(.applicationName)",
             ],
             shortTitle: "Balances",
             systemImageName: "eurosign.circle.fill"
+        )
+        AppShortcut(
+            intent: PersonBalanceIntent(),
+            phrases: [
+                "What do I owe \(\.$person) in \(.applicationName)",
+                "How much do I owe \(\.$person) in \(.applicationName)",
+                "How much does \(\.$person) owe me in \(.applicationName)",
+                "Balance with \(\.$person) in \(.applicationName)",
+            ],
+            shortTitle: "Balance with",
+            systemImageName: "person.crop.circle"
         )
         AppShortcut(
             intent: ChoreTurnIntent(),

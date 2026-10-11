@@ -16,6 +16,12 @@ import os
 enum ReceiptOCR {
     /// sizes, counts and errors only — never what the receipt says
     static let log = Logger(subsystem: "app.heimat.mobile", category: "receipt")
+    /// DEBUG: the same notes on the console, for a build run over the cable
+    static func debug(_ s: @autoclosure () -> String) {
+        #if DEBUG
+        print("[receipt] " + s())
+        #endif
+    }
 
     struct Piece {
         var text: String
@@ -115,7 +121,9 @@ enum ReceiptOCR {
             found = try await request.perform(on: image, orientation: orientation)
         } catch {
             log.error("receipt: reading with word lists failed: \(String(describing: error), privacy: .public)")
+            debug("reading with word lists failed: \(error)")
         }
+        debug("read \(image.width)x\(image.height) orientation \(orientation.rawValue): \(found.count) pieces")
         if found.isEmpty {
             var request = RecognizeTextRequest()
             request.recognitionLevel = .accurate
@@ -123,6 +131,7 @@ enum ReceiptOCR {
             request.usesLanguageCorrection = false
             found = try await request.perform(on: image, orientation: orientation)
             log.notice("receipt: read again without word lists: \(found.count, privacy: .public) pieces")
+            debug("read again without word lists: \(found.count) pieces")
         }
         // turned a quarter: the picture's width is the text's height
         let sideways = [.left, .right, .leftMirrored, .rightMirrored].contains(orientation)
