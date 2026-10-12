@@ -52,8 +52,8 @@ export interface WorkStats {
   byEmployer: EmployerStat[]; tone: 'red' | 'amber' | 'green'
 }
 
-/* limits default to Germany's: ~120 full days a year, 20 h a week in term */
-export function computeWorkStats(shifts: Shift[], limits: WorkLimits = { weekCap: 20, yearDays: 120 }): WorkStats {
+/* limits default to Germany's: 140 full days a year (since March 2024), 20 h a week in term */
+export function computeWorkStats(shifts: Shift[], limits: WorkLimits = { weekCap: 20, yearDays: 140 }): WorkStats {
   const yr = tod().slice(0, 4)
   const mo = tod().slice(0, 7)
   const now = new Date()

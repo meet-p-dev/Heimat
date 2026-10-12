@@ -13,7 +13,7 @@ struct WidgetData: Codable, Equatable {
     var currency = "EUR"
 
     var daysUsed: Double = 0
-    var dayBudget: Int = 120
+    var dayBudget: Int = 140
     var weekHours: Double = 0
     var weekCap: Int = 20
 
@@ -33,7 +33,7 @@ struct WidgetData: Codable, Equatable {
     /// Placeholder for the widget gallery and for a first launch.
     static let sample = WidgetData(
         flatName: "Münchener Straße 67", inFlat: true, net: -203.5, currency: "EUR",
-        daysUsed: 34, dayBudget: 120, weekHours: 12, weekCap: 20,
+        daysUsed: 34, dayBudget: 140, weekHours: 12, weekCap: 20,
         recent: [
             .init(id: "1", title: "Kaufland", subtitle: "Kevin paid", amount: 25.21),
             .init(id: "2", title: "Potato + cello tape", subtitle: "Bhavin paid", amount: 3.39),

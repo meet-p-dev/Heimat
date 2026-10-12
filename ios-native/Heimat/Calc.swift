@@ -123,7 +123,7 @@ enum Calc {
     struct EmployerStat: Identifiable { let name: String; var pay, hours: Double; var id: String { name } }
     struct WorkStats {
         var daysUsed = 0.0, weekH = 0.0, earnMonth = 0.0, earnYear = 0.0, earnAll = 0.0, avgRate = 0.0
-        var budget = 120, weekCap = 20
+        var budget = 140, weekCap = 20
         var byEmployer: [EmployerStat] = []
         enum Tone { case safe, close, over }
         var tone: Tone = .safe

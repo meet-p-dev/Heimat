@@ -174,12 +174,19 @@ struct RootView: View {
         .animation(.smooth, value: m.toast)
         .sheet(item: $m.sheet) { SheetHost(route: $0) }
         #if DEBUG
-        // -HeimatSheet settings|profile: open that sheet straight away (demo mode only)
+        // -HeimatSheet settings|profile|expense|activity|spending|shift: open that sheet straight away (demo mode only)
         .task {
             let a = ProcessInfo.processInfo.arguments
             guard AppModel.fixtureMode, let i = a.firstIndex(of: "-HeimatSheet"), i + 1 < a.count else { return }
             try? await Task.sleep(for: .seconds(1))
-            m.sheet = a[i + 1] == "profile" ? .profile : a[i + 1] == "expense" ? .expense(nil, nil) : .settings
+            switch a[i + 1] {
+            case "profile": m.sheet = .profile
+            case "expense": m.sheet = .expense(nil, nil)
+            case "activity": m.sheet = .activity
+            case "spending": m.sheet = .myAnalytics
+            case "shift": m.sheet = .shift(nil, nil)
+            default: m.sheet = .settings
+            }
         }
         #endif
     }

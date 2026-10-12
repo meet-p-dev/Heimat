@@ -373,13 +373,17 @@ struct Prefs: Codable, Equatable {
     var haptics = true
     var autoRate = true
     var weekCap = 20
-    var yearDays = 120
+    var yearDays = 140
 
     init() {}
     init(from d: Decoder) throws {
         let c = try d.container(keyedBy: CodingKeys.self)
         theme = c.v(.theme, .system); haptics = c.v(.haptics, true); autoRate = c.v(.autoRate, true)
-        weekCap = c.v(.weekCap, 20); yearDays = c.v(.yearDays, 120)
+        weekCap = c.v(.weekCap, 20)
+        // 140 full days since 1 March 2024 (§ 16b AufenthG); 120 was the app's default before,
+        // so someone on 120 never chose it and gets the current rule
+        let days = c.v(.yearDays, 140)
+        yearDays = days == 120 ? 140 : days
     }
 }
 

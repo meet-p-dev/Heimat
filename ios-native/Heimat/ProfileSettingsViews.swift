@@ -554,10 +554,10 @@ struct WorkLimitsView: View {
                     LabeledContent("Full days a year", value: "\(m.prefs.yearDays)")
                 }
             } footer: {
-                Text("Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.")
+                Text("Germany, since March 2024: 140 full days (or 280 half days) a year, or 20 hours a week during term, for students from outside the EU. Other countries differ — check with your international office.")
             }
-            if m.prefs.weekCap != 20 || m.prefs.yearDays != 120 {
-                Section { Button("Reset to Germany's limits") { m.prefs.weekCap = 20; m.prefs.yearDays = 120 } }
+            if m.prefs.weekCap != 20 || m.prefs.yearDays != 140 {
+                Section { Button("Reset to Germany's limits") { m.prefs.weekCap = 20; m.prefs.yearDays = 140 } }
             }
         }
         .navigationTitle("Work limits")

@@ -21,6 +21,10 @@ extension AppModel {
 
         profile.onboarded = true
         if profile.name.isEmpty { profile.name = "Meet Patel" }
+        // a real-looking rupee rate, so amounts show in both currencies the way they do for testers
+        if profile.rate == 1 { profile.rate = 108.35 }
+        // screenshots: the notifications card is already answered
+        UserDefaults.standard.set(true, forKey: Push.askedKey)
         uid = me
         isAnon = false
         if email == nil { email = "meet@example.com" }
@@ -122,7 +126,11 @@ extension AppModel {
             var s = Shift(); s.date = "\(month)-\(d)"; s.employer = emp; s.start = "09:00"; s.end = String(format: "%02d:00", 9 + h); s.wage = emp == "Uni lab" ? 15.5 : 13.9
             return s
         }
-        tab = .flat
+        // -HeimatTab home|groups|work and -HeimatGroup pick where it opens (screenshots); Groups otherwise
+        let a = ProcessInfo.processInfo.arguments
+        let start = a.firstIndex(of: "-HeimatTab").flatMap { $0 + 1 < a.count ? a[$0 + 1] : nil }
+        tab = start == "home" ? .home : start == "work" ? .work : .flat
+        if a.contains("-HeimatGroup") { tab = .flat; groupsPath = [.group(flat)] }
     }
 
     /// a circle made on the phone for the people picked, as the server would

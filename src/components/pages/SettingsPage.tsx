@@ -204,7 +204,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       </>)}
 
       {page === 'limits' && sub('Work limits', <>
-        <Group T={T} footer="Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.">
+        <Group T={T} footer="Germany, since March 2024: 140 full days (or 280 half days) a year, or 20 hours a week during term, for students from outside the EU. Other countries differ — check with your international office.">
           <Item T={T} icon={CalendarDays} tint={TINT.orange} label="Days per year" right={<Stepper label="days per year" value={prefs.yearDays} onChange={(v) => set('yearDays', v)} min={10} max={365} step={5} />} />
           <Item T={T} icon={Timer} tint={TINT.orange} label="Hours per week" right={<Stepper label="hours per week" value={prefs.weekCap} onChange={(v) => set('weekCap', v)} min={1} max={60} format={(n) => `${n} h`} />} />
         </Group>
