@@ -1,41 +1,160 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Terms of Use — Splitlife</title><style>
-:root{color-scheme:dark}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:40px 22px 80px;line-height:1.65;color:#e6ece9;background:#0c1110}
-h1{font-size:26px;letter-spacing:-.5px;margin-bottom:4px}
-h2{font-size:16px;margin:30px 0 8px;color:#3ddc97}
-p,li{font-size:15px;color:#c2cdc8}
-em{color:#7e8e87;font-style:normal;font-size:13px}
-strong{color:#e6ece9}
-ul{padding-left:20px}
-a{color:#3ddc97}
-</style></head><body>
-<h1>Terms of Use — Splitlife</h1>
-<p><em>Last updated: 4 September 2026</em></p>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of use — Splitlife</title>
+<link rel="icon" href="../favicon.svg">
+<link rel="alternate" hreflang="de" href="de/nutzungsbedingungen.html">
+<style>/* Splitlife's website. System fonts only and nothing loaded from anywhere else:
+   no cookies, no trackers, no third-party requests (see the privacy policy). */
+:root {
+  --bg: #f5fbf4; --bg2: #eaf3ec; --card: #ffffff; --txt: #16201b; --txt2: #45534c; --txt3: #6c7a73;
+  --acc: #1f7a55; --acc-strong: #16a974; --acc-soft: #d6efe1; --line: #dbe5de; --shadow: 0 20px 50px -24px rgba(16, 60, 40, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1110; --bg2: #121a17; --card: #17211d; --txt: #e6ece9; --txt2: #b6c3bd; --txt3: #84938c;
+    --acc: #6fdbaa; --acc-strong: #3ddc97; --acc-soft: #173528; --line: #24302b; --shadow: 0 20px 50px -24px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; overflow-x: clip; background: var(--bg); color: var(--txt); font: 17px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif }
+a { color: var(--acc) }
+img { max-width: 100%; height: auto; display: block }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px }
 
-<p>Splitlife is a free app made by one person, Meet Patel. By using it you agree to what follows. If you don't, please don't use it.</p>
+/* top bar */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line) }
+.top .wrap { display: flex; align-items: center; gap: 16px; height: 62px }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--txt); text-decoration: none }
+.brand img { width: 34px; height: 34px; border-radius: 9px }
+.top nav { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 15px }
+.top nav a { color: var(--txt2); text-decoration: none }
+.top nav a:hover { color: var(--txt) }
+.lang { border: 1px solid var(--line); border-radius: 99px; padding: 3px 11px; font-weight: 600 }
+@media (max-width: 640px) { .top nav .hide-s { display: none } }
 
-<h2>What Splitlife is</h2>
-<p>A tracker. It helps you split flat costs with your flatmates, see how long your funds will last, and keep an eye on your student work hours. <strong>It never moves money.</strong> Balances, "who owes whom" figures and settle-up suggestions are a record of what you and your flatmates typed in — settling up happens between you, outside the app.</p>
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center }
+.hero h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.05; letter-spacing: -1.5px; margin: 0 0 18px }
+.hero h1 em { font-style: normal; color: var(--acc-strong) }
+.hero p.lead { font-size: 20px; color: var(--txt2); margin: 0 0 28px; max-width: 34em }
+.pill { display: inline-block; font-size: 13.5px; font-weight: 650; color: var(--acc); background: var(--acc-soft); border-radius: 99px; padding: 4px 12px; margin-bottom: 18px }
+.cta { display: flex; flex-wrap: wrap; gap: 12px }
+.btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 99px; font-weight: 650; font-size: 16px; text-decoration: none; border: 1px solid transparent }
+.btn-primary { background: var(--acc-strong); color: #04140c }
+.btn-ghost { border-color: var(--line); color: var(--txt); background: var(--card) }
+.btn small { font-weight: 500; opacity: .75 }
+.note { font-size: 14px; color: var(--txt3); margin-top: 14px }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px } .phones { min-height: 0; margin-top: 10px } }
 
-<h2>The work-hour figures are a guide, not legal advice</h2>
-<p>The work limits Splitlife tracks are a convenience feature based on the usual rules for international students in Germany. Rules change, and they differ by visa, employer and university. Splitlife's green/amber/red verdict is not legal advice and is not a substitute for checking with your employer, your university or the Ausländerbehörde. Splitlife is not affiliated with any government body.</p>
+/* phones */
+.phones { display: flex; justify-content: center; gap: 0; position: relative; min-height: 420px }
+.phone { width: 230px; border-radius: 34px; padding: 7px; background: #0b0f0e; box-shadow: var(--shadow); flex-shrink: 0 }
+.phone img { border-radius: 28px; width: 100% }
+.phones .phone:nth-child(1) { transform: rotate(-5deg) translate(30px, 24px) }
+.phones .phone:nth-child(2) { transform: rotate(4deg) translate(-30px, -6px); z-index: 1 }
+@media (max-width: 520px) { .phone { width: 180px; border-radius: 28px } .phone img { border-radius: 22px } }
 
-<h2>Your side</h2>
-<ul>
-  <li>What you enter is your responsibility — Splitlife can only be as accurate as the numbers you and your flatmates put in.</li>
-  <li>Only share a flat join code with people you actually live with. Anyone with the code can see and add to that flat's shared expenses.</li>
-  <li>Don't use Splitlife to harass anyone or to store anything unlawful.</li>
-</ul>
+/* sections */
+section { padding: 56px 0 }
+section.alt { background: var(--bg2) }
+h2 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -.8px; line-height: 1.15; margin: 0 0 12px }
+.sub { color: var(--txt2); font-size: 18px; margin: 0 0 36px; max-width: 40em }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr) } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px }
+.card h3 { margin: 12px 0 6px; font-size: 18px }
+.card p { margin: 0; color: var(--txt2); font-size: 15.5px }
+.ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--acc-soft) }
 
-<h2>No warranty</h2>
-<p>Splitlife is provided "as is", free of charge, with no warranty of any kind. It may be changed, interrupted or discontinued at any time. To the extent the law allows, the developer is not liable for any loss arising from using it — including a wrongly split bill, a missed limit or lost data. Nothing here limits liability for intent or gross negligence, or any liability that cannot legally be excluded.</p>
+/* a feature with its screen */
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center }
+.feature + .feature { margin-top: 72px }
+.feature.flip .text { order: 2 }
+.feature ul { padding-left: 20px; color: var(--txt2) }
+.feature li { margin: 6px 0 }
+.feature .phone { margin: 0 auto }
+@media (max-width: 860px) { .feature { grid-template-columns: 1fr; gap: 28px } .feature.flip .text { order: 0 } }
 
-<h2>Privacy</h2>
-<p>What Splitlife stores and where is set out in the <a href="privacy.html">Privacy Policy</a>.</p>
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+.steps .card::before { counter-increment: s; content: counter(s); display: flex; width: 34px; height: 34px; border-radius: 99px; align-items: center; justify-content: center; background: var(--acc-strong); color: #04140c; font-weight: 800 }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr } }
 
-<h2>Law</h2>
-<p>German law applies, as far as mandatory consumer-protection rules of your country of residence don't say otherwise.</p>
+details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin-bottom: 10px }
+summary { font-weight: 650; cursor: pointer }
+details p { color: var(--txt2); margin: 10px 0 0 }
 
-<h2>Contact</h2>
-<p><a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></p>
-</body></html>
+footer { border-top: 1px solid var(--line); padding: 34px 0 50px; color: var(--txt3); font-size: 14.5px }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; margin-left: auto }
+footer a { color: var(--txt2); text-decoration: none }
+
+/* legal pages */
+.doc { max-width: 760px; margin: 0 auto; padding: 44px 20px 70px }
+.doc h1 { font-size: 34px; letter-spacing: -.7px; margin: 0 0 4px }
+.doc h2 { font-size: 21px; letter-spacing: -.2px; margin: 34px 0 8px }
+.doc h3 { font-size: 17px; margin: 22px 0 6px }
+.doc p, .doc li { color: var(--txt2); font-size: 16px }
+.doc .date { color: var(--txt3); font-size: 14px; margin: 0 0 22px }
+.doc address { font-style: normal; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; color: var(--txt) }
+.doc table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0 }
+.doc td, .doc th { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--txt2) }
+.doc th { color: var(--txt); font-weight: 650 }
+.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 22px; font-size: 15px }
+.toc ol { margin: 6px 0; padding-left: 20px }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><img src="../icon-192.png" alt="">Splitlife</a>
+  <nav><a class="lang" href="de/nutzungsbedingungen.html" hreflang="de" lang="de">Deutsch</a></nav>
+</div></header>
+<main class="doc">
+  <h1>Terms of use</h1>
+  <p class="date">Last updated: 12 October 2026</p>
+  <p>Splitlife is a free app made by one person, Meet Patel (see the <a href="impressum-en.html">legal notice</a>). By using it you agree to these terms. If you don’t, please don’t use it.</p>
+
+  <h2>What Splitlife is</h2>
+  <p>A record-keeping app. It helps you split costs with flatmates, groups and friends, keep track of shared bills and chores, and keep an eye on your student job. <strong>It never moves money.</strong> Balances, “who owes whom” and settle-up suggestions are a record of what you and the people you share with typed in — paying each other back happens between you, outside the app.</p>
+
+  <h2>Guides, not advice</h2>
+  <ul>
+    <li><strong>Work limits.</strong> The 120-day year and 20-hour week follow the usual rules for international students in Germany. Rules change and differ by visa, university and employer. Splitlife’s verdict is not legal advice; check with your employer, your university or the Ausländerbehörde.</li>
+    <li><strong>Tax estimate.</strong> The pay and tax figures are an estimate from what you enter, not tax advice. Your payslip and your tax office are what count.</li>
+    <li><strong>Scanned receipts.</strong> Text recognition can misread a figure. Check the amounts before you save an expense.</li>
+  </ul>
+  <p>Splitlife is not affiliated with any government body, university or bank.</p>
+
+  <h2>Your side</h2>
+  <ul>
+    <li>What you enter is your responsibility — Splitlife is only as accurate as the numbers you and your group put in.</li>
+    <li>Share a group’s invite link or code only with the people it is meant for: anyone with it can join and see that group’s expenses.</li>
+    <li>Invite people by email only if they would expect to hear from you about shared costs.</li>
+    <li>Don’t use Splitlife to harass anyone, to store anything unlawful, or to try to reach data that isn’t yours.</li>
+  </ul>
+
+  <h2>Your account</h2>
+  <p>You can use Splitlife without an account; save one with your email to keep your groups on a new phone. You can delete your account in the app at any time (Profile → Delete account). Accounts that break these terms may be closed.</p>
+
+  <h2>No warranty</h2>
+  <p>Splitlife is provided free of charge and “as is”. It may change, be interrupted or be discontinued at any time. As a free service, the developer is liable only for intent and gross negligence. This does not limit liability for injury to life, body or health, or any liability that cannot be excluded by law.</p>
+
+  <h2>Privacy</h2>
+  <p>What Splitlife stores and where is explained in the <a href="privacy.html">privacy policy</a>.</p>
+
+  <h2>Changes and law</h2>
+  <p>These terms may be updated; the new version is published here with a new date. German law applies, unless mandatory consumer-protection rules of your country of residence say otherwise.</p>
+
+  <h2>Contact</h2>
+  <p><a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></p>
+
+  <p style="margin-top:34px"><a href="impressum-en.html">Legal notice</a> · <a href="privacy.html">Privacy policy</a> · <a href="../">Home</a></p>
+</main>
+</body>
+</html>

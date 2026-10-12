@@ -1,56 +1,229 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Privacy Policy — Splitlife</title><style>
-:root{color-scheme:dark}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;padding:40px 22px 80px;line-height:1.65;color:#e6ece9;background:#0c1110}
-h1{font-size:26px;letter-spacing:-.5px;margin-bottom:4px}
-h2{font-size:16px;margin:30px 0 8px;color:#3ddc97}
-p,li{font-size:15px;color:#c2cdc8}
-em{color:#7e8e87;font-style:normal;font-size:13px}
-strong{color:#e6ece9}
-ul{padding-left:20px}
-a{color:#3ddc97}
-</style></head><body>
-<h1>Privacy Policy — Splitlife</h1>
-<p><em>Last updated: 4 September 2026</em></p>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy policy — Splitlife</title>
+<link rel="icon" href="../favicon.svg">
+<link rel="alternate" hreflang="de" href="de/datenschutz.html">
+<style>/* Splitlife's website. System fonts only and nothing loaded from anywhere else:
+   no cookies, no trackers, no third-party requests (see the privacy policy). */
+:root {
+  --bg: #f5fbf4; --bg2: #eaf3ec; --card: #ffffff; --txt: #16201b; --txt2: #45534c; --txt3: #6c7a73;
+  --acc: #1f7a55; --acc-strong: #16a974; --acc-soft: #d6efe1; --line: #dbe5de; --shadow: 0 20px 50px -24px rgba(16, 60, 40, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1110; --bg2: #121a17; --card: #17211d; --txt: #e6ece9; --txt2: #b6c3bd; --txt3: #84938c;
+    --acc: #6fdbaa; --acc-strong: #3ddc97; --acc-soft: #173528; --line: #24302b; --shadow: 0 20px 50px -24px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; overflow-x: clip; background: var(--bg); color: var(--txt); font: 17px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif }
+a { color: var(--acc) }
+img { max-width: 100%; height: auto; display: block }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px }
 
-<p>Splitlife is a free, non-commercial app for international students, made by one person: Meet Patel (<a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a>), who is the data controller for the purposes of the GDPR. This policy covers the Splitlife iOS app, Android app and website.</p>
+/* top bar */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line) }
+.top .wrap { display: flex; align-items: center; gap: 16px; height: 62px }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--txt); text-decoration: none }
+.brand img { width: 34px; height: 34px; border-radius: 9px }
+.top nav { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 15px }
+.top nav a { color: var(--txt2); text-decoration: none }
+.top nav a:hover { color: var(--txt) }
+.lang { border: 1px solid var(--line); border-radius: 99px; padding: 3px 11px; font-weight: 600 }
+@media (max-width: 640px) { .top nav .hide-s { display: none } }
 
-<h2>Data that never leaves your device</h2>
-<p>Your name, home country and currency, host currency, your funds-runway figures and every work shift you log are stored only in the app's own storage on your device. They are not uploaded, not backed up by us, and disappear when you uninstall the app.</p>
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center }
+.hero h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.05; letter-spacing: -1.5px; margin: 0 0 18px }
+.hero h1 em { font-style: normal; color: var(--acc-strong) }
+.hero p.lead { font-size: 20px; color: var(--txt2); margin: 0 0 28px; max-width: 34em }
+.pill { display: inline-block; font-size: 13.5px; font-weight: 650; color: var(--acc); background: var(--acc-soft); border-radius: 99px; padding: 4px 12px; margin-bottom: 18px }
+.cta { display: flex; flex-wrap: wrap; gap: 12px }
+.btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 99px; font-weight: 650; font-size: 16px; text-decoration: none; border: 1px solid transparent }
+.btn-primary { background: var(--acc-strong); color: #04140c }
+.btn-ghost { border-color: var(--line); color: var(--txt); background: var(--card) }
+.btn small { font-weight: 500; opacity: .75 }
+.note { font-size: 14px; color: var(--txt3); margin-top: 14px }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px } .phones { min-height: 0; margin-top: 10px } }
 
-<h2>Data shared with your flat</h2>
-<p>When you create or join a flat, the following is stored on our server so your flatmates' devices can see it:</p>
-<ul>
-  <li>the flat's name and join code;</li>
-  <li>the display name you chose for yourself in that flat;</li>
-  <li>shared expenses — description, amount, currency, category, date, who paid, who it is split among;</li>
-  <li>recorded settlements between flatmates;</li>
-  <li>shared shopping/to-do list items and any custom categories.</li>
-</ul>
-<p>This is visible to the other members of that flat, and to nobody else. Hosting is Supabase (PostgreSQL), in the EU (Ireland).</p>
+/* phones */
+.phones { display: flex; justify-content: center; gap: 0; position: relative; min-height: 420px }
+.phone { width: 230px; border-radius: 34px; padding: 7px; background: #0b0f0e; box-shadow: var(--shadow); flex-shrink: 0 }
+.phone img { border-radius: 28px; width: 100% }
+.phones .phone:nth-child(1) { transform: rotate(-5deg) translate(30px, 24px) }
+.phones .phone:nth-child(2) { transform: rotate(4deg) translate(-30px, -6px); z-index: 1 }
+@media (max-width: 520px) { .phone { width: 180px; border-radius: 28px } .phone img { border-radius: 22px } }
 
-<h2>Your account</h2>
-<p>On first launch Splitlife signs you in <strong>anonymously</strong> — no email, no password, no sign-up screen. If you later choose "Save account", we additionally store the email address you give, so you can sign back into the same flat on another device. Authentication is handled by Supabase Auth. We never see your password.</p>
+/* sections */
+section { padding: 56px 0 }
+section.alt { background: var(--bg2) }
+h2 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -.8px; line-height: 1.15; margin: 0 0 12px }
+.sub { color: var(--txt2); font-size: 18px; margin: 0 0 36px; max-width: 40em }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr) } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px }
+.card h3 { margin: 12px 0 6px; font-size: 18px }
+.card p { margin: 0; color: var(--txt2); font-size: 15.5px }
+.ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--acc-soft) }
 
-<h2>Notifications</h2>
-<p>If you turn notifications on, we store a push token for that device so the server can tell you when a flatmate adds a shared expense or records a payment to you. Delivery runs through Apple's Push Notification service on iOS, Firebase Cloud Messaging on Android, or your browser's push service on the web. Turning notifications off in the app deletes the token; you can also switch them off in your device settings at any time.</p>
+/* a feature with its screen */
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center }
+.feature + .feature { margin-top: 72px }
+.feature.flip .text { order: 2 }
+.feature ul { padding-left: 20px; color: var(--txt2) }
+.feature li { margin: 6px 0 }
+.feature .phone { margin: 0 auto }
+@media (max-width: 860px) { .feature { grid-template-columns: 1fr; gap: 28px } .feature.flip .text { order: 0 } }
 
-<h2>Exchange rates</h2>
-<p>To show amounts in your home currency, the app asks <a href="https://open.er-api.com">open.er-api.com</a> for a reference rate. That request contains nothing but the two currency codes.</p>
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+.steps .card::before { counter-increment: s; content: counter(s); display: flex; width: 34px; height: 34px; border-radius: 99px; align-items: center; justify-content: center; background: var(--acc-strong); color: #04140c; font-weight: 800 }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr } }
 
-<h2>What Splitlife does not do</h2>
-<ul>
-  <li>No advertising, no analytics, no tracking SDKs, no third-party trackers.</li>
-  <li>No selling or sharing of your data with anyone.</li>
-  <li>No bank connection. Splitlife never holds, moves or has access to your money.</li>
-  <li>No access to your location, contacts, photos, camera or microphone.</li>
-</ul>
+details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin-bottom: 10px }
+summary { font-weight: 650; cursor: pointer }
+details p { color: var(--txt2); margin: 10px 0 0 }
 
-<h2>Keeping and deleting data</h2>
-<p>Flat data is kept for as long as the flat exists. Leaving a flat in the app removes your membership from it. To have your account and everything attached to it deleted, email <a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a> and it will be done within 30 days. Under the GDPR you can also ask for a copy of your data, or for it to be corrected.</p>
+footer { border-top: 1px solid var(--line); padding: 34px 0 50px; color: var(--txt3); font-size: 14.5px }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; margin-left: auto }
+footer a { color: var(--txt2); text-decoration: none }
 
-<h2>Children</h2>
-<p>Splitlife is not directed at children under 16.</p>
+/* legal pages */
+.doc { max-width: 760px; margin: 0 auto; padding: 44px 20px 70px }
+.doc h1 { font-size: 34px; letter-spacing: -.7px; margin: 0 0 4px }
+.doc h2 { font-size: 21px; letter-spacing: -.2px; margin: 34px 0 8px }
+.doc h3 { font-size: 17px; margin: 22px 0 6px }
+.doc p, .doc li { color: var(--txt2); font-size: 16px }
+.doc .date { color: var(--txt3); font-size: 14px; margin: 0 0 22px }
+.doc address { font-style: normal; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; color: var(--txt) }
+.doc table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0 }
+.doc td, .doc th { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--txt2) }
+.doc th { color: var(--txt); font-weight: 650 }
+.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 22px; font-size: 15px }
+.toc ol { margin: 6px 0; padding-left: 20px }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><img src="../icon-192.png" alt="">Splitlife</a>
+  <nav><a class="lang" href="de/datenschutz.html" hreflang="de" lang="de">Deutsch</a></nav>
+</div></header>
+<main class="doc">
+  <h1>Privacy policy</h1>
+  <p class="date">Last updated: 12 October 2026 · applies to the Splitlife apps for iPhone and Android, the web app and this website</p>
 
-<h2>Changes</h2>
-<p>Any change to this policy will be posted on this page with a new date.</p>
-</body></html>
+  <p>Splitlife helps you share costs, bills and chores and keep track of your student job. It has no advertising, no analytics and no trackers, and your data is never sold or shared for marketing. This policy explains, in plain words, what is stored, where, and why.</p>
+
+  <div class="toc"><strong>Contents</strong><ol>
+    <li><a href="#who">Who is responsible</a></li>
+    <li><a href="#device">What stays on your phone</a></li>
+    <li><a href="#account">Your account</a></li>
+    <li><a href="#groups">Groups and expenses with friends</a></li>
+    <li><a href="#invites">Inviting people and finding friends</a></li>
+    <li><a href="#push">Notifications</a></li>
+    <li><a href="#receipts">Scanning receipts</a></li>
+    <li><a href="#siri">Siri, Shortcuts and iPhone search</a></li>
+    <li><a href="#rates">Exchange rates</a></li>
+    <li><a href="#moneytrack">The link to MoneyTrack</a></li>
+    <li><a href="#processors">Who processes data for Splitlife</a></li>
+    <li><a href="#retention">How long data is kept, and deleting it</a></li>
+    <li><a href="#rights">Your rights</a></li>
+    <li><a href="#website">This website</a></li>
+    <li><a href="#other">Children, security and changes</a></li>
+  </ol></div>
+
+  <h2 id="who">1. Who is responsible</h2>
+  <p>The controller under the EU General Data Protection Regulation (GDPR) is:</p>
+  <address>Meet Patel<br>Münchener Str. 67<br>85051 Ingolstadt, Germany<br>Email: <a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></address>
+  <p>Splitlife is a private, non-commercial project. There is no data protection officer, as none is required; write to the email address above with any question.</p>
+
+  <h2 id="device">2. What stays on your phone</h2>
+  <p>These are stored only in the app on your device (or in your browser, for the web app), never on Splitlife’s server:</p>
+  <ul>
+    <li>your profile: name, home country, the country you live in, currencies and the exchange rate;</li>
+    <li>your work shifts, employers, wages, work limits and earnings;</li>
+    <li>the tax details you enter for the pay estimate;</li>
+    <li>your app settings (appearance, which parts of the app you use).</li>
+  </ul>
+  <p><strong>iCloud backup (iPhone, optional).</strong> If you turn it on in Settings, a copy of your profile and shifts is saved in your own iCloud account, so a new iPhone can restore them. Apple stores it under its own privacy terms; Splitlife cannot see it.</p>
+
+  <h2 id="account">3. Your account</h2>
+  <p>When you first open Splitlife it signs you in with a random account ID — no email, no password. If you later save your account, your email address and a password are stored so you can sign in on another device. The password is stored only in a protected (hashed) form; nobody, including the developer, can read it. Emails to confirm your address or reset your password are sent by the sign-in service (see section 11).</p>
+  <p>The same account also works for MoneyTrack, a separate app by the same developer. A small record notes which of the two apps you use, the name you use in them and when you last opened them, so each app can welcome you back.</p>
+  <p><em>Legal basis: Art. 6 (1) (b) GDPR — needed to provide the app you asked to use.</em></p>
+
+  <h2 id="groups">4. Groups and expenses with friends</h2>
+  <p>What you add to a group, or to an expense with a friend outside a group, is stored on Splitlife’s server so the other people in it can see it. That is:</p>
+  <ul>
+    <li>the group’s name and invite code, the people in it and the display name each of them chose;</li>
+    <li>expenses: what for, amount, currency, category, date, who paid, how it is split and each person’s share; repeating expenses; payments recorded between members (“settled up”);</li>
+    <li>the shopping list, custom categories, shared bills (name, amount, due dates, who pays, contract end and notice period) and whether they were paid;</li>
+    <li>chores: the rota, whose turn it is, turns done, skipped or swapped, and points;</li>
+    <li>an activity history (“Nina added Groceries”, “Ben marked Rent as paid”) and reminders you send someone who owes you money.</li>
+  </ul>
+  <p>All of this is visible to the members of that group (or to the people on that expense) and to nobody else. Bills you add under “My bills” are visible only to you. A deleted expense is hidden but kept, so it can be restored if it was deleted by mistake.</p>
+  <p>A nightly automatic check makes sure every group’s books add up; it records only technical IDs when something doesn’t.</p>
+  <p><em>Legal basis: Art. 6 (1) (b) GDPR.</em></p>
+
+  <h2 id="invites">5. Inviting people and finding friends</h2>
+  <p>If you add someone to a group or an expense by their email address and they are not on Splitlife yet, their address is stored with the invitation and they receive <strong>one</strong> email from Splitlife: who invited them, to which group, or which expense and their share of it, and how to join. The email is sent through Splitlife’s Google email account. If they never join, you can withdraw the invitation and the address is removed.</p>
+  <p>When you look someone up by email to add them as a friend, Splitlife only tells you whether an account exists. To stop misuse, the time of each search is logged and the number of searches is limited; what you searched for is not stored.</p>
+  <p><em>Legal basis: Art. 6 (1) (f) GDPR — the legitimate interest of the person inviting in reaching the people they share costs with, and in preventing misuse.</em></p>
+
+  <h2 id="push">6. Notifications</h2>
+  <p>If you allow notifications, a device token is stored so Splitlife can tell you when someone adds an expense with you, pays you back, reminds you, when a bill or chore is due, or when a new version is out. The message travels through Apple’s Push Notification service (iPhone), Google’s Firebase Cloud Messaging (Android) or your browser’s push service (web), and contains the text you see. Turning notifications off in the app deletes the token; you can also turn them off in your phone’s settings at any time.</p>
+  <p><em>Legal basis: Art. 6 (1) (a) GDPR — your consent, which you can withdraw at any time.</em></p>
+
+  <h2 id="receipts">7. Scanning receipts</h2>
+  <p>Scanning a receipt uses your camera or a photo you pick, only when you tap “Scan a receipt”. The text on the receipt is read <strong>on your phone</strong> — by Apple’s text recognition on iPhone, and by Google’s on-device text recognition (part of Google Play services) on Android. The photo is not uploaded to Splitlife and is not kept by the app. Only what you then save in the expense (for example the total, the shop’s name and the lines) is stored, like any other expense.</p>
+
+  <h2 id="siri">8. Siri, Shortcuts and iPhone search</h2>
+  <p>On iPhone you can ask Siri things like “who owes me in Splitlife” or add an expense by voice. Apple processes what you say under Apple’s privacy policy; Splitlife answers on your phone from your own data. Your groups can appear in iPhone search; that index is kept on your device by iOS.</p>
+
+  <h2 id="rates">9. Exchange rates</h2>
+  <p>To show amounts in your home currency, the app asks open.er-api.com for a reference rate. The request contains only the currency codes; like any request on the internet, the service sees your device’s IP address.</p>
+
+  <h2 id="moneytrack">10. The link to MoneyTrack</h2>
+  <p>If you also use MoneyTrack with the same account and connect the two, MoneyTrack can show your Splitlife balances (what you owe or are owed, per person). Only you see them; nothing is shared with the other people in your groups.</p>
+
+  <h2 id="processors">11. Who processes data for Splitlife</h2>
+  <table>
+    <tr><th>Service</th><th>What for</th><th>Where</th></tr>
+    <tr><td>Supabase Inc.</td><td>Database, sign-in, sending notifications and invitations (server)</td><td>EU (Ireland)</td></tr>
+    <tr><td>Apple</td><td>App distribution, iPhone notifications, iCloud backup, Siri</td><td>EU / USA</td></tr>
+    <tr><td>Google</td><td>Android notifications (Firebase), invitation emails (Gmail), on-device text recognition</td><td>EU / USA</td></tr>
+    <tr><td>GitHub Inc.</td><td>Hosting this website and the web app</td><td>USA</td></tr>
+    <tr><td>open.er-api.com</td><td>Exchange rates (no personal data apart from the IP address)</td><td>—</td></tr>
+  </table>
+  <p>Supabase processes data on Splitlife’s behalf under a data processing agreement (Art. 28 GDPR). Where data reaches the USA, the transfer relies on the EU–US Data Privacy Framework or the EU’s standard contractual clauses.</p>
+
+  <h2 id="retention">12. How long data is kept, and deleting it</h2>
+  <ul>
+    <li>Data on your phone stays until you delete it (Settings → Export &amp; import → Clear shifts) or uninstall the app.</li>
+    <li>Group data is kept while the group exists. When you leave a group, your past expenses stay in its history, because they are part of everyone’s balances.</li>
+    <li><strong>Delete your account in the app:</strong> Profile → Delete account. Your account, email address, group memberships and notification tokens are deleted. Shared expenses stay with the group, but no longer show your name.</li>
+    <li>You can also ask by email; it will be done within 30 days.</li>
+  </ul>
+
+  <h2 id="rights">13. Your rights</h2>
+  <p>You have the right to access your data (Art. 15 GDPR), to have it corrected (Art. 16) or deleted (Art. 17), to restrict its processing (Art. 18), to receive it in a portable format (Art. 20), and to object to processing based on legitimate interest (Art. 21). Consent can be withdrawn at any time, with effect for the future. Write to the email address in section 1.</p>
+  <p>You can also complain to a data protection authority — for example the one responsible for Splitlife: Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach, Germany, <a href="https://www.lda.bayern.de">www.lda.bayern.de</a> — or the one where you live.</p>
+  <p>Splitlife makes no automated decisions about you.</p>
+
+  <h2 id="website">14. This website</h2>
+  <p>This website sets no cookies, uses no analytics and loads nothing from other services — not even fonts. Like every web host, GitHub logs technical data when you visit (your IP address, the time and the page) to deliver the site and keep it secure (Art. 6 (1) (f) GDPR). The web app stores your personal data (section 2) in your browser’s storage.</p>
+
+  <h2 id="other">15. Children, security and changes</h2>
+  <p>Splitlife is not meant for children under 16. All connections are encrypted (HTTPS), and the server only lets people see the groups they belong to. If this policy changes, the new version is published here with a new date.</p>
+
+  <p style="margin-top:34px"><a href="impressum-en.html">Legal notice</a> · <a href="terms.html">Terms of use</a> · <a href="../">Home</a></p>
+</main>
+</body>
+</html>

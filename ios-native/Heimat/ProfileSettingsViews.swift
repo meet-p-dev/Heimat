@@ -343,6 +343,7 @@ struct SettingsView: View {
             Section {
                 Link(destination: URL(string: Secrets.publicURL + "legal/privacy.html")!) { linkRow("hand.raised.fill", .blue, "Privacy policy") }
                 Link(destination: URL(string: Secrets.publicURL + "legal/terms.html")!) { linkRow("doc.text.fill", .gray, "Terms of use") }
+                Link(destination: URL(string: Secrets.publicURL + "legal/impressum.html")!) { linkRow("info.circle.fill", .gray, "Legal notice (Impressum)") }
             } header: { Text("Legal") }
             .tint(.primary)
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Palette, Droplets, Bell, Send, Globe, RefreshCw, CalendarDays, Timer, RotateCcw, Vibrate, Download, Upload, FileSpreadsheet, Trash2, Shield,
-  FileText, ExternalLink, ChevronRight,
+  FileText, ExternalLink, ChevronRight, Info,
 } from 'lucide-react'
 import type { Theme, Profile, Shift, Runway } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
@@ -171,6 +171,7 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       <Group T={T} title="Legal">
         <Item T={T} icon={Shield} tint={TINT.blue} label="Privacy policy" chevron={false} right={<ExternalLink size={16} color={T.txt3} />} onClick={() => openExternal(webOrigin() + 'legal/privacy.html')} />
         <Item T={T} icon={FileText} tint={TINT.gray} label="Terms of use" chevron={false} right={<ExternalLink size={16} color={T.txt3} />} onClick={() => openExternal(webOrigin() + 'legal/terms.html')} />
+        <Item T={T} icon={Info} tint={TINT.gray} label="Legal notice (Impressum)" chevron={false} right={<ExternalLink size={16} color={T.txt3} />} onClick={() => openExternal(webOrigin() + 'legal/impressum.html')} />
       </Group>
 
       <Group T={T} title="About" footer="Your profile and shifts stay on this phone. What you share in a group syncs only with the people in it.">

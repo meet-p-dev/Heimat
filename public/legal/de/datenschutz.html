@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenschutzerklärung — Splitlife</title>
+<link rel="icon" href="../../favicon.svg">
+<link rel="alternate" hreflang="en" href="../privacy.html">
+<style>/* Splitlife's website. System fonts only and nothing loaded from anywhere else:
+   no cookies, no trackers, no third-party requests (see the privacy policy). */
+:root {
+  --bg: #f5fbf4; --bg2: #eaf3ec; --card: #ffffff; --txt: #16201b; --txt2: #45534c; --txt3: #6c7a73;
+  --acc: #1f7a55; --acc-strong: #16a974; --acc-soft: #d6efe1; --line: #dbe5de; --shadow: 0 20px 50px -24px rgba(16, 60, 40, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1110; --bg2: #121a17; --card: #17211d; --txt: #e6ece9; --txt2: #b6c3bd; --txt3: #84938c;
+    --acc: #6fdbaa; --acc-strong: #3ddc97; --acc-soft: #173528; --line: #24302b; --shadow: 0 20px 50px -24px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; overflow-x: clip; background: var(--bg); color: var(--txt); font: 17px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif }
+a { color: var(--acc) }
+img { max-width: 100%; height: auto; display: block }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line) }
+.top .wrap { display: flex; align-items: center; gap: 16px; height: 62px }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--txt); text-decoration: none }
+.brand img { width: 34px; height: 34px; border-radius: 9px }
+.top nav { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 15px }
+.top nav a { color: var(--txt2); text-decoration: none }
+.top nav a:hover { color: var(--txt) }
+.lang { border: 1px solid var(--line); border-radius: 99px; padding: 3px 11px; font-weight: 600 }
+@media (max-width: 640px) { .top nav .hide-s { display: none } }
+
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center }
+.hero h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.05; letter-spacing: -1.5px; margin: 0 0 18px }
+.hero h1 em { font-style: normal; color: var(--acc-strong) }
+.hero p.lead { font-size: 20px; color: var(--txt2); margin: 0 0 28px; max-width: 34em }
+.pill { display: inline-block; font-size: 13.5px; font-weight: 650; color: var(--acc); background: var(--acc-soft); border-radius: 99px; padding: 4px 12px; margin-bottom: 18px }
+.cta { display: flex; flex-wrap: wrap; gap: 12px }
+.btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 99px; font-weight: 650; font-size: 16px; text-decoration: none; border: 1px solid transparent }
+.btn-primary { background: var(--acc-strong); color: #04140c }
+.btn-ghost { border-color: var(--line); color: var(--txt); background: var(--card) }
+.btn small { font-weight: 500; opacity: .75 }
+.note { font-size: 14px; color: var(--txt3); margin-top: 14px }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px } .phones { min-height: 0; margin-top: 10px } }
+
+/* phones */
+.phones { display: flex; justify-content: center; gap: 0; position: relative; min-height: 420px }
+.phone { width: 230px; border-radius: 34px; padding: 7px; background: #0b0f0e; box-shadow: var(--shadow); flex-shrink: 0 }
+.phone img { border-radius: 28px; width: 100% }
+.phones .phone:nth-child(1) { transform: rotate(-5deg) translate(30px, 24px) }
+.phones .phone:nth-child(2) { transform: rotate(4deg) translate(-30px, -6px); z-index: 1 }
+@media (max-width: 520px) { .phone { width: 180px; border-radius: 28px } .phone img { border-radius: 22px } }
+
+/* sections */
+section { padding: 56px 0 }
+section.alt { background: var(--bg2) }
+h2 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -.8px; line-height: 1.15; margin: 0 0 12px }
+.sub { color: var(--txt2); font-size: 18px; margin: 0 0 36px; max-width: 40em }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr) } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px }
+.card h3 { margin: 12px 0 6px; font-size: 18px }
+.card p { margin: 0; color: var(--txt2); font-size: 15.5px }
+.ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--acc-soft) }
+
+/* a feature with its screen */
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center }
+.feature + .feature { margin-top: 72px }
+.feature.flip .text { order: 2 }
+.feature ul { padding-left: 20px; color: var(--txt2) }
+.feature li { margin: 6px 0 }
+.feature .phone { margin: 0 auto }
+@media (max-width: 860px) { .feature { grid-template-columns: 1fr; gap: 28px } .feature.flip .text { order: 0 } }
+
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+.steps .card::before { counter-increment: s; content: counter(s); display: flex; width: 34px; height: 34px; border-radius: 99px; align-items: center; justify-content: center; background: var(--acc-strong); color: #04140c; font-weight: 800 }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr } }
+
+details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin-bottom: 10px }
+summary { font-weight: 650; cursor: pointer }
+details p { color: var(--txt2); margin: 10px 0 0 }
+
+footer { border-top: 1px solid var(--line); padding: 34px 0 50px; color: var(--txt3); font-size: 14.5px }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; margin-left: auto }
+footer a { color: var(--txt2); text-decoration: none }
+
+/* legal pages */
+.doc { max-width: 760px; margin: 0 auto; padding: 44px 20px 70px }
+.doc h1 { font-size: 34px; letter-spacing: -.7px; margin: 0 0 4px }
+.doc h2 { font-size: 21px; letter-spacing: -.2px; margin: 34px 0 8px }
+.doc h3 { font-size: 17px; margin: 22px 0 6px }
+.doc p, .doc li { color: var(--txt2); font-size: 16px }
+.doc .date { color: var(--txt3); font-size: 14px; margin: 0 0 22px }
+.doc address { font-style: normal; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; color: var(--txt) }
+.doc table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0 }
+.doc td, .doc th { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--txt2) }
+.doc th { color: var(--txt); font-weight: 650 }
+.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 22px; font-size: 15px }
+.toc ol { margin: 6px 0; padding-left: 20px }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../../"><img src="../../icon-192.png" alt="">Splitlife</a>
+  <nav><a class="lang" href="../privacy.html" hreflang="en" lang="en">English</a></nav>
+</div></header>
+<main class="doc">
+  <h1>Datenschutzerklärung</h1>
+  <p class="date">Stand: 12. Oktober 2026 · gilt für die Splitlife-Apps für iPhone und Android, die Web-App und diese Website</p>
+
+  <p>Splitlife hilft dir, Kosten, Rechnungen und Haushaltsaufgaben zu teilen und deinen Studentenjob im Blick zu behalten. Es gibt keine Werbung, keine Analyse-Tools und keine Tracker, und deine Daten werden niemals verkauft oder für Werbung weitergegeben. Hier steht in einfachen Worten, was gespeichert wird, wo und warum.</p>
+
+  <div class="toc"><strong>Inhalt</strong><ol>
+    <li><a href="#who">Verantwortlicher</a></li>
+    <li><a href="#device">Was nur auf deinem Handy bleibt</a></li>
+    <li><a href="#account">Dein Konto</a></li>
+    <li><a href="#groups">Gruppen und Ausgaben mit Freunden</a></li>
+    <li><a href="#invites">Personen einladen und Freunde finden</a></li>
+    <li><a href="#push">Benachrichtigungen</a></li>
+    <li><a href="#receipts">Kassenbons scannen</a></li>
+    <li><a href="#siri">Siri, Kurzbefehle und die iPhone-Suche</a></li>
+    <li><a href="#rates">Wechselkurse</a></li>
+    <li><a href="#moneytrack">Die Verbindung zu MoneyTrack</a></li>
+    <li><a href="#processors">Wer Daten für Splitlife verarbeitet</a></li>
+    <li><a href="#retention">Speicherdauer und Löschen</a></li>
+    <li><a href="#rights">Deine Rechte</a></li>
+    <li><a href="#website">Diese Website</a></li>
+    <li><a href="#other">Kinder, Sicherheit und Änderungen</a></li>
+  </ol></div>
+
+  <h2 id="who">1. Verantwortlicher</h2>
+  <p>Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
+  <address>Meet Patel<br>Münchener Str. 67<br>85051 Ingolstadt<br>E-Mail: <a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></address>
+  <p>Splitlife ist ein privates, nicht kommerzielles Projekt. Ein Datenschutzbeauftragter ist nicht vorgeschrieben und daher nicht benannt; schreib bei Fragen einfach an die E-Mail-Adresse oben.</p>
+
+  <h2 id="device">2. Was nur auf deinem Handy bleibt</h2>
+  <p>Diese Daten werden nur in der App auf deinem Gerät gespeichert (bei der Web-App in deinem Browser), niemals auf dem Server von Splitlife:</p>
+  <ul>
+    <li>dein Profil: Name, Herkunftsland, Wohnland, Währungen und Wechselkurs;</li>
+    <li>deine Arbeitsschichten, Arbeitgeber, Stundenlöhne, Arbeitszeitgrenzen und Verdienste;</li>
+    <li>die Steuerangaben, die du für die Lohnschätzung einträgst;</li>
+    <li>deine App-Einstellungen (Darstellung, welche Bereiche der App du nutzt).</li>
+  </ul>
+  <p><strong>iCloud-Backup (iPhone, freiwillig).</strong> Wenn du es in den Einstellungen einschaltest, wird eine Kopie deines Profils und deiner Schichten in deinem eigenen iCloud-Konto gespeichert, damit ein neues iPhone sie übernehmen kann. Apple speichert sie nach seinen eigenen Datenschutzbedingungen; Splitlife kann sie nicht einsehen.</p>
+
+  <h2 id="account">3. Dein Konto</h2>
+  <p>Beim ersten Öffnen meldet dich Splitlife mit einer zufälligen Konto-ID an – ohne E-Mail und ohne Passwort. Sicherst du dein Konto später, werden deine E-Mail-Adresse und ein Passwort gespeichert, damit du dich auf einem anderen Gerät anmelden kannst. Das Passwort wird nur geschützt (gehasht) gespeichert; niemand, auch nicht der Entwickler, kann es lesen. E-Mails zur Bestätigung deiner Adresse oder zum Zurücksetzen des Passworts verschickt der Anmeldedienst (siehe Abschnitt 11).</p>
+  <p>Dasselbe Konto funktioniert auch für MoneyTrack, eine eigene App desselben Entwicklers. Ein kleiner Eintrag hält fest, welche der beiden Apps du nutzt, unter welchem Namen und wann du sie zuletzt geöffnet hast, damit dich jede App wiedererkennt.</p>
+  <p><em>Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO – erforderlich, um die App bereitzustellen, die du nutzen möchtest.</em></p>
+
+  <h2 id="groups">4. Gruppen und Ausgaben mit Freunden</h2>
+  <p>Was du in einer Gruppe oder bei einer Ausgabe mit einer Person außerhalb einer Gruppe einträgst, wird auf dem Server von Splitlife gespeichert, damit die anderen Beteiligten es sehen. Das sind:</p>
+  <ul>
+    <li>Name und Einladungscode der Gruppe, ihre Mitglieder und der Anzeigename, den jedes Mitglied gewählt hat;</li>
+    <li>Ausgaben: wofür, Betrag, Währung, Kategorie, Datum, wer bezahlt hat, wie aufgeteilt wird und der Anteil jeder Person; wiederkehrende Ausgaben; Zahlungen zwischen Mitgliedern („ausgeglichen“);</li>
+    <li>die Einkaufsliste, eigene Kategorien, gemeinsame Rechnungen (Name, Betrag, Fälligkeiten, wer zahlt, Vertragsende und Kündigungsfrist) und ob sie bezahlt wurden;</li>
+    <li>Haushaltsaufgaben: der Plan, wer an der Reihe ist, erledigte, übersprungene oder getauschte Runden und Punkte;</li>
+    <li>ein Verlauf („Nina hat Lebensmittel hinzugefügt“, „Ben hat die Miete als bezahlt markiert“) und Erinnerungen, die du an jemanden schickst, der dir Geld schuldet.</li>
+  </ul>
+  <p>All das sehen die Mitglieder der Gruppe (bzw. die Personen, die an der Ausgabe beteiligt sind) und sonst niemand. Rechnungen unter „My bills“ siehst nur du. Eine gelöschte Ausgabe wird ausgeblendet, aber aufbewahrt, damit sie bei einem Versehen wiederhergestellt werden kann.</p>
+  <p>Eine nächtliche automatische Prüfung stellt sicher, dass die Abrechnung jeder Gruppe aufgeht; stimmt etwas nicht, werden nur technische Kennungen festgehalten.</p>
+  <p><em>Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.</em></p>
+
+  <h2 id="invites">5. Personen einladen und Freunde finden</h2>
+  <p>Fügst du jemanden per E-Mail-Adresse zu einer Gruppe oder Ausgabe hinzu, der Splitlife noch nicht nutzt, wird die Adresse mit der Einladung gespeichert und die Person erhält <strong>eine</strong> E-Mail von Splitlife: wer sie eingeladen hat, in welche Gruppe bzw. welche Ausgabe und ihr Anteil daran, und wie sie beitreten kann. Die E-Mail wird über das Google-E-Mail-Konto von Splitlife versendet. Tritt die Person nie bei, kannst du die Einladung zurückziehen; die Adresse wird dann gelöscht.</p>
+  <p>Suchst du jemanden per E-Mail, um ihn als Freund hinzuzufügen, erfährst du nur, ob ein Konto existiert. Um Missbrauch zu verhindern, wird der Zeitpunkt jeder Suche gespeichert und die Zahl der Suchen begrenzt; wonach du gesucht hast, wird nicht gespeichert.</p>
+  <p><em>Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO – das berechtigte Interesse der einladenden Person, die Menschen zu erreichen, mit denen sie Kosten teilt, sowie die Verhinderung von Missbrauch.</em></p>
+
+  <h2 id="push">6. Benachrichtigungen</h2>
+  <p>Erlaubst du Benachrichtigungen, wird ein Geräte-Token gespeichert, damit Splitlife dir mitteilen kann, wenn jemand eine Ausgabe mit dir hinzufügt, dir Geld zurückzahlt, dich erinnert, eine Rechnung oder Aufgabe fällig ist oder eine neue Version erscheint. Die Nachricht läuft über den Apple Push Notification Service (iPhone), Google Firebase Cloud Messaging (Android) oder den Push-Dienst deines Browsers (Web) und enthält den Text, den du siehst. Schaltest du Benachrichtigungen in der App aus, wird das Token gelöscht; du kannst sie auch jederzeit in den Einstellungen deines Handys abschalten.</p>
+  <p><em>Rechtsgrundlage: Art. 6 Abs. 1 lit. a DSGVO – deine Einwilligung, die du jederzeit widerrufen kannst.</em></p>
+
+  <h2 id="receipts">7. Kassenbons scannen</h2>
+  <p>Zum Scannen eines Kassenbons nutzt die App deine Kamera oder ein Foto, das du auswählst – nur wenn du in der App auf „Scan a receipt“ tippst. Der Text wird <strong>auf deinem Handy</strong> gelesen: auf dem iPhone von Apples Texterkennung, auf Android von Googles Texterkennung auf dem Gerät (Teil der Google Play-Dienste). Das Foto wird nicht zu Splitlife hochgeladen und von der App nicht aufbewahrt. Gespeichert wird nur, was du anschließend in der Ausgabe sicherst (zum Beispiel Summe, Geschäft und Positionen), wie bei jeder anderen Ausgabe.</p>
+
+  <h2 id="siri">8. Siri, Kurzbefehle und die iPhone-Suche</h2>
+  <p>Auf dem iPhone kannst du Siri zum Beispiel fragen, wer dir in Splitlife etwas schuldet, oder per Sprache eine Ausgabe hinzufügen. Apple verarbeitet das Gesprochene nach Apples Datenschutzbestimmungen; Splitlife antwortet auf deinem Handy aus deinen eigenen Daten. Deine Gruppen können in der iPhone-Suche erscheinen; diesen Index führt iOS auf deinem Gerät.</p>
+
+  <h2 id="rates">9. Wechselkurse</h2>
+  <p>Um Beträge in deiner Heimatwährung anzuzeigen, fragt die App bei open.er-api.com einen Referenzkurs ab. Die Anfrage enthält nur die Währungscodes; wie bei jeder Anfrage im Internet sieht der Dienst die IP-Adresse deines Geräts.</p>
+
+  <h2 id="moneytrack">10. Die Verbindung zu MoneyTrack</h2>
+  <p>Nutzt du MoneyTrack mit demselben Konto und verbindest beide Apps, kann MoneyTrack deine Salden aus Splitlife anzeigen (was du wem schuldest oder bekommst). Nur du siehst sie; mit den anderen Mitgliedern deiner Gruppen wird nichts geteilt.</p>
+
+  <h2 id="processors">11. Wer Daten für Splitlife verarbeitet</h2>
+  <table>
+    <tr><th>Dienst</th><th>Wofür</th><th>Wo</th></tr>
+    <tr><td>Supabase Inc.</td><td>Datenbank, Anmeldung, Versand von Benachrichtigungen und Einladungen (Server)</td><td>EU (Irland)</td></tr>
+    <tr><td>Apple</td><td>App-Vertrieb, iPhone-Benachrichtigungen, iCloud-Backup, Siri</td><td>EU / USA</td></tr>
+    <tr><td>Google</td><td>Android-Benachrichtigungen (Firebase), Einladungs-E-Mails (Gmail), Texterkennung auf dem Gerät</td><td>EU / USA</td></tr>
+    <tr><td>GitHub Inc.</td><td>Hosting dieser Website und der Web-App</td><td>USA</td></tr>
+    <tr><td>open.er-api.com</td><td>Wechselkurse (keine personenbezogenen Daten außer der IP-Adresse)</td><td>—</td></tr>
+  </table>
+  <p>Supabase verarbeitet Daten im Auftrag von Splitlife auf Grundlage eines Auftragsverarbeitungsvertrags (Art. 28 DSGVO). Soweit Daten in die USA gelangen, stützt sich die Übermittlung auf das EU-US Data Privacy Framework oder die Standardvertragsklauseln der EU.</p>
+
+  <h2 id="retention">12. Speicherdauer und Löschen</h2>
+  <ul>
+    <li>Daten auf deinem Handy bleiben, bis du sie löschst (in der App: Settings → Export &amp; import → Clear shifts) oder die App entfernst.</li>
+    <li>Gruppendaten bleiben, solange die Gruppe besteht. Verlässt du eine Gruppe, bleiben deine früheren Ausgaben im Verlauf, weil sie Teil der Salden aller sind.</li>
+    <li><strong>Konto in der App löschen:</strong> Profile → Delete account. Dein Konto, deine E-Mail-Adresse, deine Gruppenmitgliedschaften und Benachrichtigungs-Tokens werden gelöscht. Gemeinsame Ausgaben bleiben in der Gruppe, zeigen aber deinen Namen nicht mehr.</li>
+    <li>Du kannst die Löschung auch per E-Mail verlangen; sie erfolgt innerhalb von 30 Tagen.</li>
+  </ul>
+
+  <h2 id="rights">13. Deine Rechte</h2>
+  <p>Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen eine Verarbeitung auf Grundlage berechtigter Interessen (Art. 21). Eine Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Schreib dazu an die E-Mail-Adresse in Abschnitt 1.</p>
+  <p>Du kannst dich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren – zum Beispiel bei der für Splitlife zuständigen: Bayerisches Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach, <a href="https://www.lda.bayern.de">www.lda.bayern.de</a> – oder bei der Behörde deines Wohnorts.</p>
+  <p>Splitlife trifft keine automatisierten Entscheidungen über dich.</p>
+
+  <h2 id="website">14. Diese Website</h2>
+  <p>Diese Website setzt keine Cookies, nutzt keine Analyse-Tools und lädt nichts von anderen Diensten – nicht einmal Schriften. Wie jeder Webhoster protokolliert GitHub bei deinem Besuch technische Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite), um die Seite auszuliefern und abzusichern (Art. 6 Abs. 1 lit. f DSGVO). Die Web-App speichert deine persönlichen Daten (Abschnitt 2) im Speicher deines Browsers.</p>
+
+  <h2 id="other">15. Kinder, Sicherheit und Änderungen</h2>
+  <p>Splitlife richtet sich nicht an Kinder unter 16 Jahren. Alle Verbindungen sind verschlüsselt (HTTPS), und der Server zeigt jeder Person nur die Gruppen, zu denen sie gehört. Ändert sich diese Erklärung, wird die neue Fassung hier mit neuem Datum veröffentlicht.</p>
+
+  <p style="margin-top:34px"><a href="../impressum.html">Impressum</a> · <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a> · <a href="../../">Startseite</a></p>
+</main>
+</body>
+</html>

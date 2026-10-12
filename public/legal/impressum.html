@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impressum — Splitlife</title>
+<link rel="icon" href="../favicon.svg">
+<link rel="alternate" hreflang="en" href="impressum-en.html">
+<style>/* Splitlife's website. System fonts only and nothing loaded from anywhere else:
+   no cookies, no trackers, no third-party requests (see the privacy policy). */
+:root {
+  --bg: #f5fbf4; --bg2: #eaf3ec; --card: #ffffff; --txt: #16201b; --txt2: #45534c; --txt3: #6c7a73;
+  --acc: #1f7a55; --acc-strong: #16a974; --acc-soft: #d6efe1; --line: #dbe5de; --shadow: 0 20px 50px -24px rgba(16, 60, 40, .35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1110; --bg2: #121a17; --card: #17211d; --txt: #e6ece9; --txt2: #b6c3bd; --txt3: #84938c;
+    --acc: #6fdbaa; --acc-strong: #3ddc97; --acc-soft: #173528; --line: #24302b; --shadow: 0 20px 50px -24px rgba(0, 0, 0, .7);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100% }
+body { margin: 0; overflow-x: clip; background: var(--bg); color: var(--txt); font: 17px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif }
+a { color: var(--acc) }
+img { max-width: 100%; height: auto; display: block }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px }
+
+/* top bar */
+.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line) }
+.top .wrap { display: flex; align-items: center; gap: 16px; height: 62px }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--txt); text-decoration: none }
+.brand img { width: 34px; height: 34px; border-radius: 9px }
+.top nav { margin-left: auto; display: flex; gap: 18px; align-items: center; font-size: 15px }
+.top nav a { color: var(--txt2); text-decoration: none }
+.top nav a:hover { color: var(--txt) }
+.lang { border: 1px solid var(--line); border-radius: 99px; padding: 3px 11px; font-weight: 600 }
+@media (max-width: 640px) { .top nav .hide-s { display: none } }
+
+/* hero */
+.hero { padding-top: 64px; padding-bottom: 40px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: center }
+.hero h1 { font-size: clamp(36px, 6vw, 58px); line-height: 1.05; letter-spacing: -1.5px; margin: 0 0 18px }
+.hero h1 em { font-style: normal; color: var(--acc-strong) }
+.hero p.lead { font-size: 20px; color: var(--txt2); margin: 0 0 28px; max-width: 34em }
+.pill { display: inline-block; font-size: 13.5px; font-weight: 650; color: var(--acc); background: var(--acc-soft); border-radius: 99px; padding: 4px 12px; margin-bottom: 18px }
+.cta { display: flex; flex-wrap: wrap; gap: 12px }
+.btn { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; border-radius: 99px; font-weight: 650; font-size: 16px; text-decoration: none; border: 1px solid transparent }
+.btn-primary { background: var(--acc-strong); color: #04140c }
+.btn-ghost { border-color: var(--line); color: var(--txt); background: var(--card) }
+.btn small { font-weight: 500; opacity: .75 }
+.note { font-size: 14px; color: var(--txt3); margin-top: 14px }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; padding-top: 40px } .phones { min-height: 0; margin-top: 10px } }
+
+/* phones */
+.phones { display: flex; justify-content: center; gap: 0; position: relative; min-height: 420px }
+.phone { width: 230px; border-radius: 34px; padding: 7px; background: #0b0f0e; box-shadow: var(--shadow); flex-shrink: 0 }
+.phone img { border-radius: 28px; width: 100% }
+.phones .phone:nth-child(1) { transform: rotate(-5deg) translate(30px, 24px) }
+.phones .phone:nth-child(2) { transform: rotate(4deg) translate(-30px, -6px); z-index: 1 }
+@media (max-width: 520px) { .phone { width: 180px; border-radius: 28px } .phone img { border-radius: 22px } }
+
+/* sections */
+section { padding: 56px 0 }
+section.alt { background: var(--bg2) }
+h2 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -.8px; line-height: 1.15; margin: 0 0 12px }
+.sub { color: var(--txt2); font-size: 18px; margin: 0 0 36px; max-width: 40em }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+@media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr) } }
+@media (max-width: 560px) { .grid { grid-template-columns: 1fr } }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 22px }
+.card h3 { margin: 12px 0 6px; font-size: 18px }
+.card p { margin: 0; color: var(--txt2); font-size: 15.5px }
+.ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; background: var(--acc-soft) }
+
+/* a feature with its screen */
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center }
+.feature + .feature { margin-top: 72px }
+.feature.flip .text { order: 2 }
+.feature ul { padding-left: 20px; color: var(--txt2) }
+.feature li { margin: 6px 0 }
+.feature .phone { margin: 0 auto }
+@media (max-width: 860px) { .feature { grid-template-columns: 1fr; gap: 28px } .feature.flip .text { order: 0 } }
+
+.steps { counter-reset: s; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px }
+.steps .card::before { counter-increment: s; content: counter(s); display: flex; width: 34px; height: 34px; border-radius: 99px; align-items: center; justify-content: center; background: var(--acc-strong); color: #04140c; font-weight: 800 }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr } }
+
+details { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin-bottom: 10px }
+summary { font-weight: 650; cursor: pointer }
+details p { color: var(--txt2); margin: 10px 0 0 }
+
+footer { border-top: 1px solid var(--line); padding: 34px 0 50px; color: var(--txt3); font-size: 14.5px }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center }
+footer nav { display: flex; flex-wrap: wrap; gap: 18px; margin-left: auto }
+footer a { color: var(--txt2); text-decoration: none }
+
+/* legal pages */
+.doc { max-width: 760px; margin: 0 auto; padding: 44px 20px 70px }
+.doc h1 { font-size: 34px; letter-spacing: -.7px; margin: 0 0 4px }
+.doc h2 { font-size: 21px; letter-spacing: -.2px; margin: 34px 0 8px }
+.doc h3 { font-size: 17px; margin: 22px 0 6px }
+.doc p, .doc li { color: var(--txt2); font-size: 16px }
+.doc .date { color: var(--txt3); font-size: 14px; margin: 0 0 22px }
+.doc address { font-style: normal; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; color: var(--txt) }
+.doc table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 8px 0 }
+.doc td, .doc th { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--line); color: var(--txt2) }
+.doc th { color: var(--txt); font-weight: 650 }
+.toc { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 22px; font-size: 15px }
+.toc ol { margin: 6px 0; padding-left: 20px }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="../"><img src="../icon-192.png" alt="">Splitlife</a>
+  <nav><a class="lang" href="impressum-en.html" hreflang="en" lang="en">English</a></nav>
+</div></header>
+<main class="doc">
+  <h1>Impressum</h1>
+  <p class="date">Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</p>
+
+  <h2>Anbieter</h2>
+  <address>
+    Meet Patel<br>
+    Münchener Str. 67<br>
+    85051 Ingolstadt<br>
+    Deutschland
+  </address>
+
+  <h2>Kontakt</h2>
+  <p>E-Mail: <a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></p>
+
+  <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+  <p>Meet Patel, Anschrift wie oben</p>
+
+  <h2>Über Splitlife</h2>
+  <p>Splitlife ist eine kostenlose App für iPhone, Android und den Browser, privat betrieben von Meet Patel. Sie enthält keine Werbung und keine kostenpflichtigen Funktionen.</p>
+
+  <h2>Verbraucherstreitbeilegung</h2>
+  <p>Ich bin nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+
+  <h2>Haftung für Inhalte und Links</h2>
+  <p>Die Inhalte dieser Website und der App werden mit Sorgfalt erstellt; für ihre Richtigkeit, Vollständigkeit und Aktualität kann jedoch keine Gewähr übernommen werden. Was Splitlife anzeigt – Salden, Arbeitszeitgrenzen, Steuerschätzungen – ist eine Orientierung auf Grundlage der Eingaben der Nutzer und keine Rechts- oder Steuerberatung. Diese Website verlinkt auf externe Seiten (zum Beispiel von Apple und Google); für deren Inhalte sind allein deren Betreiber verantwortlich.</p>
+
+  <p style="margin-top:34px"><a href="de/datenschutz.html">Datenschutzerklärung</a> · <a href="de/nutzungsbedingungen.html">Nutzungsbedingungen</a> · <a href="../">Startseite</a></p>
+</main>
+</body>
+</html>
