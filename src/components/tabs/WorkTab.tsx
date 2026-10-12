@@ -7,7 +7,12 @@ import type { WorkStats } from '../../lib/derive'
 import { deriveShift } from '../../lib/shift'
 import { tod, fixDe, relDay } from '../../lib/format'
 import { haptic } from '../../lib/haptic'
-import { WORK, GOLD } from '../../lib/theme'
+import { WORK as WORK_IOS, GOLD as GOLD_IOS } from '../../lib/theme'
+import { isNativeAndroid } from '../../lib/native'
+
+/* Android draws work in the theme's own green (Material colour roles), without the glow */
+const WORK = isNativeAndroid ? 'var(--md-primary)' : WORK_IOS
+const GOLD = isNativeAndroid ? 'var(--md-primary)' : GOLD_IOS
 import { groupShifts, monthMatrix, workedMap, WD1, MO3, type Gran } from '../../lib/workAgg'
 import { Ring, Card, SegmentedControl, SectionLabel, IconBtn } from '../ui'
 
@@ -39,11 +44,13 @@ export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, o
   return (
     <>
       {/* earnings hero */}
-      <div style={{ borderRadius: 28, padding: '20px 18px 18px', marginBottom: 12, background: `radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.35),transparent 55%),linear-gradient(135deg,${WORK},${GOLD})`, color: '#06120c', boxShadow: `0 18px 40px -18px ${WORK}, inset 0 1px 0 rgba(255,255,255,.5)` }}>
+      <div style={{ borderRadius: 28, padding: '20px 18px 18px', marginBottom: 12, ...(isNativeAndroid
+        ? { background: 'var(--md-primary-container)', color: 'var(--md-on-primary-container)' }
+        : { background: `radial-gradient(120% 90% at 0% 0%,rgba(255,255,255,.35),transparent 55%),linear-gradient(135deg,${WORK},${GOLD})`, color: '#06120c', boxShadow: `0 18px 40px -18px ${WORK}, inset 0 1px 0 rgba(255,255,255,.5)` }) }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 13.5, fontWeight: 700, opacity: 0.75 }}>{heroLbl}</div>
-          <div role="group" aria-label="Period" style={{ display: 'flex', gap: 2, background: 'rgba(0,0,0,.14)', borderRadius: 99, padding: 3 }}>
-            {([['month', 'M', 'This month'], ['year', 'Y', 'This year'], ['all', '∞', 'All time']] as const).map(([k, l, a]) => <button key={k} type="button" aria-label={a} aria-pressed={span === k} onClick={() => { haptic(6); setSpan(k) }} style={{ border: 'none', background: span === k ? 'rgba(255,255,255,.88)' : 'transparent', color: '#06120c', borderRadius: 99, width: 30, height: 26, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', transition: 'background .2s' }}>{l}</button>)}
+          <div role="group" aria-label="Period" style={{ display: 'flex', gap: 2, background: isNativeAndroid ? 'color-mix(in srgb, var(--md-on-primary-container) 10%, transparent)' : 'rgba(0,0,0,.14)', borderRadius: 99, padding: 3 }}>
+            {([['month', 'M', 'This month'], ['year', 'Y', 'This year'], ['all', '∞', 'All time']] as const).map(([k, l, a]) => <button key={k} type="button" aria-label={a} aria-pressed={span === k} onClick={() => { haptic(6); setSpan(k) }} style={{ border: 'none', background: span === k ? (isNativeAndroid ? 'var(--md-primary)' : 'rgba(255,255,255,.88)') : 'transparent', color: isNativeAndroid ? (span === k ? 'var(--md-on-primary)' : 'inherit') : '#06120c', borderRadius: 99, width: 30, height: 26, fontSize: 12.5, fontWeight: 800, cursor: 'pointer', transition: 'background .2s' }}>{l}</button>)}
           </div>
         </div>
         <div style={{ fontSize: 42, fontWeight: 800, letterSpacing: -1.4, marginTop: 6, fontVariantNumeric: 'tabular-nums' }}>{fH(heroVal)}</div>
@@ -53,7 +60,7 @@ export default function WorkTab({ T, workStats, shifts, fH, fHome, onLogShift, o
         </div>
       </div>
 
-      <button type="button" onClick={() => onLogShift(null)} className="btn btn-lg btn-full" style={{ background: `linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),${WORK}`, color: '#06120c', marginBottom: 12, boxShadow: `0 10px 24px -12px ${WORK}, inset 0 1px 0 rgba(255,255,255,.45)` }}><Plus size={19} strokeWidth={2.6} /> Log a work shift</button>
+      <button type="button" onClick={() => onLogShift(null)} className={`btn btn-lg btn-full${isNativeAndroid ? ' btn-primary' : ''}`} style={isNativeAndroid ? { marginBottom: 12 } : { background: `linear-gradient(180deg,rgba(255,255,255,.3),rgba(255,255,255,0) 55%),${WORK}`, color: '#06120c', marginBottom: 12, boxShadow: `0 10px 24px -12px ${WORK}, inset 0 1px 0 rgba(255,255,255,.45)` }}><Plus size={19} strokeWidth={2.6} /> Log a work shift</button>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
         <Card T={T} style={{ padding: '13px 14px', borderRadius: 22 }}><div style={{ fontSize: 12.5, color: T.txt2, fontWeight: 600 }}>This year</div><div style={{ fontSize: 20, fontWeight: 800, marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{fH(ws.earnYear)}</div></Card>

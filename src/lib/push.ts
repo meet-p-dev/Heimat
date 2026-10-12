@@ -1,5 +1,5 @@
 import { sb } from './supabase'
-import { isNative, platform } from './native'
+import { isNative, platform, openExternal } from './native'
 import { testResultMessage } from './pushResult'
 
 const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
@@ -156,7 +156,12 @@ async function subscribeNative(): Promise<{ ok: boolean; reason?: string }> {
 export async function initNativeListeners(onOpened: () => void) {
   if (!isNative || pushMissingInBuild) return
   const { PushNotifications } = await import('@capacitor/push-notifications')
-  await PushNotifications.addListener('pushNotificationActionPerformed', () => onOpened())
+  await PushNotifications.addListener('pushNotificationActionPerformed', (a) => {
+    // a new version's notification goes to its download
+    const url = (a.notification?.data as { url?: string } | undefined)?.url
+    if (typeof url === 'string' && url.startsWith('https://')) openExternal(url)
+    onOpened()
+  })
   await PushNotifications.addListener('pushNotificationReceived', () => onOpened())
 }
 

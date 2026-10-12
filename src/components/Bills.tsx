@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
-import { Check, PlusCircle, FileText, ChevronRight } from 'lucide-react'
+import { Check, Plus, FileText, ChevronRight } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { Theme, Member } from '../lib/types'
 import { isPending } from '../lib/types'
 import type { Bill, BillStatus, BillRow } from '../lib/bills'
 import { CADENCES, billsIn, billLine, cancelSoon, cancelByOf, nextBill } from '../lib/bills'
 import { money, amountVal, relDay, tod } from '../lib/format'
 import { haptic } from '../lib/haptic'
-import { Sheet, Field, Btn, Card, Toggle, Stepper, SegmentedControl, Alert, TINT } from './ui'
+import { Sheet, Field, Btn, Card, Toggle, Stepper, SegmentedControl, Alert, SectionLabel, TINT } from './ui'
 
 /* Bills (docs/bills-screens.md; iOS: BillsViews.swift). */
 
@@ -18,19 +19,24 @@ export interface BillsCtx {
   tick: (b: Bill, due: string, paid: boolean) => Promise<void>
 }
 
-/* A group's bills (flatId) or your own (null): a row each with a tick circle, and Add bill. */
+/* A group's bills (flatId) or your own (null). The ones that need doing come first —
+   overdue, due today, then by date, paid last — each with its due date at a glance and
+   a "Mark paid" button that says what it does. Tap a bill to change it; Add sits in the header. */
 export function BillsSection({ b, flatId }: { b: BillsCtx; flatId: string | null }) {
   const { T } = b
+  const rank = { overdue: 0, due: 1, upcoming: 2, paid: 3 }
   const list = billsIn(b.bills, b.status, flatId, b.uid)
+    .sort((x, y) => rank[b.status[x.id]?.state || 'upcoming'] - rank[b.status[y.id]?.state || 'upcoming'])
+  const add = () => { haptic(8); b.edit(null, flatId) }
   return (
-    <div style={{ marginBottom: 22 }}>
-      <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px' }}>Bills</div>
+    <div style={{ marginBottom: 8 }}>
+      <SectionLabel T={T} right={list.length > 0 && <AddLink onClick={add} disabled={!b.uid} />}>Bills</SectionLabel>
       <div className="glass h-group">
-        {list.map((x) => <BillRowView key={x.id} b={b} bill={x} />)}
-        <button type="button" className="h-item" disabled={!b.uid} onClick={() => { haptic(8); b.edit(null, flatId) }} style={{ color: T.acc, fontWeight: 650 }}>
-          <PlusCircle size={20} />
-          <span style={{ flex: 1, textAlign: 'left' }}>{list.length ? 'Add bill' : flatId ? 'Add rent, electricity or internet' : 'Add your phone, insurance or gym'}</span>
-        </button>
+        {list.length === 0
+          ? <EmptyPrompt T={T} icon={FileText} tint={TINT.orange} title={flatId ? 'Shared bills' : 'Your own bills'}
+              text={flatId ? 'Rent, electricity, internet — whoever pays gets a reminder on the day.' : 'Phone, insurance, gym — you get a reminder on the day each is due.'}
+              action="Add a bill" onClick={add} disabled={!b.uid} />
+          : list.map((x) => <BillRowView key={x.id} b={b} bill={x} />)}
       </div>
     </div>
   )
@@ -43,30 +49,75 @@ function BillRowView({ b, bill }: { b: BillsCtx; bill: Bill }) {
   const line = billLine(bill, s, (u) => (u === b.uid ? 'you' : b.who(u)))
   const paid = s?.state === 'paid'
   const payer = bill.flat_id && bill.payer ? ` · ${bill.payer === b.uid ? 'you pay' : `${b.who(bill.payer)} pays`}` : ''
-  const tick = async () => {
+  const markPaid = async () => {
     if (!s || busy) return
     haptic(10); setBusy(true)
-    // ticked: take back the latest tick; otherwise tick the date it is at
-    if (paid && s.paid_on) await b.tick(bill, s.paid_on, false)
-    else await b.tick(bill, s.due_on, true)
+    await b.tick(bill, s.due_on, true)
     setBusy(false)
   }
+  // already ticked: taking it back asks first
+  const undo = async () => {
+    if (!s?.paid_on || busy || !confirm(`Mark ${bill.name} as not paid?`)) return
+    setBusy(true); await b.tick(bill, s.paid_on, false); setBusy(false)
+  }
   return (
-    <div className="h-item" style={{ '--inset': '58px' } as React.CSSProperties}>
-      <button type="button" onClick={tick} aria-label={paid ? 'Paid — tap to undo' : `Mark ${bill.name} as paid`} disabled={busy}
-        style={{ width: 28, height: 28, borderRadius: 99, flexShrink: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.4 : 1,
-          background: paid ? T.green : 'transparent', border: paid ? 'none' : `2px solid ${line.urgent ? T.amber : T.border}`, color: '#fff' }}>
-        {paid && <Check size={16} strokeWidth={3} />}
-      </button>
+    <div className="h-item" style={{ '--inset': '72px', paddingRight: 12 } as React.CSSProperties}>
       <button type="button" onClick={() => { haptic(8); b.edit(bill, bill.flat_id) }}
-        style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', padding: 0, color: T.txt, font: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+        style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 12, background: 'none', border: 'none', padding: 0, color: T.txt, font: 'inherit', textAlign: 'left', cursor: 'pointer' }}>
+        <DateBadge T={T} day={s?.due_on || bill.anchor_on} tone={paid ? 'done' : line.urgent ? 'urgent' : 'calm'} />
         <span style={{ flex: 1, minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 16, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bill.name}</span>
-          <span style={{ display: 'block', fontSize: 12.5, color: line.urgent ? T.amber : T.txt3, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{line.text + payer}</span>
-          {cancelSoon(s) && <span style={{ display: 'block', fontSize: 12, color: T.amber, marginTop: 2 }}>Cancel by {relDay(s!.cancel_by!)} if you want to end it</span>}
+          <span style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+            <span style={{ fontSize: 16, fontWeight: 650, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bill.name}</span>
+            {bill.amount != null && <span style={{ fontSize: 14, color: T.txt2, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{money(bill.amount, bill.currency)}</span>}
+          </span>
+          {/* the badge already says which day, so an overdue bill just says it is overdue */}
+          <span style={{ display: 'block', fontSize: 12.5, color: line.urgent ? T.amber : T.txt3, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(s?.state === 'overdue' ? 'Overdue' : line.text) + payer}</span>
+          {cancelSoon(s) && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: T.amber, marginTop: 2 }}>Cancel by {relDay(s!.cancel_by!)} to end it</span>}
         </span>
-        {bill.amount != null && <span style={{ fontSize: 15, fontWeight: 650, fontVariantNumeric: 'tabular-nums' }}>{money(bill.amount, bill.currency)}</span>}
       </button>
+      {s && (paid
+        ? <button type="button" onClick={undo} disabled={busy} aria-label={`${bill.name} is paid. Tap to mark it not paid`}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderRadius: 99, border: 'none', background: `color-mix(in srgb, ${T.green} 14%, transparent)`, color: T.green, font: 'inherit', fontSize: 13, fontWeight: 650, cursor: 'pointer', flexShrink: 0 }}>
+            <Check size={14} strokeWidth={3} />Paid
+          </button>
+        : <Btn size="sm" kind="secondary" busy={busy} onClick={markPaid} ariaLabel={`Mark ${bill.name} as paid`} style={{ flexShrink: 0 }}>Mark paid</Btn>)}
+    </div>
+  )
+}
+
+/* A day at a glance — "SEP" over "15" — coloured for what it means: amber when it is
+   due or overdue, green once done, quiet otherwise. */
+export function DateBadge({ T, day, tone = 'calm' }: { T: Theme; day: string; tone?: 'calm' | 'urgent' | 'done' }) {
+  const d = new Date(day + 'T00:00:00')
+  const col = tone === 'urgent' ? T.amber : tone === 'done' ? T.green : T.txt3
+  return (
+    <span aria-hidden="true" className="h-datebadge" style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.05,
+      background: `color-mix(in srgb, ${col} ${tone === 'calm' ? 12 : 16}%, transparent)` }}>
+      <span style={{ fontSize: 10, fontWeight: 750, color: col, letterSpacing: 0.3 }}>{isNaN(+d) ? '' : d.toLocaleDateString(undefined, { month: 'short' }).toUpperCase().replace('.', '')}</span>
+      <span style={{ fontSize: 18, fontWeight: 750, fontVariantNumeric: 'tabular-nums', color: tone === 'calm' ? T.txt : col }}>{isNaN(+d) ? '–' : d.getDate()}</span>
+    </span>
+  )
+}
+
+/* "+ Add" for a section's header */
+export function AddLink({ onClick, disabled, label = 'Add' }: { onClick: () => void; disabled?: boolean; label?: string }) {
+  return <button type="button" className="h-link" disabled={disabled} onClick={onClick} style={{ fontSize: 13.5, display: 'flex', alignItems: 'center', gap: 4 }}><Plus size={15} strokeWidth={2.6} />{label}</button>
+}
+
+/* what an empty section says, with the one thing to do about it */
+export function EmptyPrompt({ T, icon: I, tint, title, text, action, onClick, disabled }: {
+  T: Theme; icon: LucideIcon; tint: string; title: string; text: string; action: string; onClick: () => void; disabled?: boolean
+}) {
+  return (
+    <div style={{ padding: 14 }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
+        <span className="h-item-ic" style={{ background: tint }}><I size={17} /></span>
+        <span style={{ flex: 1 }}>
+          <span style={{ display: 'block', fontSize: 15, fontWeight: 650 }}>{title}</span>
+          <span style={{ display: 'block', fontSize: 12.5, color: T.txt2, marginTop: 2, lineHeight: 1.45 }}>{text}</span>
+        </span>
+      </div>
+      <Btn full size="md" kind="secondary" icon={Plus} disabled={disabled} onClick={onClick}>{action}</Btn>
     </div>
   )
 }

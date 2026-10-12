@@ -462,3 +462,9 @@ test("FCM: the 'splitlife' channel, and only UNREGISTERED forgets a phone", asyn
     assert.equal(calls.filter((c) => c.url === 'https://oauth2.googleapis.com/token').length, 1)
   })
 })
+
+test('an Android notification carries where tapping it goes', () => {
+  const n = { title: 'New update available', body: 'Splitlife version 16 is ready — tap to download it.', tag: 'app_update', url: 'https://example.com/splitlife-16.apk' }
+  assert.deepEqual(fcmMessage('tok', n).message.data, { url: 'https://example.com/splitlife-16.apk' })
+  assert.equal('data' in fcmMessage('tok', { title: 't', body: 'b' }).message, false)
+})

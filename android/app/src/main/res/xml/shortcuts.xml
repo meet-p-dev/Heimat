@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press Splitlife's icon: the three things people open it for (iOS: the Home
+     Screen quick actions). Each opens a heimat:// link the app handles (App.tsx onAppLink). -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="add" android:enabled="true" android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_add" android:shortcutLongLabel="@string/shortcut_add">
+        <intent android:action="android.intent.action.VIEW" android:data="heimat://add"
+            android:targetPackage="app.heimat.mobile" android:targetClass="app.heimat.mobile.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="scan" android:enabled="true" android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/shortcut_scan" android:shortcutLongLabel="@string/shortcut_scan">
+        <intent android:action="android.intent.action.VIEW" android:data="heimat://scan"
+            android:targetPackage="app.heimat.mobile" android:targetClass="app.heimat.mobile.MainActivity" />
+    </shortcut>
+    <shortcut android:shortcutId="shift" android:enabled="true" android:icon="@drawable/ic_shortcut_shift"
+        android:shortcutShortLabel="@string/shortcut_shift" android:shortcutLongLabel="@string/shortcut_shift">
+        <intent android:action="android.intent.action.VIEW" android:data="heimat://shift"
+            android:targetPackage="app.heimat.mobile" android:targetClass="app.heimat.mobile.MainActivity" />
+    </shortcut>
+</shortcuts>

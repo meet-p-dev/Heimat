@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Users, FileText, Clock, ChevronLeft, ShieldCheck, Cloud, Smartphone, RefreshCw } from 'lucide-react'
+import { isNativeAndroid } from '../lib/native'
+import { Users, FileText, Clock, ChevronLeft, ArrowLeft, ShieldCheck, Cloud, Smartphone, RefreshCw } from 'lucide-react'
 import type { Theme, Profile } from '../lib/types'
 import { COUNTRIES, HOSTS } from '../lib/data'
 import { haptic } from '../lib/haptic'
@@ -84,7 +85,7 @@ export default function Onboarding({ T, isAnon, accountName, onSignIn, onDone }:
   const shell = (children: React.ReactNode, back?: () => void, progress?: number) => (
     <div className="h-page h-aurora" style={{ zIndex: 1000 }}>
       <div className="h-pagehdr" style={{ minHeight: 58 }}>
-        {back ? <IconBtn label="Back" onClick={back}><ChevronLeft size={23} /></IconBtn> : <span style={{ width: 42 }} />}
+        {back ? <IconBtn label="Back" onClick={back}>{isNativeAndroid ? <ArrowLeft size={22} /> : <ChevronLeft size={23} />}</IconBtn> : <span style={{ width: 42 }} />}
         <div style={{ flex: 1, display: 'flex', justifyContent: 'center', gap: 6 }}>
           {progress != null && [1, 2, 3].map((i) => <span key={i} style={{ width: i === progress ? 26 : 8, height: 8, borderRadius: 99, background: i <= progress ? T.acc : T.border, transition: 'width .3s' }} />)}
         </div>

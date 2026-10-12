@@ -1,0 +1,166 @@
+{
+ "about": "What Android's text recognition (ML Kit, through ReceiptScannerPlugin.java) handed back for the test receipt in the REWE vector, imported into Google's document scanner on the emulator, Oct 2026. y grows upwards.",
+ "now": "2026-10-11",
+ "pieces": [
+  {
+   "text": "BIO HAFERDRINK",
+   "midX": 168.5,
+   "midY": 1414,
+   "minX": 43,
+   "maxX": 294,
+   "height": 30
+  },
+  {
+   "text": "BANANE",
+   "midX": 94,
+   "midY": 1362.5,
+   "minX": 42,
+   "maxX": 146,
+   "height": 27
+  },
+  {
+   "text": "PFAND 0,25 EURO",
+   "midX": 177,
+   "midY": 1262,
+   "minX": 42,
+   "maxX": 312,
+   "height": 34
+  },
+  {
+   "text": "TOAST VOLLKORN",
+   "midX": 168,
+   "midY": 1212,
+   "minX": 41,
+   "maxX": 295,
+   "height": 26
+  },
+  {
+   "text": "SUMME EUR",
+   "midX": 130,
+   "midY": 1112.5,
+   "minX": 41,
+   "maxX": 219,
+   "height": 29
+  },
+  {
+   "text": "Geg. Visa EUR",
+   "midX": 165.5,
+   "midY": 1011,
+   "minX": 40,
+   "maxX": 291,
+   "height": 36
+  },
+  {
+   "text": "03.10.2026",
+   "midX": 130.5,
+   "midY": 960.5,
+   "minX": 41,
+   "maxX": 220,
+   "height": 25
+  },
+  {
+   "text": "REWE",
+   "midX": 456.5,
+   "midY": 1670,
+   "minX": 422,
+   "maxX": 491,
+   "height": 26
+  },
+  {
+   "text": "REWE Markt GmbH",
+   "midX": 455,
+   "midY": 1620,
+   "minX": 319,
+   "maxX": 591,
+   "height": 34
+  },
+  {
+   "text": "Münchener Str. 12",
+   "midX": 454,
+   "midY": 1570,
+   "minX": 300,
+   "maxX": 608,
+   "height": 32
+  },
+  {
+   "text": "1,076 kg x 1,20 EUR/kg",
+   "midX": 454.5,
+   "midY": 1317,
+   "minX": 255,
+   "maxX": 654,
+   "height": 38
+  },
+  {
+   "text": "01139 Dresden",
+   "midX": 454.5,
+   "midY": 1519.5,
+   "minX": 337,
+   "maxX": 572,
+   "height": 29
+  },
+  {
+   "text": "EUR",
+   "midX": 456.5,
+   "midY": 1468.5,
+   "minX": 430,
+   "maxX": 483,
+   "height": 25
+  },
+  {
+   "text": "1, 49 B",
+   "midX": 819,
+   "midY": 1425,
+   "minX": 765,
+   "maxX": 873,
+   "height": 34
+  },
+  {
+   "text": "1, 29 B",
+   "midX": 819,
+   "midY": 1374,
+   "minX": 765,
+   "maxX": 873,
+   "height": 34
+  },
+  {
+   "text": "0,25 A",
+   "midX": 818.5,
+   "midY": 1273,
+   "minX": 764,
+   "maxX": 873,
+   "height": 34
+  },
+  {
+   "text": "1, 19 B",
+   "midX": 818.5,
+   "midY": 1222,
+   "minX": 765,
+   "maxX": 872,
+   "height": 32
+  },
+  {
+   "text": "4, 22",
+   "midX": 837,
+   "midY": 1120.5,
+   "minX": 802,
+   "maxX": 872,
+   "height": 31
+  },
+  {
+   "text": "4,22",
+   "midX": 836,
+   "midY": 1019,
+   "minX": 801,
+   "maxX": 871,
+   "height": 32
+  },
+  {
+   "text": "18:42",
+   "midX": 827.5,
+   "midY": 968.5,
+   "minX": 783,
+   "maxX": 872,
+   "height": 25
+  }
+ ]
+}

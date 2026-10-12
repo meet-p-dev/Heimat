@@ -4,4 +4,7 @@
     <string name="title_activity_main">Splitlife</string>
     <string name="package_name">app.heimat.mobile</string>
     <string name="custom_url_scheme">app.heimat.mobile</string>
+    <string name="shortcut_add">Add expense</string>
+    <string name="shortcut_scan">Scan a receipt</string>
+    <string name="shortcut_shift">Log a shift</string>
 </resources>

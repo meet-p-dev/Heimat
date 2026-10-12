@@ -75,6 +75,8 @@ export const fcmMessage = (deviceToken: string, n: Notice) => ({
         ...(n.tag ? { tag: n.tag } : {}),
       },
     },
+    // where tapping it goes, for the app to open (a new version's download)
+    ...(n.url ? { data: { url: n.url } } : {}),
   },
 })
 

@@ -1,9 +1,13 @@
-import { Plus, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound, Bell } from 'lucide-react'
+import { Plus, Download, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound, Bell } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Theme, Flat, Runway, Expense, Cat, ModalId, TabId, AuthMode } from '../../lib/types'
 import type { RunwayCalc, WorkStats, SettleSuggestion } from '../../lib/derive'
-import { Ring, Card, Btn, SectionLabel, AnimatedNumber, TINT } from '../ui'
+import { useState } from 'react'
+import { Ring, Card, Btn, SectionLabel, AnimatedNumber, SegmentedControl, TINT } from '../ui'
 import ExpenseRow from '../ExpenseRow'
+import { ActivityRow } from '../Activity'
+import type { Activity } from '../../lib/activity'
+import { LS } from '../../lib/storage'
 import { fixDe } from '../../lib/format'
 import { haptic } from '../../lib/haptic'
 import { WORK } from '../../lib/theme'
@@ -17,7 +21,7 @@ function QuickAction({ icon: I, tint, label, onClick, badge }: { icon: LucideIco
   )
 }
 
-export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth, pushAsk, pushBusy, onPushOn, onPushLater }: {
+export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth, pushAsk, pushBusy, onPushOn, onPushLater, mine, activity, placeName, mixed, curOf, onAllActivity, update, onUpdate }: {
   T: Theme; flat: Flat | null
   /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
   scope: string; hasMoney: boolean
@@ -26,12 +30,21 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
   uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
   fH: (v: number) => string; fHome: (v: number) => string | null
   setModal: (m: ModalId) => void; setTab: (t: TabId) => void
-  expenses: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void; cats: Cat[]
+  /* no longer used: Home lists your expenses across every group (`mine`) */
+  expenses?: Expense[]; nameOf: (u: string) => string; startAddExpense: () => void; cats: Cat[]
   openList: () => void; openCount: number; onLogShift: () => void; openSettle: (s: SettleSuggestion | null) => void
   onOpenExpense: (e: Expense) => void; onAuth: (m: AuthMode) => void
   /* offer notifications (App.tsx decides when this device can and hasn't been asked) */
   pushAsk: boolean; pushBusy: boolean; onPushOn: () => void; onPushLater: () => void
+  /* Activity: the expenses you are on across every group (newest first), or everything
+     that happened; `mixed` when there is more than one place, so rows name theirs */
+  mine: Expense[]; activity: Activity[]; placeName: (id: string) => string; mixed: boolean
+  curOf: (place: string) => string; onAllActivity: () => void
+  /* a newer Android version is out: one tap to its download (iOS: TestFlight) */
+  update?: { build: number } | null; onUpdate?: () => void
 }) {
+  const [feed, setFeed] = useState<'mine' | 'all'>(() => (LS.g<string>('mt-h-home-activity') === 'all' ? 'all' : 'mine'))
+  const pickFeed = (v: 'mine' | 'all') => { setFeed(v); LS.s('mt-h-home-activity', v) }
   // myNet is whole cents from the ledger, so exactly zero is settled — no ±0,50 € blind spot
   const tone = myNet > 0 ? T.green : myNet < 0 ? T.red : T.txt
   const status = myNet > 0 ? 'you are owed' : myNet < 0 ? 'you owe' : 'all settled up'
@@ -49,6 +62,17 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
 
   return (
     <>
+      {/* it stays until this phone runs that version */}
+      {update && (
+        <Card T={T} style={{ padding: 14, borderRadius: 22, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span className="h-item-ic" style={{ background: TINT.blue }}><Download size={17} /></span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontWeight: 650, fontSize: 15 }}>New update available</span>
+            <span style={{ display: 'block', fontSize: 12.5, color: T.txt2, marginTop: 1 }}>Version {update.build} is ready to download.</span>
+          </span>
+          <Btn size="sm" onClick={() => { haptic(8); onUpdate?.() }}>Update</Btn>
+        </Card>
+      )}
       {hasMoney ? (
         <Card T={T} grad style={{ padding: '20px 18px 18px', borderRadius: 28, marginBottom: 14 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, color: T.txt2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scope}</div>
@@ -137,13 +161,20 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
         </Card>
       )}
 
-      {flat && (
+      {hasMoney && (
         <>
-          <SectionLabel T={T} right={expenses.length > 0 && <button type="button" className="h-link" style={{ fontSize: 13.5 }} onClick={() => setTab('flat')}>See all</button>}>Recent activity</SectionLabel>
+          <SectionLabel T={T} right={<button type="button" className="h-link" style={{ fontSize: 13.5 }} onClick={onAllActivity}>See all</button>}>Activity</SectionLabel>
+          <div style={{ marginBottom: 10 }}>
+            <SegmentedControl T={T} label="Show" value={feed} onChange={pickFeed} options={[['mine', 'Your expenses'], ['all', 'Everything']]} />
+          </div>
           <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>
-            {expenses.length === 0
-              ? <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No shared expenses yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.</div>
-              : expenses.slice(0, 5).map((e) => <ExpenseRow key={e.id} {...{ T, e, cats, uid, nameOf, fH }} onClick={() => onOpenExpense(e)} />)}
+            {feed === 'mine'
+              ? (mine.length === 0
+                ? <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>No expenses with you yet. Add the first one — rent, groceries, the internet bill — and Splitlife splits it.</div>
+                : mine.slice(0, 5).map((e) => <ExpenseRow key={e.id} {...{ T, e, cats, uid, nameOf }} place={mixed ? placeName(e.flat_id) : undefined} onClick={() => onOpenExpense(e)} />))
+              : (activity.length === 0
+                ? <div style={{ padding: 18, color: T.txt2, fontSize: 14, lineHeight: 1.5 }}>Nothing yet. Everything anyone adds, changes or ticks off in your groups shows up here.</div>
+                : activity.slice(0, 5).map((a) => <ActivityRow key={a.id} {...{ T, a }} me={uid} name={(u) => (u ? nameOf(u) : 'Someone')} currency={curOf(a.flat_id)} place={mixed ? placeName(a.flat_id) : undefined} />))}
           </div>
         </>
       )}

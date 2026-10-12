@@ -16,3 +16,13 @@ export const catColor = (id: string) => CAT_COLOR[id] || CAT_COLOR.other
 
 /* a custom category carries its own color; built-ins come from CAT_COLOR */
 export const colorOf = (c: Cat) => c.color || CAT_COLOR[c.id] || CAT_COLOR.other
+
+/* Android: Material 3 roles (src/android/m3-colors.css), the same object for light and
+   dark — the CSS variables change underneath. Positive money is the primary green,
+   negative the error red, as Pixel's own apps colour gains and losses. */
+export const MD: Theme = {
+  bg: 'var(--md-surface)', card: 'var(--md-surface-container-low)', cardH: 'var(--md-surface-container)', border: 'var(--md-outline-variant)',
+  txt: 'var(--md-on-surface)', txt2: 'var(--md-on-surface-variant)', txt3: 'var(--md-outline)',
+  acc: 'var(--md-primary)', onAcc: 'var(--md-on-primary)', accSoft: 'var(--md-primary-container)',
+  green: 'var(--md-primary)', red: 'var(--md-error)', amber: 'var(--amber)', inp: 'transparent',
+}

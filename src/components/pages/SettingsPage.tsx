@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import {
-  UserPlus, LogIn, Mail, KeyRound, LogOut, Palette, Droplets, Bell, BellRing, Globe, ArrowRightLeft, RefreshCw, CalendarDays, Timer, RotateCcw,
-  Vibrate, Sparkles, Download, Upload, FileSpreadsheet, Trash2, Shield, FileText, Info, Fingerprint, UserX,
+  Palette, Droplets, Bell, Send, Globe, RefreshCw, CalendarDays, Timer, RotateCcw, Vibrate, Download, Upload, FileSpreadsheet, Trash2, Shield,
+  FileText, ExternalLink, ChevronRight,
 } from 'lucide-react'
-import type { Theme, Profile, Shift, Runway, AuthMode } from '../../lib/types'
+import type { Theme, Profile, Shift, Runway } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
 import { DEFAULT_PREFS } from '../../lib/prefs'
 import { fixDe, rateDe, numVal, relDay, tod } from '../../lib/format'
@@ -12,18 +12,18 @@ import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe, subs
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { importShifts } from '../../lib/importShifts'
-import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, TINT } from '../ui'
+import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, Avatar, TINT } from '../ui'
 import { LifeSettingsItem } from '../Life'
 import { partOn } from '../../lib/life'
 
 const THEMES: [ThemeMode, string][] = [['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']]
 
-export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack, onAuth, onSignOut, onDeleteAccount, onReplayIntro, onEditProfile, showToast, clearLocal, addShifts }: {
+export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, shifts, runway, onBack, onOpenProfile, onReplayIntro, onEditProfile, showToast, clearLocal, addShifts }: {
   T: Theme; prefs: Prefs; setPrefs: (p: Prefs) => void; profile: Profile; sProfile: (p: Profile) => void
-  uid: string | null; isAnon: boolean; email: string | null; pendingEmail: string | null
+  uid: string | null; isAnon: boolean
   shifts: Shift[]; runway: Runway | null
   addShifts: (s: Shift[]) => void
-  onBack: () => void; onAuth: (m: AuthMode) => void; onSignOut: () => void; onDeleteAccount: () => void
+  onBack: () => void; onOpenProfile: () => void
   onReplayIntro: () => void; onEditProfile: () => void; showToast: (m: string) => void; clearLocal: () => void
 }) {
   const [notif, setNotif] = useState(false)
@@ -34,6 +34,8 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
   const [rateOpen, setRateOpen] = useState(false)
   const [rate, setRate] = useState('')
   const [fetching, setFetching] = useState(false)
+  /* a page inside Settings: Notifications, Currency, Work limits, Export & import */
+  const [page, setPage] = useState<null | 'notif' | 'currency' | 'limits' | 'data'>(null)
   useEffect(() => { isSubscribed().then(setNotif).catch(() => {}) }, [])
 
   const set = <K extends keyof Prefs>(k: K, v: Prefs[K]) => setPrefs({ ...prefs, [k]: v })
@@ -119,88 +121,105 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
     input.click()
   }
   const clear = () => {
-    if (!confirm('Clear the shifts and runway stored on this device?\n\nYour account, profile and flats are not affected. This cannot be undone — export first if you want a copy.')) return
+    if (!confirm('Clear the shifts stored on this phone?\n\nYour account, profile and groups aren\'t affected. This cannot be undone — export first if you want a copy.')) return
     clearLocal()
   }
 
+  const notifValue = pushMissingInBuild || !pushSupported() ? 'Not available' : notif ? 'On' : 'Off'
+  const sub = (title: string, body: React.ReactNode) => <Page T={T} title={title} onBack={() => setPage(null)} z={220}>{body}</Page>
+
   return (
     <Page T={T} title="Settings" onBack={onBack} z={210}>
-      <Group T={T} title="Account" footer={isAnon ? 'You are using Splitlife as a guest. An account keeps your flat if you change phone or clear your browser.' : pendingEmail ? `Waiting for you to confirm ${pendingEmail}.` : undefined}>
-        {isAnon ? (
-          <>
-            <Item T={T} icon={UserPlus} tint={TINT.green} label="Create account" sub="Free — takes 20 seconds" onClick={() => onAuth('signup')} />
-            <Item T={T} icon={LogIn} tint={TINT.blue} label="Sign in" sub="Already have a Splitlife account" onClick={() => onAuth('signin')} />
-          </>
-        ) : (
-          <>
-            <Item T={T} icon={Mail} tint={TINT.blue} label="Email" value={email} onClick={() => onAuth('email')} />
-            <Item T={T} icon={KeyRound} tint={TINT.gray} label="Change password" onClick={() => onAuth('password')} />
-            <Item T={T} icon={LogOut} tint={TINT.gray} label="Sign out" chevron={false} onClick={onSignOut} />
-          </>
-        )}
+      {/* your avatar, name and email — opens your profile */}
+      <Group T={T}>
+        <button type="button" className="h-item" onClick={onOpenProfile} style={{ gap: 14, paddingTop: 13, paddingBottom: 13 }}>
+          <Avatar name={profile.name} color={profile.avatar} seed={uid || profile.name} size={56} />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontSize: 19, fontWeight: 650 }}>{profile.name || 'You'}</span>
+            <span style={{ display: 'block', fontSize: 13.5, color: isAnon ? T.amber : T.txt2, marginTop: 2, lineHeight: 1.4 }}>{isAnon ? 'Guest — create an account to keep your groups' : 'Profile, groups & sign-in'}</span>
+          </span>
+          <ChevronRight size={18} color={T.txt3} style={{ flexShrink: 0 }} />
+        </button>
       </Group>
 
-      <Group T={T} title="Your Splitlife" footer="Only the parts that fit you are shown. Hiding one never deletes anything.">
+      <Group T={T}>
         <LifeSettingsItem T={T} profile={profile} sProfile={sProfile} />
       </Group>
-      <Group T={T} title="Appearance" footer={isNativeAndroid ? undefined : "Reduce transparency swaps the glass for solid surfaces — easier to read in bright light, and lighter on the battery."}>
+
+      <Group T={T} title="Preferences">
         <div className="h-item" style={{ display: 'block', paddingTop: 13, paddingBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 12 }}>
             <span className="h-item-ic" style={{ background: TINT.indigo }}><Palette size={17} /></span>
-            <span style={{ fontSize: 16, fontWeight: 500 }}>Theme</span>
+            <span style={{ fontSize: 16, fontWeight: 500 }}>Appearance</span>
           </div>
-          <SegmentedControl T={T} label="Theme" options={THEMES} value={prefs.theme} onChange={(v) => set('theme', v)} />
+          <SegmentedControl T={T} label="Appearance" options={THEMES} value={prefs.theme} onChange={(v) => set('theme', v)} />
         </div>
-{!isNativeAndroid && <Item T={T} icon={Droplets} tint={TINT.teal} label="Reduce transparency" right={<Toggle label="Reduce transparency" on={prefs.reduceGlass} onChange={(v) => set('reduceGlass', v)} />} />}
-      </Group>
-
-      <Group T={T} title="Notifications">
-        <Item T={T} icon={Bell} tint={TINT.red} label="Push notifications"
-          sub={pushMissingInBuild ? "Notifications aren't available in this test version yet." : needsInstall() ? 'Add Splitlife to your Home Screen to enable' : 'New shared expenses, list items and payments to you'}
-          right={<Toggle label="Push notifications" on={notif} disabled={notifBusy} onChange={toggleNotif} />} />
-        {notif && <Item T={T} icon={BellRing} tint={TINT.orange} label="Send a test notification" chevron={false} disabled={testBusy} onClick={sendTest}
-          sub={testBusy ? 'Sending…' : testMsg || 'Check that notifications reach this device'}
-          right={testBusy ? <span className="h-spin" style={{ color: T.txt3, flexShrink: 0 }} /> : undefined} />}
-      </Group>
-
-      <Group T={T} title="Currency" footer="Rates come from open.er-api.com and are for reference only.">
-        <Item T={T} icon={Globe} tint={TINT.teal} label="Currencies" value={diff ? `${hostCur} → ${homeCur}` : hostCur} onClick={onEditProfile} />
-        {diff && (
-          <>
-            <Item T={T} icon={ArrowRightLeft} tint={TINT.gray} label="Exchange rate" sub={profile.rateAt ? `Updated ${relDay(profile.rateAt).toLowerCase()}` : 'Set by hand'} value={`${rateDe(profile.rate || 0)} ${homeCur}`} onClick={() => { setRate(String(profile.rate || '').replace('.', ',')); setRateOpen(true) }} />
-            <Item T={T} icon={RefreshCw} tint={TINT.green} label="Update daily" sub="Fetch a fresh rate once a day" right={<Toggle label="Update exchange rate daily" on={prefs.autoRate} onChange={(v) => set('autoRate', v)} />} />
-          </>
-        )}
-      </Group>
-
-      {partOn(profile, 'limit') && <Group T={T} title="Work limits" footer={<>Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.</>}>
-        <Item T={T} icon={CalendarDays} tint={TINT.orange} label="Days per year" right={<Stepper label="days per year" value={prefs.yearDays} onChange={(v) => set('yearDays', v)} min={10} max={365} step={5} />} />
-        <Item T={T} icon={Timer} tint={TINT.orange} label="Hours per week" right={<Stepper label="hours per week" value={prefs.weekCap} onChange={(v) => set('weekCap', v)} min={1} max={60} format={(n) => `${n} h`} />} />
-        {!germanLimits && <Item T={T} icon={RotateCcw} tint={TINT.gray} label="Reset to Germany's limits" chevron={false} onClick={() => setPrefs({ ...prefs, weekCap: DEFAULT_PREFS.weekCap, yearDays: DEFAULT_PREFS.yearDays })} />}
-      </Group>}
-
-      <Group T={T} title="General">
+        {!isNativeAndroid && <Item T={T} icon={Droplets} tint={TINT.teal} label="Reduce transparency" sub="Solid surfaces instead of glass — easier to read in bright light" right={<Toggle label="Reduce transparency" on={prefs.reduceGlass} onChange={(v) => set('reduceGlass', v)} />} />}
+        <Item T={T} icon={Bell} tint={TINT.red} label="Notifications" value={notifValue} onClick={() => setPage('notif')} />
         {canVibrate && <Item T={T} icon={Vibrate} tint={TINT.pink} label="Haptic feedback" right={<Toggle label="Haptic feedback" on={prefs.haptics} onChange={(v) => set('haptics', v)} />} />}
-        <Item T={T} icon={Sparkles} tint={TINT.purple} label="Replay intro" onClick={onReplayIntro} />
       </Group>
 
-      <Group T={T} title="Data & privacy" footer="Your profile, runway and shifts are stored only on this device. Shared flat data syncs only with your flatmates.">
-        <Item T={T} icon={Download} tint={TINT.blue} label="Export my data" sub="Profile, runway and shifts as a JSON file" onClick={exportAll} />
-        <Item T={T} icon={FileSpreadsheet} tint={TINT.green} label="Export shifts" sub="CSV for timesheets or your tax return" onClick={exportShifts} />
-        <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a Splitlife export or a timesheet (CSV)" onClick={pickImport} />
-        <Item T={T} icon={Trash2} tint={TINT.red} label="Clear data on this device" sub="Removes shifts and runway" onClick={clear} />
-        <Item T={T} icon={Shield} tint={TINT.gray} label="Privacy policy" onClick={() => openExternal(webOrigin() + 'legal/privacy.html')} />
-        <Item T={T} icon={FileText} tint={TINT.gray} label="Terms of use" onClick={() => openExternal(webOrigin() + 'legal/terms.html')} />
+      <Group T={T} title="Money & work">
+        <Item T={T} icon={Globe} tint={TINT.teal} label="Currency" value={diff ? `${hostCur} → ${homeCur}` : hostCur} onClick={() => setPage('currency')} />
+        {(partOn(profile, 'work') || partOn(profile, 'limit')) && <Item T={T} icon={Timer} tint={TINT.orange} label="Work limits" value={`${prefs.weekCap} h · ${prefs.yearDays} days`} onClick={() => setPage('limits')} />}
       </Group>
 
-      <Group T={T} title="About">
-        <Item T={T} icon={Info} tint={TINT.gray} label="Version" value={`Splitlife ${version}`} />
-        <Item T={T} icon={Fingerprint} tint={TINT.gray} label="Account ID" value={uid ? uid.slice(0, 8) + '…' : '—'} chevron={false} onClick={uid ? async () => { if (await copyText(uid)) showToast('Account ID copied') } : undefined} />
+      <Group T={T} title="Your data">
+        <Item T={T} icon={FileSpreadsheet} tint={TINT.gray} label="Export & import" sub="Your data, shifts and timesheets" onClick={() => setPage('data')} />
       </Group>
 
-      <Group T={T} footer="Leaves every flat and removes everything stored about you on the server. Shared expenses stay with the flat, without your name. This cannot be undone.">
-        <Item T={T} icon={UserX} tint={TINT.red} label="Delete account" danger chevron={false} onClick={onDeleteAccount} />
+      <Group T={T} title="Legal">
+        <Item T={T} icon={Shield} tint={TINT.blue} label="Privacy policy" chevron={false} right={<ExternalLink size={16} color={T.txt3} />} onClick={() => openExternal(webOrigin() + 'legal/privacy.html')} />
+        <Item T={T} icon={FileText} tint={TINT.gray} label="Terms of use" chevron={false} right={<ExternalLink size={16} color={T.txt3} />} onClick={() => openExternal(webOrigin() + 'legal/terms.html')} />
       </Group>
+
+      <Group T={T} title="About" footer="Your profile and shifts stay on this phone. What you share in a group syncs only with the people in it.">
+        <Item T={T} label="Version" value={`Splitlife ${version}`} />
+        <Item T={T} label="Account ID" value={uid ? uid.slice(0, 8) + '…' : '—'} chevron={false} onClick={uid ? async () => { if (await copyText(uid)) showToast('Account ID copied') } : undefined} />
+        <Item T={T} label="Replay intro" onClick={onReplayIntro} />
+      </Group>
+
+      {page === 'notif' && sub('Notifications', <>
+        <Group T={T} footer={pushMissingInBuild ? "Notifications aren't available in this test version yet." : needsInstall() ? 'Add Splitlife to your Home Screen first.' : 'When someone adds an expense with you, settles up, reminds you, or a bill or chore is due.'}>
+          <Item T={T} icon={Bell} tint={TINT.red} label="Allow notifications" right={<Toggle label="Allow notifications" on={notif} disabled={notifBusy} onChange={toggleNotif} />} />
+        </Group>
+        {/* the only way to tell "nothing has happened" from "nothing arrives" */}
+        {notif && <Group T={T} footer={testMsg ? <span style={{ color: T.txt }}>{testMsg}</span> : 'Not getting any? Send one to each of your phones to check.'}>
+          <Item T={T} icon={Send} tint={TINT.blue} label="Send a test notification" chevron={false} disabled={testBusy} onClick={sendTest}
+            right={testBusy ? <span className="h-spin" style={{ color: T.txt3, flexShrink: 0 }} /> : undefined} />
+        </Group>}
+      </>)}
+
+      {page === 'currency' && sub('Currency', <>
+        <Group T={T} footer="Splitlife counts in the currency where you live, and shows your home currency beside it.">
+          <Item T={T} label="Where you live" value={hostCur} onClick={onEditProfile} />
+          <Item T={T} label="Home" value={homeCur} onClick={onEditProfile} />
+        </Group>
+        {diff && <Group T={T} title="Exchange rate" footer="Rates come from open.er-api.com and are for reference only.">
+          <Item T={T} label={`1 ${hostCur} =`} sub={profile.rateAt ? `Updated ${relDay(profile.rateAt).toLowerCase()}` : 'Set by hand'} value={`${rateDe(profile.rate || 0)} ${homeCur}`} onClick={() => { setRate(String(profile.rate || '').replace('.', ',')); setRateOpen(true) }} />
+          <Item T={T} label="Update daily" right={<Toggle label="Update exchange rate daily" on={prefs.autoRate} onChange={(v) => set('autoRate', v)} />} />
+          <Item T={T} label={fetching ? 'Updating…' : 'Update now'} chevron={false} disabled={fetching} onClick={updateNow} />
+        </Group>}
+      </>)}
+
+      {page === 'limits' && sub('Work limits', <>
+        <Group T={T} footer="Germany: about 120 full days (or 240 half days) a year, and 20 hours a week during term. Other countries differ — check with your international office.">
+          <Item T={T} icon={CalendarDays} tint={TINT.orange} label="Days per year" right={<Stepper label="days per year" value={prefs.yearDays} onChange={(v) => set('yearDays', v)} min={10} max={365} step={5} />} />
+          <Item T={T} icon={Timer} tint={TINT.orange} label="Hours per week" right={<Stepper label="hours per week" value={prefs.weekCap} onChange={(v) => set('weekCap', v)} min={1} max={60} format={(n) => `${n} h`} />} />
+        </Group>
+        {!germanLimits && <Group T={T}><Item T={T} icon={RotateCcw} tint={TINT.gray} label="Reset to Germany's limits" chevron={false} onClick={() => setPrefs({ ...prefs, weekCap: DEFAULT_PREFS.weekCap, yearDays: DEFAULT_PREFS.yearDays })} /></Group>}
+      </>)}
+
+      {page === 'data' && sub('Export & import', <>
+        <Group T={T} title="Export & import">
+          <Item T={T} icon={Download} tint={TINT.blue} label="Export my data" sub="Profile and shifts as a file" onClick={exportAll} />
+          {shifts.length > 0 && <Item T={T} icon={FileSpreadsheet} tint={TINT.green} label="Export shifts" sub="A spreadsheet for timesheets or your tax return" onClick={exportShifts} />}
+          <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a Splitlife export or a timesheet (CSV)" onClick={pickImport} />
+        </Group>
+        <Group T={T} footer="Removes the shifts logged on this phone. Your account, profile and groups aren't affected.">
+          <Item T={T} icon={Trash2} tint={TINT.red} label="Clear shifts on this phone" danger chevron={false} onClick={clear} />
+        </Group>
+      </>)}
 
       <Sheet open={rateOpen} onClose={() => setRateOpen(false)} title="Exchange rate" T={T} footer={<Btn full disabled={!numVal(rate)} onClick={saveRate}>Save rate</Btn>}>
         <Field T={T} label={`1 ${hostCur} = ? ${homeCur}`} htmlFor="st-rate" hint="Setting it by hand keeps it until the next daily update — turn off “Update daily” to keep yours.">

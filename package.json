@@ -18,7 +18,8 @@
     "ios": "npm run sync && cap open ios",
     "android": "npm run sync && cap open android",
     "android:aab": "npm run sync && cd android && ./gradlew bundleRelease",
-    "android:apk": "npm run sync && cd android && ./gradlew assembleRelease"
+    "android:apk": "npm run sync && cd android && ./gradlew assembleRelease",
+    "build:demo": "tsc --noEmit && VITE_NATIVE=1 VITE_DEMO=1 vite build"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.5.1",
+    "@material/material-color-utilities": "^0.3.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",

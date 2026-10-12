@@ -23,6 +23,8 @@ export default defineConfig({
   define: {
     __ANDROID_PUSH__: JSON.stringify(androidPush),
   },
+  // the Android app draws Google's Material Symbols instead of lucide's icons (src/android/lucide.tsx)
+  resolve: native ? { alias: { 'lucide-react': resolve(__dirname, 'src/android/lucide.tsx') } } : undefined,
   build: {
     rollupOptions: {
       // reset.html and invite.html are entries, not public/ assets: they need

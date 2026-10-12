@@ -71,6 +71,7 @@ export interface Expense {
   shares?: Record<string, number> | null
   recurring_id?: string | null
   deleted_at?: string | null
+  created_at?: string
 }
 
 export interface Settlement {
@@ -105,6 +106,6 @@ export interface Derived { paidHours: number; legalHours: number; pay: number; w
 
 export type TabId = 'home' | 'flat' | 'money' | 'work'
 /* pushed pages: the personal ones, and inside Groups a group, Non-group expenses or one person */
-export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills'
+export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills' | `balances:${string}` | 'activity'
 export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
 export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'myspend' | 'profile' | 'cats' | 'settleperson' | 'bill' | 'chore'

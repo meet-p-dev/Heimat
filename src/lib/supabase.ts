@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { demoClient } from './demo'
 
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -24,8 +25,8 @@ function adoptLegacySession() {
 }
 adoptLegacySession()
 
-export const sb =
-  url && key
+const real =
+  !import.meta.env.VITE_DEMO && url && key
     ? createClient(url, key, {
         auth: {
           persistSession: true,
@@ -37,6 +38,8 @@ export const sb =
         },
       })
     : null
+/* demo builds (VITE_DEMO=1) never reach the server: a pretend one in memory (lib/demo.ts) */
+export const sb = import.meta.env.VITE_DEMO ? (demoClient() as typeof real) : real
 
 /* supabase-js reports an outright auth-server failure — a 500, such as the mail
    server refusing to send — with "{}" as its message, which is how "{}" ended up

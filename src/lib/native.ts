@@ -90,6 +90,19 @@ export function onAppLink(handler: (url: string) => void) {
   return () => { p.then((h) => h.remove()).catch(() => {}) }
 }
 
+/* A newer Android version than this one, once its download is announced
+   (supabase/migrations/20261012000000_android_updates.sql): its number and the link. */
+export async function androidUpdate(rpc: (n: string, a: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }>): Promise<{ build: number; url: string } | null> {
+  if (!isNativeAndroid) return null
+  try {
+    const mine = Number((await CapApp.getInfo()).build)
+    if (!Number.isInteger(mine)) return null
+    const { data, error } = await rpc('app_update', { p_platform: 'android', p_build: mine })
+    const u = data as { build?: number; url?: string } | null
+    return !error && u?.build && typeof u.url === 'string' && u.url.startsWith('https://') ? { build: u.build, url: u.url } : null
+  } catch { return null }
+}
+
 /* http(s) links must leave the web view, or they replace the app with a web page */
 export async function openExternal(url: string) {
   if (isNative) { try { await Browser.open({ url }); return } catch {} }

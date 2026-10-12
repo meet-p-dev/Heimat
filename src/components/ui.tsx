@@ -83,7 +83,7 @@ export function Card({ T, children, style, onClick, grad, strong, ariaLabel }: {
 export function SectionLabel({ T, children, right }: { T: Theme; children: React.ReactNode; right?: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '22px 6px 10px' }}>
-      <span style={{ fontSize: 13, fontWeight: 650, color: T.txt3 }}>{children}</span>
+      <span className={isNativeAndroid ? 'm-subhead' : undefined} style={{ fontSize: 13, fontWeight: 650, color: T.txt3 }}>{children}</span>
       {right}
     </div>
   )
@@ -272,15 +272,17 @@ export function Sheet({ open, onClose, title, T, children, footer }: { open: boo
 export function Page({ T, title, onBack, right, top, children, z = 200, close }: {
   T: Theme; title: React.ReactNode; onBack: () => void; right?: React.ReactNode; top?: React.ReactNode; children: React.ReactNode; z?: number; close?: boolean
 }) {
+  // Android: the top bar takes the scrolled-under colour once the page moves (android.css)
+  const [scrolled, setScrolled] = useState(false)
   return (
-    <div className="h-page h-aurora" style={{ zIndex: z, color: T.txt }}>
+    <div className="h-page h-aurora" data-scrolled={scrolled || undefined} style={{ zIndex: z, color: T.txt }}>
       <div className="h-pagehdr">
         <IconBtn label={close ? 'Close' : 'Back'} onClick={onBack}>{close ? <X size={20} /> : isNativeAndroid ? <ArrowLeft size={22} /> : <ChevronLeft size={23} />}</IconBtn>
         <div className="h-pagehdr-t">{title}</div>
         <div style={{ minWidth: 42, display: 'flex', justifyContent: 'flex-end' }}>{right}</div>
       </div>
       {top}
-      <div className="h-pagebody"><div className="h-pagebody-in">{children}</div></div>
+      <div className="h-pagebody" onScroll={isNativeAndroid ? (e) => setScrolled(e.currentTarget.scrollTop > 4) : undefined}><div className="h-pagebody-in">{children}</div></div>
     </div>
   )
 }
@@ -288,7 +290,7 @@ export function Page({ T, title, onBack, right, top, children, z = 200, close }:
 export function Group({ T, title, footer, children, style }: { T: Theme; title?: React.ReactNode; footer?: React.ReactNode; children: React.ReactNode; style?: CSS }) {
   return (
     <section style={{ marginBottom: 24, ...style }}>
-      {title && <h2 style={{ fontSize: 13, fontWeight: 650, color: T.txt3, margin: '0 16px 8px' }}>{title}</h2>}
+      {title && <h2 className={isNativeAndroid ? 'm-subhead' : undefined} style={{ fontSize: 13, fontWeight: 650, color: T.txt3, margin: '0 16px 8px' }}>{title}</h2>}
       <div className="glass" style={{ borderRadius: 24, overflow: 'hidden' }}>{children}</div>
       {footer && <div style={{ fontSize: 12.5, color: T.txt3, margin: '8px 16px 0', lineHeight: 1.5 }}>{footer}</div>}
     </section>

@@ -13,7 +13,7 @@ import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, Toggle, TINT 
 import ExpenseRow from '../ExpenseRow'
 
 /* One group's page (a flat is a group), pushed from its card on the Groups tab. */
-export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra, simplified = false, setSimplify }: {
+export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra, simplified = false, setSimplify, onAllBalances }: {
   T: Theme; flat: Flat; members: Member[]; ledger: Ledger; uid: string | null
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
@@ -24,25 +24,14 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
   showToast: (m: string) => void; onPerson: (id: string) => void
   /* "simplify debts": the balances show the fewest payments; anyone in the group can switch it */
   simplified?: boolean; setSimplify?: (on: boolean) => void
+  /* opens everyone's balances (the group page itself shows only yours) */
+  onAllBalances?: () => void
 }) {
   /* Who owes whom: as it actually stands, pair by pair — or, with "simplify debts" on,
      the fewest payments that square everyone up (the ledger arrives simplified, so these
      lines are the plan; every balance is the same either way). The same as the iOS app.
      Everyone still carrying a balance gets a row — including someone who has
      left, and anyone with money on the books but no member row at all. */
-  const rows = useMemo(() => {
-    const net = (u: string) => ledger.netMinor.get(u) || 0
-    const listed = members.filter((m) => !hasLeft(m) || net(m.user_id) !== 0)
-    const known = new Set(members.map((m) => m.user_id))
-    const strays = [...ledger.netMinor.keys()].filter((u) => !known.has(u) && net(u) !== 0).sort()
-    return [
-      ...listed.map((m) => ({ id: m.user_id, name: m.display_name, left: hasLeft(m), pending: isPending(m) })),
-      ...strays.map((u) => ({ id: u, name: '', left: true, pending: false })),
-    ].map((r) => {
-      const pairs = [...pairwiseFor(ledger.owes, r.id)].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]) || (a[0] < b[0] ? -1 : 1))
-      return { ...r, net: net(r.id), owes: pairs.filter(([, v]) => v < 0), gets: pairs.filter(([, v]) => v > 0) }
-    })
-  }, [ledger, members])
   const open = items.filter((i) => !i.bought).length
   // expenses arrive newest first, so each month is one contiguous run
   const months = useMemo(() => {
@@ -57,9 +46,6 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
     return out
   }, [expenses])
   const copyCode = async () => { if (await copyText(flat.join_code)) { haptic(10); showToast('Code copied') } }
-  // in the group's own main currency, as its balances are kept
-  const cur = ledger.currency
-  const fm = (minor: number) => money(toMajor(minor, cur), cur)
 
   return (
     <>
@@ -77,30 +63,8 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
         </div>
       </Card>
 
-      <SectionLabel T={T}>{simplified ? 'Balances · simplified' : 'Balances'}</SectionLabel>
-      <div className="glass" style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 12 }}>
-        {rows.map((r) => (
-          <div key={r.id} className="h-item" role={r.id !== uid ? 'button' : undefined} tabIndex={r.id !== uid ? 0 : undefined}
-            onClick={r.id !== uid ? () => { haptic(6); onPerson(r.id) } : undefined}
-            onKeyDown={r.id !== uid ? (e) => { if (e.key === 'Enter') onPerson(r.id) } : undefined}
-            style={{ '--inset': '69px', alignItems: 'flex-start', cursor: r.id !== uid ? 'pointer' : undefined } as CSSProperties}>
-            <Avatar name={r.name || nameOf(r.id)} seed={r.id} size={40} />
-            <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
-              <div style={{ fontWeight: 600, fontSize: 15.5 }}>
-                {r.name || nameOf(r.id)}{r.id === uid ? ' (you)' : ''}
-                {(r.left || r.pending) && <span className="h-pill" style={{ marginLeft: 7, fontSize: 10.5, padding: '2px 7px', background: 'color-mix(in srgb, var(--txt3) 18%, transparent)', color: T.txt2 }}>{r.left ? 'left' : 'invited'}</span>}
-              </div>
-              {r.owes.length === 0 && r.gets.length === 0 && <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 2 }}>settled up</div>}
-              {r.owes.map(([other, v]) => <div key={`o${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>owes <b style={{ color: T.red }}>{fm(-v)}</b> to {nameOf(other)}</div>)}
-              {r.gets.map(([other, v]) => <div key={`g${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>gets <b style={{ color: T.green }}>{fm(v)}</b> from {nameOf(other)}</div>)}
-            </div>
-            <div style={{ fontWeight: 750, fontSize: 15, fontVariantNumeric: 'tabular-nums', color: r.net > 0 ? T.green : r.net < 0 ? T.red : T.txt3, paddingTop: 1 }}>
-              {r.net > 0 ? `+${fm(r.net)}` : r.net < 0 ? `−${fm(-r.net)}` : '—'}
-            </div>
-            {r.id !== uid && <ChevronRight size={16} color={T.txt3} style={{ marginTop: 3 }} />}
-          </div>
-        ))}
-      </div>
+      <SectionLabel T={T} right={onAllBalances && <button type="button" className="h-link" style={{ fontSize: 13.5 }} onClick={() => { haptic(6); onAllBalances() }}>All balances</button>}>{simplified ? 'Balances · simplified' : 'Balances'}</SectionLabel>
+      <BalanceRoster {...{ T, members, ledger, uid, nameOf, onPerson }} only={uid} />
       {ledger.excluded.length > 0 && (
         <div style={{ fontSize: 12.5, color: T.amber, margin: '-4px 4px 12px', lineHeight: 1.5 }}>
           {ledger.excluded.length === 1 ? '1 expense is' : `${ledger.excluded.length} expenses are`} in another currency than {ledger.currency} and {ledger.excluded.length === 1 ? 'is' : 'are'} not in these balances.
@@ -144,5 +108,59 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
 
       <div style={{ marginTop: 26 }}><Btn full kind="danger" size="md" icon={LogOut} onClick={leaveFlat}>Leave “{flat.name}”</Btn></div>
     </>
+  )
+}
+
+/* The balances of a group as rows: your own on the group page, everyone's on
+   "All balances" — as the iPhone app shows them. Who owes whom: as it actually
+   stands, pair by pair — or, with "simplify debts" on, the fewest payments that
+   square everyone up (the ledger arrives simplified). Everyone still carrying a
+   balance gets a row — including someone who has left, and anyone with money on
+   the books but no member row at all. */
+export function BalanceRoster({ T, members, ledger, uid, nameOf, onPerson, only }: {
+  T: Theme; members: Member[]; ledger: Ledger; uid: string | null; nameOf: (u: string) => string; onPerson: (id: string) => void
+  /* just this person's row (the group page shows only yours) */
+  only?: string | null
+}) {
+  const all = useMemo(() => {
+    const net = (u: string) => ledger.netMinor.get(u) || 0
+    const listed = members.filter((m) => !hasLeft(m) || net(m.user_id) !== 0)
+    const known = new Set(members.map((m) => m.user_id))
+    const strays = [...ledger.netMinor.keys()].filter((u) => !known.has(u) && net(u) !== 0).sort()
+    return [
+      ...listed.map((m) => ({ id: m.user_id, name: m.display_name, left: hasLeft(m), pending: isPending(m) })),
+      ...strays.map((u) => ({ id: u, name: '', left: true, pending: false })),
+    ].map((r) => {
+      const pairs = [...pairwiseFor(ledger.owes, r.id)].sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]) || (a[0] < b[0] ? -1 : 1))
+      return { ...r, net: net(r.id), owes: pairs.filter(([, v]) => v < 0), gets: pairs.filter(([, v]) => v > 0) }
+    })
+  }, [ledger, members])
+  const rows = only ? all.filter((r) => r.id === only) : all
+  const cur = ledger.currency
+  const fm = (minor: number) => money(toMajor(minor, cur), cur)
+  return (
+    <div className="glass" style={{ borderRadius: 24, overflow: 'hidden', marginBottom: 12 }}>
+      {rows.map((r) => (
+        <div key={r.id} className="h-item" role={r.id !== uid ? 'button' : undefined} tabIndex={r.id !== uid ? 0 : undefined}
+          onClick={r.id !== uid ? () => { haptic(6); onPerson(r.id) } : undefined}
+          onKeyDown={r.id !== uid ? (e) => { if (e.key === 'Enter') onPerson(r.id) } : undefined}
+          style={{ '--inset': '69px', alignItems: 'flex-start', cursor: r.id !== uid ? 'pointer' : undefined } as CSSProperties}>
+          <Avatar name={r.name || nameOf(r.id)} seed={r.id} size={40} />
+          <div style={{ flex: 1, minWidth: 0, paddingTop: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: 15.5 }}>
+              {r.name || nameOf(r.id)}{r.id === uid ? ' (you)' : ''}
+              {(r.left || r.pending) && <span className="h-pill" style={{ marginLeft: 7, fontSize: 10.5, padding: '2px 7px', background: 'color-mix(in srgb, var(--txt3) 18%, transparent)', color: T.txt2 }}>{r.left ? 'left' : 'invited'}</span>}
+            </div>
+            {r.owes.length === 0 && r.gets.length === 0 && <div style={{ fontSize: 12.5, color: T.txt3, marginTop: 2 }}>settled up</div>}
+            {r.owes.map(([other, v]) => <div key={`o${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>owes <b style={{ color: T.red }}>{fm(-v)}</b> to {other === uid ? 'you' : nameOf(other)}</div>)}
+            {r.gets.map(([other, v]) => <div key={`g${other}`} style={{ fontSize: 12.5, color: T.txt2, marginTop: 2 }}>gets <b style={{ color: T.green }}>{fm(v)}</b> from {other === uid ? 'you' : nameOf(other)}</div>)}
+          </div>
+          <div style={{ fontWeight: 750, fontSize: 15, fontVariantNumeric: 'tabular-nums', color: r.net > 0 ? T.green : r.net < 0 ? T.red : T.txt3, paddingTop: 1 }}>
+            {r.net > 0 ? `+${fm(r.net)}` : r.net < 0 ? `−${fm(-r.net)}` : '—'}
+          </div>
+          {r.id !== uid && <ChevronRight size={16} color={T.txt3} style={{ marginTop: 3 }} />}
+        </div>
+      ))}
+    </div>
   )
 }

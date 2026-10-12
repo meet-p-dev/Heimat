@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Check, SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal } from 'lucide-react'
+import { isNativeAndroid } from '../lib/native'
 import type { Theme, Profile } from '../lib/types'
 import { SHARES, DOINGS, PARTS, partOn, withPart, withAnswers } from '../lib/life'
 import { haptic } from '../lib/haptic'
-import { Sheet, Group, Item, Toggle, Btn, TINT } from './ui'
+import { Sheet, Group, Item, Toggle, Btn, CheckCircle, TINT } from './ui'
 
 /* Tick-boxes for one question: a row each (onboarding and Settings). */
 export function LifeChoices({ T, options, chosen, set }: {
@@ -18,9 +19,8 @@ export function LifeChoices({ T, options, chosen, set }: {
             onClick={() => { haptic(8); set(on ? chosen.filter((x) => x !== id) : [...chosen, id]) }}
             style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%', padding: '14px 16px', background: 'none', border: 'none', borderTop: i ? `1px solid ${T.border}` : 'none', color: T.txt, font: 'inherit', fontSize: 16, textAlign: 'left', cursor: 'pointer' }}>
             <span style={{ flex: 1 }}>{label}</span>
-            <span style={{ width: 24, height: 24, borderRadius: 99, display: 'flex', alignItems: 'center', justifyContent: 'center', background: on ? T.acc : 'transparent', border: on ? 'none' : `2px solid ${T.border}`, color: '#fff' }}>
-              {on && <Check size={15} strokeWidth={3} />}
-            </span>
+            {/* a round tick on iPhone and the web, a Material checkbox on Android (android.css) */}
+            <CheckCircle on={on} />
           </button>
         )
       })}
@@ -30,15 +30,17 @@ export function LifeChoices({ T, options, chosen, set }: {
 
 export const LifeQuestions = ({ T, share, doing, setShare, setDoing }: {
   T: Theme; share: string[]; doing: string[]; setShare: (v: string[]) => void; setDoing: (v: string[]) => void
-}) => (
-  <>
-    <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px', textTransform: 'uppercase', letterSpacing: 0.3 }}>Who do you share costs with?</div>
+}) => {
+  // a section's heading: small capitals on iPhone, Material's green subhead on Android
+  const head = isNativeAndroid ? { className: 'm-subhead', style: { fontSize: 14, margin: '0 4px 8px' } } : { style: { fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px', textTransform: 'uppercase' as const, letterSpacing: 0.3 } }
+  return <>
+    <div {...head}>Who do you share costs with?</div>
     <LifeChoices T={T} options={SHARES} chosen={share} set={setShare} />
     <div style={{ fontSize: 12.5, color: T.txt3, margin: '8px 4px 22px' }}>Pick all that fit — or none if you live on your own.</div>
-    <div style={{ fontSize: 13, fontWeight: 650, color: T.txt2, margin: '0 4px 8px', textTransform: 'uppercase', letterSpacing: 0.3 }}>What do you do?</div>
+    <div {...head}>What do you do?</div>
     <LifeChoices T={T} options={DOINGS} chosen={doing} set={setDoing} />
   </>
-)
+}
 
 /* Settings → Your Splitlife: the questions again, and every part with its switch. */
 export function LifeSettingsItem({ T, profile, sProfile }: { T: Theme; profile: Profile; sProfile: (p: Profile) => void }) {

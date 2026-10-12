@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { partOn } from './lib/life'
 import type { Dispatch, SetStateAction } from 'react'
-import { Settings as SettingsIcon, WifiOff } from 'lucide-react'
+import { Settings as SettingsIcon, WifiOff, Plus } from 'lucide-react'
 import { sb, friendlyAuthError } from './lib/supabase'
 import { LS } from './lib/storage'
 import { tod, money, greeting, longToday } from './lib/format'
 import { haptic, setHapticsEnabled } from './lib/haptic'
-import { DK, LT } from './lib/theme'
+import { DK, LT, MD } from './lib/theme'
 import { NAV_ICON } from './icons'
 import { computeRunway, computeWorkStats } from './lib/derive'
-import { buildLedger, shareOf, pairwiseFor, toMajor, participantsOf, simplifyLedger } from './lib/ledger'
+import { buildLedger, shareOf, pairwiseFor, toMajor, participantsOf, simplifyLedger, sharesOf } from './lib/ledger'
 import type { SettleSuggestion } from './lib/derive'
 import type { Profile, Runway, Shift, Flat, Member, Expense, Settlement, ListItem, FlatCategory, TabId, ModalId, PageId, AuthMode } from './lib/types'
 import { hasLeft } from './lib/types'
@@ -19,7 +19,10 @@ import type { Prefs } from './lib/prefs'
 import Onboarding from './components/Onboarding'
 import NoFlat from './components/tabs/NoFlat'
 import HomeTab from './components/tabs/HomeTab'
-import FlatTab from './components/tabs/FlatTab'
+import { ActivityPage } from './components/Activity'
+import { loadActivity, visibleActivity } from './lib/activity'
+import type { Activity } from './lib/activity'
+import FlatTab, { BalanceRoster } from './components/tabs/FlatTab'
 import MoneyTab from './components/tabs/MoneyTab'
 import WorkTab from './components/tabs/WorkTab'
 import ExpenseModal from './components/modals/ExpenseModal'
@@ -41,6 +44,7 @@ import ProfileModal from './components/modals/ProfileModal'
 import AnalyticsModal from './components/modals/AnalyticsModal'
 import AuthPage from './components/pages/AuthPage'
 import ProfilePage from './components/pages/ProfilePage'
+import type { GroupLine } from './components/pages/ProfilePage'
 import SettingsPage from './components/pages/SettingsPage'
 import Intro from './components/Intro'
 import NotifPrompt from './components/NotifPrompt'
@@ -48,7 +52,7 @@ import ListPage from './components/ListPage'
 import LiquidGlass from './components/LiquidGlass'
 import { IconBtn, Avatar } from './components/ui'
 import { pushSupported, needsInstall, permission as notifPermission, isSubscribed, subscribe, subscribeError, initNativeListeners, resaveIfSubscribed, forgetThisDevice, pushSwitchedOff } from './lib/push'
-import { isNative, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, onAppLink, webOrigin, resetUrl } from './lib/native'
+import { isNative, isNativeAndroid, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, onAppLink, webOrigin, resetUrl, androidUpdate, openExternal } from './lib/native'
 import { touchAppUser, appUserName } from './lib/appUser'
 import { fetchRate } from './lib/rates'
 import { deriveShift } from './lib/shift'
@@ -68,7 +72,7 @@ export default function App() {
   const [prefs, setPrefsState] = useState<Prefs>(loadPrefs)
   const [sysDark, setSysDark] = useState(systemDark)
   const dark = prefs.theme === 'system' ? sysDark : prefs.theme === 'dark'
-  const T = dark ? DK : LT
+  const T = isNativeAndroid ? MD : dark ? DK : LT
   const [profile, setProfile] = useState<Profile>(() => LS.g<Profile>('mt-h-profile') || { onboarded: false })
   const [runway, setRunway] = useState<Runway | null>(() => LS.g<Runway>('mt-h-runway'))
   const [shifts, setShifts] = useState<Shift[]>(() => LS.g<Shift[]>('mt-h-shifts') || [])
@@ -86,7 +90,7 @@ export default function App() {
   /* a group's invite link (join.html → ?join=CODE in the browser, heimat://join/CODE in the
      app) or a personal invite (heimat://invite/TOKEN): handled once we're signed in */
   const [joinPrefill, setJoinPrefill] = useState('')
-  const [pendingLink, setPendingLink] = useState<{ join?: string; invite?: string } | null>(() => {
+  const [pendingLink, setPendingLink] = useState<{ join?: string; invite?: string; quick?: 'add' | 'scan' | 'shift' } | null>(() => {
     const q = new URLSearchParams(window.location.search), c = (q.get('join') || '').trim().toUpperCase()
     if (!c) return null
     q.delete('join')
@@ -111,6 +115,8 @@ export default function App() {
   const [pushAsk, setPushAsk] = useState(false)
   const [showList, setShowList] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
+  /* Android: the large title settles into a small top bar, and the FAB shrinks to its icon, once the page scrolls */
+  const [scrolled, setScrolled] = useState(false)
   const toastTimer = useRef<ReturnType<typeof setTimeout>>()
 
   /* sync state */
@@ -134,6 +140,13 @@ export default function App() {
   const [circles, setCircles] = useState<Flat[]>([])
   const [allMembers, setAllMembers] = useState<Member[]>([])
   const [allExpenses, setAllExpenses] = useState<Expense[]>([])
+  // a newer Android version to download (Home's Update card), checked each time the app opens
+  const [update, setUpdate] = useState<{ build: number; url: string } | null>(null)
+  // the Scan a receipt shortcut: the expense form opens straight into the scanner
+  const [scanOnOpen, setScanOnOpen] = useState(false)
+  /* what happened in every place, read when Home or the Activity page is looked at */
+  const [activity, setActivity] = useState<Activity[]>([])
+  const [activityBusy, setActivityBusy] = useState(false)
   const [allSettles, setAllSettles] = useState<Settlement[]>([])
   // bills you can see (your groups' and your own) and where each stands today
   const [bills, setBills] = useState<Bill[]>([])
@@ -555,8 +568,8 @@ export default function App() {
   }
 
   const clearLocal = () => {
-    sShifts([]); sRunway(null)
-    haptic(10); showToast('Shifts and runway cleared on this device')
+    sShifts([])
+    haptic(10); showToast('Shifts cleared on this phone')
   }
 
   /* category actions */
@@ -663,13 +676,24 @@ export default function App() {
     const u = m ? null : (() => { try { return new URL(url) } catch { return null } })()
     const join = m?.[1] === 'join' ? m[2] : u?.pathname.endsWith('/join.html') ? u.searchParams.get('c') : null
     const invite = m?.[1] === 'invite' ? m[2] : u?.pathname.endsWith('/invite.html') ? u.searchParams.get('t') : null
-    if (join && /^[A-Za-z0-9]{4,12}$/.test(join)) setPendingLink({ join: join.toUpperCase() })
+    // the icon's long-press shortcuts (android/app/src/main/res/xml/shortcuts.xml)
+    const quick = /^heimat:\/\/(add|scan|shift)\b/.exec(url)?.[1] as 'add' | 'scan' | 'shift' | undefined
+    if (quick) setPendingLink({ quick })
+    else if (join && /^[A-Za-z0-9]{4,12}$/.test(join)) setPendingLink({ join: join.toUpperCase() })
     else if (invite && /^[a-f0-9]{32}$/.test(invite)) setPendingLink({ invite })
   }), [])
   useEffect(() => { if (modal !== 'join') setJoinPrefill('') }, [modal])
   useEffect(() => {
     if (!pendingLink || !uid || !sb) return
     const l = pendingLink
+    if (l.quick) {
+      if (!profile.onboarded) return
+      if (l.quick === 'shift') { setPendingLink(null); setPages([]); openShift(null); return }
+      // an expense needs somewhere to go: wait for the groups to load
+      if (!myFlats.length && !circles.length) return
+      setPendingLink(null); setPages([]); setScanOnOpen(l.quick === 'scan'); startAddExpense()
+      return
+    }
     setPendingLink(null)
     if (l.join) { setJoinPrefill(l.join); setModal('join'); return }
     if (l.invite) {
@@ -678,7 +702,7 @@ export default function App() {
         await loadMyFlats(); setTab('flat'); showToast(`You're in ${(data as { name?: string }).name || 'the group'}`)
       })
     }
-  }, [pendingLink, uid])
+  }, [pendingLink, uid, profile.onboarded, myFlats.length, circles.length])
   useEffect(() => {
     const l = settleLink.current
     if (!l || !uid || !linesWith(books, uid, l.person).length) return
@@ -697,6 +721,29 @@ export default function App() {
     .map((e) => ({ ...e, amount: shareOf(e, uid) }))
     .filter((e) => e.amount > 0), [allExpenses, uid, mainCur, hostCur])
   const placeOf = (id: string) => myFlats.find((f) => f.id === id)?.name || 'Non-group expenses'
+  const isCircle = (id: string) => circles.some((c) => c.id === id)
+  const reloadActivity = async () => {
+    const ids = [...myFlats, ...circles].map((f) => f.id)
+    setActivityBusy(true)
+    const rows = await loadActivity(ids)
+    setActivityBusy(false)
+    if (rows) setActivity(visibleActivity(rows, isCircle))
+  }
+  const onActivity = tab === 'home' || pages.includes('activity')
+  // allExpenses changes whenever anything anywhere does (the realtime reload), so the feed follows it
+  useEffect(() => { if (uid && onActivity) reloadActivity() }, [uid, onActivity, placeIds, allExpenses, allSettles])
+  /* the expenses you are on, across every group and friend, newest first */
+  const myRecent = useMemo(() => uid ? allExpenses
+    .filter((e) => !e.deleted_at && (e.paid_by === uid || (e.payers && uid in e.payers) || sharesOf(e).some((x) => x.uid === uid)))
+    .sort((a, b) => b.spent_on.localeCompare(a.spent_on) || (b.created_at || '').localeCompare(a.created_at || '')) : [], [allExpenses, uid])
+  const activityPlaces = [...myFlats.map((f) => ({ id: f.id, name: f.name })), ...(circles.length ? [{ id: 'non-group', name: 'Non-group' }] : [])]
+  const curOf = (id: string) => books.get(id)?.currency || hostCur
+  /* your groups on Profile: how many people, and where you stand in each */
+  const groupLines: GroupLine[] = myFlats.map((f) => {
+    const b = books.get(f.id), currency = b?.currency || hostCur
+    const minor = (uid && b?.netMinor.get(uid)) || 0
+    return { flat: f, people: allMembers.filter((m) => m.flat_id === f.id && !m.left_at).length, simplified: isSimplified(f), minor, major: toMajor(minor, currency), currency }
+  })
   const overallNet = useMemo(() => {
     if (!uid) return 0
     let v = 0
@@ -751,8 +798,19 @@ export default function App() {
 
   /* ---- native shell: splash, back button, resume, push taps ---- */
   useEffect(() => { hideSplash() }, [])
-  useEffect(() => { if (isNative) initNativeListeners(() => { loadFlat(); loadMyFlats() }) }, [])
-  useEffect(() => onAppResume(() => { if (uid && flatId) loadFlat() }), [uid, flatId])
+  /* Both listeners live as long as the app, so they call through a ref: the reload of
+     *this* render, with the groups loaded since. (They held on to the first render's —
+     no groups yet — and coming back to the app emptied every balance until the next change.) */
+  const refresh = useRef((_places?: boolean) => {})
+  // places: a notification may be about a group you were just added to
+  refresh.current = (places) => {
+    if (!uid) return
+    if (places) loadMyFlats()
+    if (flatId) loadFlat(); else if (!places) loadOverview()
+  }
+  useEffect(() => { if (isNative) initNativeListeners(() => refresh.current(true)) }, [])
+  useEffect(() => onAppResume(() => refresh.current()), [])
+  useEffect(() => { if (uid && sb) androidUpdate((n, a) => sb!.rpc(n, a)).then(setUpdate) }, [uid])
 
   /* Android back: unwind whatever is on top, one layer per press. Returning
      false lets the shell minimise the app instead of killing it. */
@@ -804,6 +862,14 @@ export default function App() {
     <AuthPage {...{ T, mode: auth, setMode: setAuth, onClose: () => setAuth(null), busy, isAnon, inFlat: !!flat, email, defaultName: profile.name, signUp, signIn, sendReset, setPassword, changeEmail }} />
   )
 
+  // the tabs that fit this person (Settings → Your Splitlife); hiding one never deletes anything
+  const shownTabs = TABS.filter(([id]) => id === 'home'
+    || (id === 'flat' && (['groups', 'bills', 'chores', 'list'] as const).some((p) => partOn(profile, p)))
+    || (id === 'money' && !isNativeAndroid && partOn(profile, 'runway'))
+    || (id === 'work' && (partOn(profile, 'work') || partOn(profile, 'limit'))))
+  // before the onboarding return below: a hook after it blanked the app as onboarding finished
+  useEffect(() => { if (!shownTabs.some(([id]) => id === tab)) setTab('home') }, [shownTabs.map(([id]) => id).join(), tab])
+
   if (!profile.onboarded) {
     return (
       <div className="h-app h-aurora">
@@ -838,7 +904,7 @@ export default function App() {
     if (error) showToast(billError(error)); else { setBills((x) => x.filter((y) => y.id !== bill.id)); showToast(`${bill.name} removed`) }
   }
   const choresCtx: ChoresCtx = {
-    T, uid, d: choreData, members: allMembers, who: nameOf,
+    T, uid, d: choreData, members: allMembers, who: nameOf, meName: profile.name,
     edit: (chore, flat) => { setChoreEdit({ chore, flat }); setModal('chore') },
     call: async (fn, args, ok) => {
       if (!sb) return
@@ -868,12 +934,6 @@ export default function App() {
   }
   const placesCount = myFlats.length + (circles.length ? 1 : 0)
   const scope = placesCount > 1 ? `Across ${myFlats.length} ${myFlats.length === 1 ? 'group' : 'groups'}${circles.length ? ' and friends' : ''}` : flat ? `Your balance · ${flat.name}` : 'Your balance'
-  // the tabs that fit this person (Settings → Your Splitlife); hiding one never deletes anything
-  const shownTabs = TABS.filter(([id]) => id === 'home'
-    || (id === 'flat' && (['groups', 'bills', 'chores', 'list'] as const).some((p) => partOn(profile, p)))
-    || (id === 'money' && partOn(profile, 'runway'))
-    || (id === 'work' && (partOn(profile, 'work') || partOn(profile, 'limit'))))
-  useEffect(() => { if (!shownTabs.some(([id]) => id === tab)) setTab('home') }, [shownTabs.map(([id]) => id).join(), tab])
   const tabIdx = Math.max(0, shownTabs.findIndex(([id]) => id === tab))
   const openSettings = () => openPage('settings')
 
@@ -881,16 +941,16 @@ export default function App() {
     <div className="h-app h-aurora">
       {toastEl}
 
-      <main ref={mainRef} className="h-main">
+      <main ref={mainRef} className="h-main" onScroll={isNativeAndroid ? (e) => setScrolled(e.currentTarget.scrollTop > 8) : undefined}>
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater }} />}
+          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: !isNativeAndroid && partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater, mine: myRecent, activity, placeName: placeOf, mixed: placesCount > 1, curOf, onAllActivity: () => openPage('activity'), update, onUpdate: () => update && openExternal(update.url) }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings, profile, sProfile }} />}
         </div>
       </main>
 
-      <header className="h-hdr">
+      <header className="h-hdr" data-scrolled={scrolled || undefined}>
         <div className="h-hdr-fx" />
         <div className="h-hdr-row">
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -910,7 +970,7 @@ export default function App() {
             const NIcon = NAV_ICON[id]
             const on = tab === id
             return (
-              <button key={id} type="button" className="h-tab" aria-current={on ? 'page' : undefined} onClick={() => { if (!on) { haptic(8); setTab(id) } else mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+              <button key={id} type="button" className="h-tab" aria-current={on ? 'page' : undefined} onClick={() => { if (!on) { haptic(8); setScrolled(false); setTab(id) } else mainRef.current?.scrollTo({ top: 0, behavior: 'smooth' }) }}>
                 <NIcon size={23} strokeWidth={on ? 2.3 : 1.9} />
                 <span>{label}</span>
               </button>
@@ -919,10 +979,17 @@ export default function App() {
         </LiquidGlass>
       </nav>
 
+      {/* Android: Add expense is the floating action button, as Pixel apps put their main action */}
+      {isNativeAndroid && (tab === 'home' || tab === 'flat') && (inFlat || circles.length > 0 || myFlats.length > 0) && (
+        <button type="button" className="m-fab" data-small={scrolled || undefined} aria-label="Add expense" onClick={() => { haptic(10); startAddExpense() }}>
+          <Plus size={24} /><span>Add expense</span>
+        </button>
+      )}
+
       {pages.map((p) => p === 'profile'
-        ? <ProfilePage key="profile" {...{ T, profile, uid, isAnon, email, pendingEmail, myFlats, flatId, earnedTotal, spentTotal, shiftCount: shifts.length, runwayCalc, fH, onBack: closePage, onAuth: setAuth, onSwitchFlat: (id: string) => { setPages([]); openGroup(id) }, setModal, onOpenSettings: openSettings }} />
+        ? <ProfilePage key="profile" {...{ T, profile, uid, isAnon, email, pendingEmail, groups: groupLines, earnedTotal, spentTotal, showEarned: partOn(profile, 'work'), fH, onBack: closePage, onAuth: setAuth, onOpenGroup: (id: string) => { setPages([]); openGroup(id) }, setModal, onSignOut: signOut, onDeleteAccount: deleteAccount }} />
         : p === 'settings'
-        ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, email, pendingEmail, shifts, runway, onBack: closePage, onAuth: setAuth, onSignOut: signOut, onDeleteAccount: deleteAccount, onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal, addShifts: (add: Shift[]) => sShifts([...add, ...shifts]) }} />
+        ? <SettingsPage key="settings" {...{ T, prefs, setPrefs, profile, sProfile, uid, isAnon, shifts, runway, onBack: closePage, onOpenProfile: () => openPage('profile'), onReplayIntro: () => setShowIntro(true), onEditProfile: () => setModal('profile'), showToast, clearLocal, addShifts: (add: Shift[]) => sShifts([...add, ...shifts]) }} />
         : p === 'nongroup'
         ? <NonGroupPage key={p} c={fc} onBack={closePage} />
         : p === 'mybills'
@@ -930,17 +997,25 @@ export default function App() {
             <BillsSection b={billsCtx} flatId={null} />
             <div style={{ fontSize: 13, color: T.txt3, margin: '-10px 4px 0', lineHeight: 1.5 }}>Only you see these. On the day one is due you get a reminder; tick it once it's paid.</div>
           </Page>
+        : p === 'activity'
+        ? <ActivityPage key={p} {...{ T, rows: activity, loading: activityBusy, places: activityPlaces, isCircle, placeName: placeOf, curOf }} me={uid} name={(u) => (u ? nameOf(u) : 'Someone')} onBack={closePage} />
+        : p.startsWith('balances:')
+        ? <Page key={p} T={T} title="All balances" onBack={closePage}>
+            {flat && flat.id === p.slice(9)
+              ? <BalanceRoster {...{ T, members, ledger, uid, nameOf }} onPerson={(id: string) => openPage(`person:${id}`)} />
+              : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
+          </Page>
         : p.startsWith('person:')
         ? <PersonPage key={p} c={fc} person={p.slice(7)} onBack={closePage} />
         : (
           <Page key={p} T={T} title={myFlats.find((f) => f.id === p.slice(6))?.name || ''} onBack={closePage}>
             {flat && flat.id === p.slice(6)
-              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), simplified: openSimplified, setSimplify, extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
+              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), simplified: openSimplified, setSimplify, onAllBalances: () => openPage(`balances:${flat.id}`), extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
               : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
           </Page>
         ))}
 
-      <ExpenseModal {...{ open: modal === 'exp', onClose: closeModal, c: fc, start: flatId, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, cats, openCategories: () => setModal('cats'), save: saveExpense, resolve: resolveCircle }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
+      <ExpenseModal {...{ open: modal === 'exp', onClose: () => { setScanOnOpen(false); closeModal() }, autoScan: scanOnOpen, c: fc, start: flatId, editing: editExpense, prefill: expensePrefill, hostCur, homeCur, rate, cats, openCategories: () => setModal('cats'), save: saveExpense, resolve: resolveCircle }} onDelete={editExpense ? () => removeExpense(editExpense.id) : undefined} />
       <ChoreModal c={choresCtx} open={modal === 'chore'} onClose={closeModal} editing={choreEdit.chore} flatId={choreEdit.chore ? choreEdit.chore.flat_id : choreEdit.flat} save={saveChore} remove={removeChore} />
       <BillModal b={billsCtx} open={modal === 'bill'} onClose={closeModal} editing={billEdit.bill} flatId={billEdit.bill ? billEdit.bill.flat_id : billEdit.flat} save={saveBill} remove={removeBill} />
       <PersonSettle c={fc} open={modal === 'settleperson'} person={settlePersonId} prefill={settlePrefill} onClose={closeModal} record={recordSettle} />

@@ -1,0 +1,221 @@
+/* The Android app's look: Material 3, as Pixel's own apps draw it. Bundled only
+   in the Android build (imported by src/android/lucide.tsx, which the build swaps
+   in for lucide-react), and scoped to :root[data-os=android], so the website and
+   the iPhone app are untouched. Colours are Material 3 roles generated from
+   Splitlife's green (m3-colors.css); everything else — type scale, shapes,
+   state layers, motion — follows m3.material.io. */
+@import './m3-colors.css';
+
+/* Material Symbols Rounded, only the icons Splitlife uses (scripts/android-symbols.sh) */
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url(./assets/material-symbols-rounded.woff2) format('woff2');
+}
+.msym {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  white-space: nowrap; word-wrap: normal; direction: ltr; overflow: hidden;
+  -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}
+.msym[data-fill] { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+/* ---------- the app's tokens, mapped onto Material roles ---------- */
+:root[data-os=android] {
+  --bg: var(--md-surface); --bg-fade: var(--md-surface);
+  --txt: var(--md-on-surface); --txt2: var(--md-on-surface-variant); --txt3: var(--md-outline);
+  --acc: var(--md-primary); --on-acc: var(--md-on-primary);
+  --acc-glow: transparent; --acc-ring: color-mix(in srgb, var(--md-primary) 14%, transparent);
+  --red: var(--md-error); --green: var(--md-primary); --amber: #8a5a00;
+  --solid: var(--md-surface-container-low); --solid2: var(--md-surface-container);
+  --g-bg: var(--md-surface-container-low); --g-bg2: var(--md-surface-container-low); --g-bg-lg: var(--md-surface-container-low);
+  --g-shadow: none;
+  --sep: var(--md-outline-variant); --field: transparent; --field-bd: var(--md-outline);
+  --scrim: color-mix(in srgb, var(--md-scrim) 32%, transparent);
+  --tog-off: var(--md-surface-container-highest); --seg-thumb: var(--md-secondary-container); --tab-ind: var(--md-secondary-container);
+  --m-ease: cubic-bezier(.2, 0, 0, 1); /* Material "emphasized" */
+  --m-ease-dec: cubic-bezier(.05, .7, .1, 1);
+}
+:root[data-os=android][data-theme=dark] { --amber: #f6be4f; }
+
+:root[data-os=android] body {
+  font-family: Roboto, 'Google Sans Text', system-ui, sans-serif;
+  background: var(--md-surface); color: var(--md-on-surface);
+  letter-spacing: .1px;
+}
+:root[data-os=android] .h-aurora::before, :root[data-os=android] .h-aurora::after { display: none }
+:root[data-os=android] .h-aurora { background: var(--md-surface) }
+
+/* ---------- surfaces: tonal cards, no glass, no glow ---------- */
+:root[data-os=android] .glass, :root[data-os=android] .glass.lg-on, :root[data-os=android] .glass-strong {
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  background: var(--md-surface-container-low) !important;
+  box-shadow: none; border-radius: 20px !important;
+}
+:root[data-os=android] .glass::before { display: none }
+:root[data-os=android] .h-well { background: var(--md-surface-container-highest); border: none; border-radius: 16px }
+
+/* ---------- state layers + ripple (src/android/ripple.ts adds the ripple) ---------- */
+:root[data-os=android] .m-ripple-host { position: relative; overflow: hidden; isolation: isolate }
+:root[data-os=android] .m-ripple {
+  position: absolute; border-radius: 50%; pointer-events: none; z-index: 0;
+  background: currentColor; opacity: .14; transform: scale(0);
+  animation: mRipple .45s var(--m-ease-dec) forwards;
+}
+:root[data-os=android] .m-ripple.out { animation: mRipple .45s var(--m-ease-dec) forwards, mRippleOut .3s linear forwards }
+@keyframes mRipple { to { transform: scale(1) } }
+@keyframes mRippleOut { to { opacity: 0 } }
+:root[data-os=android] .btn, :root[data-os=android] .h-icbtn, :root[data-os=android] .h-qa, :root[data-os=android] .chip,
+:root[data-os=android] .h-press, :root[data-os=android] .h-avbtn, :root[data-os=android] .h-item, :root[data-os=android] .h-tab {
+  transition: background-color .2s var(--m-ease), color .2s var(--m-ease), box-shadow .2s var(--m-ease);
+}
+:root[data-os=android] .btn:active:not([disabled]), :root[data-os=android] .h-icbtn:active:not([disabled]), :root[data-os=android] .h-qa:active,
+:root[data-os=android] .chip:active, :root[data-os=android] .h-press:active, :root[data-os=android] .h-avbtn:active { transform: none; filter: none }
+
+/* ---------- buttons (M3: full corners, label-large) ---------- */
+:root[data-os=android] .btn { font-weight: 500; letter-spacing: .1px; gap: 8px; border-radius: 999px }
+:root[data-os=android] .btn-lg { min-height: 52px; padding: 0 24px; font-size: 16px }
+:root[data-os=android] .btn-md { min-height: 44px; padding: 0 20px; font-size: 14px }
+:root[data-os=android] .btn-sm { min-height: 36px; padding: 0 16px; font-size: 14px }
+:root[data-os=android] .btn-primary { background: var(--md-primary); color: var(--md-on-primary); box-shadow: none }
+:root[data-os=android] .btn-secondary { background: var(--md-secondary-container) !important; color: var(--md-on-secondary-container) }
+:root[data-os=android] .btn-tinted { background: var(--md-primary-container); color: var(--md-on-primary-container) }
+:root[data-os=android] .btn-ghost { color: var(--md-primary) }
+:root[data-os=android] .btn-danger { color: var(--md-error) }
+:root[data-os=android] .btn[disabled] { opacity: 1; background: color-mix(in srgb, var(--md-on-surface) 12%, transparent) !important; color: color-mix(in srgb, var(--md-on-surface) 38%, transparent) }
+:root[data-os=android] .h-icbtn { background: transparent !important; color: var(--md-on-surface-variant) }
+:root[data-os=android] .h-link { color: var(--md-primary); font-weight: 500 }
+
+/* ---------- text fields (M3 outlined) ---------- */
+:root[data-os=android] .fld {
+  background: transparent; border: 1px solid var(--md-outline); border-radius: 8px;
+  min-height: 56px; padding: 15px 16px; color: var(--md-on-surface);
+}
+:root[data-os=android] .fld:focus { border: 2px solid var(--md-primary); padding: 14px 15px; box-shadow: none }
+:root[data-os=android] .fld::placeholder { color: var(--md-on-surface-variant) }
+:root[data-os=android] .fld-big { font-size: 32px; font-weight: 400; letter-spacing: 0 }
+
+/* ---------- switch (M3: 52x32 track, 16dp thumb that grows to 24dp when on) ---------- */
+:root[data-os=android] .h-toggle { width: 52px; height: 32px; background: var(--md-surface-container-highest); border: 2px solid var(--md-outline) }
+:root[data-os=android] .h-toggle::after { top: 6px; left: 6px; width: 16px; height: 16px; background: var(--md-outline); box-shadow: none; transition: transform .25s var(--m-ease), width .25s var(--m-ease), height .25s var(--m-ease), top .25s var(--m-ease), left .25s var(--m-ease) }
+:root[data-os=android] .h-toggle:active::after { width: 28px; height: 28px; top: 0; left: 0 }
+:root[data-os=android] .h-toggle[aria-checked=true] { background: var(--md-primary); border-color: var(--md-primary) }
+:root[data-os=android] .h-toggle[aria-checked=true]::after { top: 2px; left: 2px; width: 24px; height: 24px; background: var(--md-on-primary); transform: translateX(20px) }
+:root[data-os=android] .h-toggle[aria-checked=true]:active::after { top: 0; left: 0; width: 28px; height: 28px; transform: translateX(20px) }
+
+/* ---------- segmented buttons (M3: outlined, the chosen one tonal) ---------- */
+:root[data-os=android] .h-seg { background: none; border: 1px solid var(--md-outline); padding: 0; border-radius: 999px; overflow: hidden }
+:root[data-os=android] .h-seg-thumb { top: 0; bottom: 0; left: 0; border-radius: 0; background: var(--md-secondary-container); box-shadow: none; transition: transform .3s var(--m-ease) }
+:root[data-os=android] .h-seg button { font-weight: 500; font-size: 14px; padding: 10px 0; color: var(--md-on-surface); border-radius: 0 }
+:root[data-os=android] .h-seg button + button { border-left: 1px solid var(--md-outline) }
+:root[data-os=android] .h-seg button[aria-pressed=true] { color: var(--md-on-secondary-container) }
+
+/* ---------- chips (M3 filter chips: 32dp, 8dp corners) ---------- */
+:root[data-os=android] .chip { border-radius: 8px; min-height: 32px; padding: 6px 16px; font-size: 14px; font-weight: 500; background: transparent; border: 1px solid var(--md-outline-variant); color: var(--md-on-surface-variant) }
+:root[data-os=android] .chip[aria-pressed=true] { background: var(--md-secondary-container) !important; color: var(--md-on-secondary-container) !important; border-color: transparent !important; box-shadow: none !important; padding-left: 8px }
+:root[data-os=android] .chip[aria-pressed=true]::before { content: 'check'; font-family: 'Material Symbols Rounded'; font-size: 18px; line-height: 1; -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga' }
+:root[data-os=android] .h-pill { font-weight: 500; border-radius: 8px }
+:root[data-os=android] .h-check { border: 2px solid var(--md-on-surface-variant); border-radius: 2px; width: 18px; height: 18px }
+:root[data-os=android] .h-check[data-on=true] { background: var(--md-primary); border-color: var(--md-primary); color: var(--md-on-primary) }
+
+/* ---------- lists (M3 list items: 56dp, leading icons in a tonal circle) ---------- */
+:root[data-os=android] .h-item { min-height: 56px; padding: 12px 16px; gap: 16px; font-size: 16px }
+:root[data-os=android] .h-item + .h-item::after { left: 16px; right: 16px; background: var(--md-outline-variant); opacity: .6 }
+:root[data-os=android] button.h-item:active:not([disabled]) { background: color-mix(in srgb, var(--md-on-surface) 10%, transparent) }
+:root[data-os=android] .h-item-ic { width: 40px; height: 40px; border-radius: 999px; box-shadow: none }
+:root[data-os=android] .h-qa { border-radius: 20px; background: var(--md-surface-container-low) !important; font-weight: 500; font-size: 12px; color: var(--md-on-surface) }
+:root[data-os=android] .h-qa-ic { width: 48px; height: 48px; border-radius: 999px; box-shadow: none }
+:root[data-os=android] .h-badge { background: var(--md-error); color: var(--md-on-error); box-shadow: none; font-weight: 500; font-size: 11px; min-width: 16px; height: 16px; top: -2px; right: -4px; padding: 0 4px }
+
+/* section headers (M3 list subheaders, primary-tinted like Pixel Settings) */
+:root[data-os=android] .m-subhead { color: var(--md-primary) !important; font-size: 14px !important; font-weight: 500 !important; letter-spacing: .1px }
+
+/* ---------- top app bar: a large title that settles into a small bar on scroll ---------- */
+:root[data-os=android] .h-main { padding-top: calc(env(safe-area-inset-top) + 112px) }
+:root[data-os=android] .h-hdr-fx { -webkit-backdrop-filter: none; backdrop-filter: none; -webkit-mask-image: none; mask-image: none; inset: 0; background: var(--md-surface); transition: background-color .25s var(--m-ease) }
+:root[data-os=android] .h-hdr[data-scrolled] .h-hdr-fx { background: var(--md-surface-container) }
+:root[data-os=android] .h-hdr-row { padding: 8px 8px 8px 16px; gap: 4px; align-items: flex-end; min-height: 104px; transition: min-height .25s var(--m-ease) }
+:root[data-os=android] .h-hdr[data-scrolled] .h-hdr-row { min-height: 64px; align-items: center }
+:root[data-os=android] .h-kicker { font-size: 14px; font-weight: 400; color: var(--md-on-surface-variant); transition: opacity .2s, height .25s var(--m-ease); height: 20px; overflow: hidden }
+:root[data-os=android] .h-hdr[data-scrolled] .h-kicker { opacity: 0; height: 0 }
+:root[data-os=android] .h-title { font-size: 32px; font-weight: 400; letter-spacing: 0; line-height: 40px; transition: font-size .25s var(--m-ease), line-height .25s var(--m-ease) }
+:root[data-os=android] .h-hdr[data-scrolled] .h-title { font-size: 22px; line-height: 28px }
+:root[data-os=android] .h-hdr-row > .h-icbtn, :root[data-os=android] .h-hdr-row > .h-avbtn { margin-bottom: 4px }
+:root[data-os=android] .h-hdr[data-scrolled] .h-hdr-row > .h-icbtn, :root[data-os=android] .h-hdr[data-scrolled] .h-hdr-row > .h-avbtn { margin-bottom: 0 }
+:root[data-os=android] .h-avbtn { box-shadow: none; margin: 0 4px }
+
+/* ---------- navigation bar (M3: 80dp, pill indicator, filled icon when chosen) ---------- */
+:root[data-os=android] .h-tabbar { bottom: 0; padding: 0; justify-content: stretch }
+:root[data-os=android] .h-tabbar-in {
+  max-width: none; width: 100%; height: calc(80px + env(safe-area-inset-bottom)); padding: 12px 0 calc(16px + env(safe-area-inset-bottom));
+  border-radius: 0 !important; background: var(--md-surface-container) !important; box-shadow: none !important; gap: 8px;
+}
+:root[data-os=android] .h-tab-ind { display: none }
+:root[data-os=android] .h-tab { gap: 4px; font-size: 12px; font-weight: 500; letter-spacing: .5px; color: var(--md-on-surface-variant); justify-content: flex-start; padding: 0; overflow: visible }
+:root[data-os=android] .h-tab .msym { box-sizing: content-box; width: 24px !important; height: 24px !important; font-size: 24px !important; padding: 4px 20px; border-radius: 16px; transition: background-color .25s var(--m-ease) }
+:root[data-os=android] .h-tab[aria-current=page] { color: var(--md-on-surface) }
+:root[data-os=android] .h-tab[aria-current=page] .msym { background: var(--md-secondary-container); color: var(--md-on-secondary-container); font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24 }
+:root[data-os=android] .h-tab[aria-current=page] > span:last-child { font-weight: 700 }
+:root[data-os=android] .h-main-in { padding-bottom: calc(env(safe-area-inset-bottom) + 176px) }
+
+/* ---------- floating action button (Add expense) ---------- */
+.m-fab {
+  position: fixed; right: 16px; bottom: calc(env(safe-area-inset-bottom) + 96px); z-index: 95;
+  height: 56px; min-width: 56px; padding: 0 20px 0 16px; border: none; border-radius: 16px;
+  display: inline-flex; align-items: center; gap: 12px;
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
+  font: 500 16px Roboto, system-ui, sans-serif; letter-spacing: .1px; cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,.18), 0 2px 3px rgba(0,0,0,.12);
+  transition: padding .25s var(--m-ease);
+}
+.m-fab[data-small] { padding: 0 16px }
+.m-fab[data-small] > span:last-child { display: none }
+
+/* ---------- pages pushed over the tabs (M3 small top app bar) ---------- */
+:root[data-os=android] .h-page { background: var(--md-surface); animation: mPageIn .3s var(--m-ease-dec) }
+@keyframes mPageIn { from { opacity: 0; transform: translateX(30px) } to { opacity: 1; transform: none } }
+:root[data-os=android] .h-pagehdr { padding: calc(env(safe-area-inset-top) + 8px) 4px 8px; gap: 4px; min-height: 64px; background: var(--md-surface); transition: background-color .25s var(--m-ease) }
+:root[data-os=android] .h-page[data-scrolled] .h-pagehdr { background: var(--md-surface-container) }
+:root[data-os=android] .h-pagehdr .h-icbtn { width: 48px !important; height: 48px !important; color: var(--md-on-surface) }
+:root[data-os=android] .h-pagehdr-t { text-align: left; font-weight: 400; font-size: 22px; letter-spacing: 0; padding-left: 4px }
+
+/* ---------- bottom sheets (M3: on the edge, 28dp corners, drag handle) ---------- */
+:root[data-os=android] .h-sheet {
+  left: 0; right: 0; bottom: 0; border-radius: 28px 28px 0 0 !important;
+  background: var(--md-surface-container-low) !important; padding-bottom: env(safe-area-inset-bottom);
+  animation: mSheet .4s var(--m-ease-dec);
+}
+@keyframes mSheet { from { transform: translateY(100%) } to { transform: none } }
+:root[data-os=android] .h-sheet > div:first-child { width: 32px !important; height: 4px !important; background: var(--md-on-surface-variant) !important; opacity: .4; margin-top: 16px !important }
+:root[data-os=android] .h-sheet > div:nth-child(2) > div:first-child { font-weight: 400 !important; font-size: 22px !important; letter-spacing: 0 !important }
+
+/* ---------- snackbar ---------- */
+:root[data-os=android] .h-toast {
+  top: auto; bottom: calc(env(safe-area-inset-bottom) + 96px); left: 16px; right: 16px; width: auto; max-width: none; transform: none;
+  border-radius: 4px !important; padding: 14px 16px; text-align: left; font-weight: 400; font-size: 14px;
+  background: var(--md-inverse-surface) !important; color: var(--md-inverse-on-surface) !important;
+  box-shadow: 0 3px 6px rgba(0,0,0,.2); animation: mSnack .3s var(--m-ease-dec);
+}
+@keyframes mSnack { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+
+/* motion: Material's own, no springy overshoot */
+:root[data-os=android] .h-stagger > * { animation: mFadeUp .3s var(--m-ease-dec) both }
+@keyframes mFadeUp { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+/* ---------- typography: Material's weights and tracking ----------
+   The screens are written with iOS's heavy, tightly tracked numbers and titles
+   inline. Material sets type in regular and medium weights at normal tracking,
+   so on Android those inline weights settle to Roboto Medium and the negative
+   letter-spacing goes. */
+:root[data-os=android] [style*="font-weight: 8"], :root[data-os=android] [style*="font-weight: 7"],
+:root[data-os=android] [style*="font-weight: 65"], :root[data-os=android] [style*="font-weight: 600"] { font-weight: 500 !important }
+:root[data-os=android] [style*="letter-spacing: -"] { letter-spacing: 0 !important }
+/* rounded-square icon tiles become circles, as Material draws leading icons */
+:root[data-os=android] .h-item > span[style*="border-radius: 13px"], :root[data-os=android] .h-item > span[style*="border-radius: 12px"],
+:root[data-os=android] .h-item > span[style*="border-radius: 14px"] { border-radius: 999px !important }

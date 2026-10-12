@@ -25,6 +25,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="heimat" />
             </intent-filter>
+            <!-- long-press the icon: Add expense, Scan a receipt, Log a shift -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
         </activity>
 
         <!-- what a Heimat notification looks like in the status bar and shade -->
@@ -40,6 +42,12 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="splitlife"
+        />
+
+        <!-- Scan a receipt: Play services fetches the text recognition model with the app, not on first use -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr"
         />
 
         <provider

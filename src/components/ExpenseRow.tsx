@@ -8,8 +8,10 @@ import { sharesOf, toMajor } from '../lib/ledger'
 
 /* One shared expense, with what it means for you — "you owe €4,20" — right under
    the amount, the way people actually read a split bill. */
-export default function ExpenseRow({ T, e, cats, uid, nameOf, onClick }: {
+export default function ExpenseRow({ T, e, cats, uid, nameOf, onClick, place }: {
   T: Theme; e: Expense; cats: Cat[]; uid: string | null; nameOf: (u: string) => string
+  /* the group it is in, when the list mixes groups (Home) */
+  place?: string
   /* no longer used: every amount is shown in the expense's own currency */
   fH?: (v: number) => string; onClick: () => void
 }) {
@@ -31,7 +33,7 @@ export default function ExpenseRow({ T, e, cats, uid, nameOf, onClick }: {
       <span style={{ width: 40, height: 40, borderRadius: 13, flexShrink: 0, background: `${tint}26`, color: tint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I size={19} strokeWidth={2.1} /></span>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: 'block', fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.description || c.label}</span>
-        <span style={{ display: 'block', fontSize: 12.5, color: T.txt3, marginTop: 2 }}>{nameOf(e.paid_by)} paid · {relDay(e.spent_on)}</span>
+        <span style={{ display: 'block', fontSize: 12.5, color: T.txt3, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{nameOf(e.paid_by)} paid · {relDay(e.spent_on)}{place ? ` · ${place}` : ''}</span>
       </span>
       <span style={{ textAlign: 'right', flexShrink: 0 }}>
         <span style={{ display: 'block', fontWeight: 700, fontSize: 15, fontVariantNumeric: 'tabular-nums' }}>{fH(e.amount)}</span>

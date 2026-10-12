@@ -47,7 +47,7 @@ type Payload = {
   description?: string    // expense description
   split_among?: string[]  // expense split, to work out each person's share
   message?: string        // broadcast body
-  platform?: string       // app_update: which app has a new build ('ios')
+  platform?: string       // app_update: which app has a new build ('ios' or 'android')
   build?: number          // app_update: the new build's number
 }
 
@@ -188,21 +188,26 @@ Deno.serve(async (req) => {
       return Response.json(extra)
     }
 
-    // A new build for the testers (announce_app_update): every iPhone running the
-    // TestFlight / App Store app — 'apns:', not the Xcode builds' 'apns-dev:' — and
-    // tapping it opens TestFlight. Whoever has updated already never sees the app's
-    // Update card; the notification itself can't know who has.
+    // A new build for the testers (announce_app_update): every phone of that kind — on
+    // iPhone the TestFlight / App Store app ('apns:', not the Xcode builds' 'apns-dev:'),
+    // on Android the app ('fcm:') — and tapping it opens the update: TestFlight, or the
+    // new APK's download. Whoever has updated already never sees the app's Update card;
+    // the notification itself can't know who has.
     if (body.event === 'app_update') {
       const build = Number(body.build)
-      if (body.platform !== 'ios' || !Number.isInteger(build) || build < 1) {
+      const android = body.platform === 'android'
+      if ((body.platform !== 'ios' && !android) || !Number.isInteger(build) || build < 1) {
         console.log(summaryLine(event, 0, [], configured, [], 'bad request'))
         return new Response('bad request', { status: 400 })
       }
-      const url = c.ios_update_url || 'itms-beta://'
-      const { data: subs, error } = await admin.from('push_subscriptions').select('endpoint,user_id,p256dh,auth').like('endpoint', 'apns:%')
+      const url = android ? c.android_update_url : c.ios_update_url || 'itms-beta://'
+      if (!url) return done(0, { sent: 0, reason: 'no download link' }, 'no url')
+      const { data: subs, error } = await admin.from('push_subscriptions').select('endpoint,user_id,p256dh,auth').like('endpoint', android ? 'fcm:%' : 'apns:%')
       if (error) throw error
       if (!subs?.length) return done(0, { sent: 0, reason: 'no subscriptions' }, 'no devices')
-      const notice: Notice = { title: 'New update available', body: `Splitlife build ${build} is ready — update it in TestFlight.`, tag: 'app_update', url }
+      const notice: Notice = android
+        ? { title: 'New update available', body: `Splitlife version ${build} is ready — tap to download it.`, tag: 'app_update', url }
+        : { title: 'New update available', body: `Splitlife build ${build} is ready — update it in TestFlight.`, tag: 'app_update', url }
       const { results, pruned } = await deliverAll(conf, subs as Sub[], () => notice)
       const sent = results.filter((r) => r.ok).length
       const people = new Set((subs as Sub[]).map((s) => s.user_id)).size

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Settings2, Trash2, Users, CalendarDays, ChevronDown } from 'lucide-react'
+import { Settings2, Trash2, Users, CalendarDays, ChevronDown, ScanLine } from 'lucide-react'
 import type { Theme, Member, Expense, Cat, SplitType, SplitData } from '../../lib/types'
 import { hasLeft } from '../../lib/types'
 import { iconOf } from '../../icons'
@@ -13,6 +13,10 @@ import { SplitEditor, PayersEditor, emptySplit, buildSpec, splitData, payersOf, 
 import type { SplitState } from '../SplitEditor'
 import { WithPicker } from '../Friends'
 import { learn, suggestCategory } from '../../lib/suggest'
+import { isNativeAndroid } from '../../lib/native'
+import { haptic } from '../../lib/haptic'
+import { ReceiptReview, scanReceipt } from '../ReceiptScan'
+import type { ReceiptUse, ReceiptState } from '../ReceiptScan'
 import type { FriendsCtx } from '../Friends'
 
 /* what the form hands back: engine v2's columns, always all of them — that is how
@@ -30,8 +34,10 @@ export interface ExpensePrefill { desc?: string; category?: string; people?: Per
 const newId = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID()
   : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 3) | 8).toString(16) })).toLowerCase()
 
-export default function ExpenseModal({ open, onClose, c, start, editing, prefill, hostCur, homeCur, rate, cats, openCategories, onDelete, save, resolve }: {
+export default function ExpenseModal({ open, onClose, c, start, editing, prefill, hostCur, homeCur, rate, cats, openCategories, onDelete, save, resolve, autoScan }: {
   open: boolean; onClose: () => void; c: FriendsCtx
+  /* open straight into the receipt scanner (the Scan a receipt shortcut) */
+  autoScan?: boolean
   /* the group to start in when adding, when nothing else says */
   start: string | null
   editing: Expense | null; prefill: ExpensePrefill | null
@@ -65,6 +71,10 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   // the bottom bar's pickers: one open at a time
   const [panel, setPanel] = useState<'date' | 'cat' | null>(null)
   const [resolving, setResolving] = useState(false)
+  // Scan a receipt: what was read, shown over the form until it is used or put away
+  const [receipt, setReceipt] = useState<ReceiptState | null>(null)
+  const scan = async () => { haptic(8); const r = await scanReceipt(); if (r) setReceipt(r) }
+  useEffect(() => { if (open && autoScan && isNativeAndroid && !editing) scan() }, [open, autoScan])
   const circle = c.circles.some((x) => x.id === target)
 
   // who can be on it: the place's people now — and anyone already on an expense being
@@ -113,6 +123,21 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
   }, [open, target])
 
   const cur = editing?.currency || hostCur
+  /* what a scanned receipt says: the total, the shop as what it was for, its day and
+     category — and, chosen line by line, each line to tick who had it */
+  const applyReceipt = ({ result: r, byItem }: ReceiptUse) => {
+    if (r.total != null) setAmt(minorToInput(r.total, cur))
+    if (r.store && !desc.trim()) setDesc(r.store)
+    if (r.category && cats.some((x) => x.id === r.category)) { setCat(r.category); setCatTouched(true) }
+    if (r.date) setDate(r.date)
+    if (byItem) {
+      // everyone it is split between to start with; untick who didn't have a line
+      const who = split.among.length ? split.among : people.filter((m) => !hasLeft(m)).map((m) => m.user_id)
+      setSplit({ ...split, mode: 'itemized', tax: '', tip: '', discount: r.discount > 0 ? minorToInput(r.discount, cur) : '',
+        lines: r.items.map((it, i) => ({ id: `rc${Date.now().toString(36)}${i}`, label: it.name, amount: minorToInput(it.minor, cur), among: [...who] })) })
+    }
+    haptic(15)
+  }
   const v = amountVal(amt, cur)
   const total = toMinor(v, cur)
   const seed = editing ? editing.id : draftId
@@ -154,7 +179,7 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
      A different group means different people, so payer and split start over then. */
   return (
     <>
-      <Sheet open={open && !choosing} onClose={onClose} title={editing ? 'Edit expense' : 'New expense'} T={T}
+      <Sheet open={open && !choosing && !receipt} onClose={onClose} title={editing ? 'Edit expense' : 'New expense'} T={T}
         footer={<>
           {panel === 'date' && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 10, alignItems: 'center' }}>
@@ -182,6 +207,8 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
           <Btn full disabled={!valid} onClick={submit}>{editing ? 'Save changes' : v > 0 ? `Add ${money(v, cur)}` : 'Add expense'}</Btn>
           {editing && onDelete && <Btn full kind="danger" size="md" icon={Trash2} onClick={onDelete} style={{ marginTop: 4 }}>Delete expense</Btn>}
         </>}>
+        {/* a new expense can start from a photo of the receipt (iOS: ReceiptScan.swift) */}
+        {isNativeAndroid && !editing && <Btn full kind="secondary" size="md" icon={ScanLine} onClick={scan} style={{ marginBottom: 16 }}>Scan a receipt</Btn>}
         <Field T={T} label="How much?" htmlFor="ex-amt" error={amt.trim() && v <= 0 ? 'Enter an amount like 12,50' : undefined} hint={cur === hostCur && homeCur !== hostCur && v > 0 ? `≈ ${money(v * rate, homeCur)} in your home currency` : undefined}>
           <div style={{ position: 'relative' }}>
             <input id="ex-amt" className="fld fld-big" value={amt} onChange={(e) => setAmt(e.target.value)} inputMode="decimal" placeholder="0,00" style={{ paddingRight: 64 }} />
@@ -225,6 +252,7 @@ export default function ExpenseModal({ open, onClose, c, start, editing, prefill
         group={circle ? null : target || null}
         people={circle ? stillIn.map((m) => ({ userId: m.user_id, name: personName(c.members, m.user_id) })) : []}
         groupsAllowed={!editing} done={choose} />
+      {open && <ReceiptReview T={T} cur={cur} state={receipt} onClose={() => setReceipt(null)} onUse={applyReceipt} />}
     </>
   )
 }
