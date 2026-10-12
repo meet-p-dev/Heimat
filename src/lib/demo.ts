@@ -46,18 +46,18 @@ function seed(): Record<string, Row[]> {
   })
   return {
     flats: [
-      { id: FLAT, name: 'Münchener Straße 67', join_code: 'DD325F', kind: 'flat', simplify_debts: false, created_at: '2026-01-01T00:00:00Z' },
-      { id: MEEVI, name: 'Meevi flat', join_code: '7KQ2PA', kind: 'group', simplify_debts: false, created_at: '2026-02-01T00:00:00Z' },
+      { id: FLAT, name: 'Sunny WG', join_code: 'DD325F', kind: 'flat', simplify_debts: false, created_at: '2026-01-01T00:00:00Z' },
+      { id: MEEVI, name: 'Lisbon trip', join_code: '7KQ2PA', kind: 'group', simplify_debts: false, created_at: '2026-02-01T00:00:00Z' },
       ...[C_NINA, C_TRIO, C_SARA, C_TOM].map((id, i) => ({ id, name: '', join_code: '', kind: 'direct', simplify_debts: false, created_at: `2026-03-0${i + 1}T00:00:00Z` })),
     ],
     flat_members: [
-      mem(FLAT, ME, 'Meet Patel'), mem(FLAT, ALEX, 'Alex'), mem(FLAT, BEN, 'Ben'), mem(FLAT, DANA, 'Dana Schulz'),
+      mem(FLAT, ME, 'Priya Nair'), mem(FLAT, ALEX, 'Alex'), mem(FLAT, BEN, 'Ben'), mem(FLAT, DANA, 'Dana Schulz'),
       mem(FLAT, KAI, 'Kai'), mem(FLAT, NINA, 'Nina'),
-      mem(MEEVI, ME, 'Meet Patel'), mem(MEEVI, VI, 'Vi'),
-      mem(C_NINA, ME, 'Meet Patel'), mem(C_NINA, NINA, 'Nina'),
-      mem(C_TRIO, ME, 'Meet Patel'), mem(C_TRIO, NINA, 'Nina'), mem(C_TRIO, TOM, 'Tom'),
-      mem(C_SARA, ME, 'Meet Patel'), mem(C_SARA, SARA, 'Sara', 'sara@example.com'),
-      mem(C_TOM, ME, 'Meet Patel'), mem(C_TOM, TOM, 'Tom'),
+      mem(MEEVI, ME, 'Priya Nair'), mem(MEEVI, VI, 'Vi'),
+      mem(C_NINA, ME, 'Priya Nair'), mem(C_NINA, NINA, 'Nina'),
+      mem(C_TRIO, ME, 'Priya Nair'), mem(C_TRIO, NINA, 'Nina'), mem(C_TRIO, TOM, 'Tom'),
+      mem(C_SARA, ME, 'Priya Nair'), mem(C_SARA, SARA, 'Sara', 'sara@example.com'),
+      mem(C_TOM, ME, 'Priya Nair'), mem(C_TOM, TOM, 'Tom'),
     ],
     expenses: [
       ex('01', C_NINA, 'Dinner at Thai Park', 30, ME, [ME, NINA], '2026-09-28'),
@@ -118,7 +118,7 @@ function seed(): Record<string, Row[]> {
       act('08', C_NINA, ME, 'joined', 'Nina', '2026-09-01T10:00:00Z'),
       act('09', FLAT, DANA, 'item_added', 'Dish soap', '2026-09-27T16:00:00Z'),
     ],
-    app_users: [{ user_id: ME, app: 'heimat', display_name: 'Meet Patel' }],
+    app_users: [{ user_id: ME, app: 'heimat', display_name: 'Priya Nair' }],
   }
 }
 
@@ -225,7 +225,7 @@ const rpcs: Record<string, (a: Row) => any> = {
   create_group: ({ p_name }) => {
     const id = uuid()
     db.flats.push({ id, name: p_name, join_code: 'DEMO' + db.flats.length, kind: 'group', simplify_debts: false, created_at: stamp() })
-    db.flat_members.push({ id: uuid(), flat_id: id, user_id: ME, display_name: 'Meet Patel', claimed_at: stamp(), left_at: null })
+    db.flat_members.push({ id: uuid(), flat_id: id, user_id: ME, display_name: 'Priya Nair', claimed_at: stamp(), left_at: null })
     return id
   },
   join_flat: () => { throw new Error('Demo mode — there is no group with that code') },
@@ -241,7 +241,7 @@ const rpcs: Record<string, (a: Row) => any> = {
 
 /* ---- the client ---- */
 
-const session = { user: { id: ME, is_anonymous: false, email: 'meet@example.com', new_email: null }, access_token: 'demo' }
+const session = { user: { id: ME, is_anonymous: false, email: 'priya@example.com', new_email: null }, access_token: 'demo' }
 const ok = (data: any = null): Promise<Result & Row> => Promise.resolve({ data, error: null })
 const channel: any = { on: () => channel, subscribe: () => channel, unsubscribe: () => ok() }
 
@@ -251,7 +251,7 @@ export function demoClient(): any {
   try {
     if (!localStorage.getItem('mt-h-profile')) {
       localStorage.setItem('mt-h-profile', JSON.stringify({
-        name: 'Meet Patel', homeCountry: 'India', homeCur: 'INR', homeIso: 'in', hostCountry: 'Germany', hostCur: 'EUR', hostIso: 'de',
+        name: 'Priya Nair', homeCountry: 'India', homeCur: 'INR', homeIso: 'in', hostCountry: 'Germany', hostCur: 'EUR', hostIso: 'de',
         rate: 103.2, rateAt: '2026-10-01', onboarded: true, share: ['flatmates', 'friends'], doing: ['study', 'shifts'],
       }))
       localStorage.setItem('mt-h-flatid', JSON.stringify(FLAT))

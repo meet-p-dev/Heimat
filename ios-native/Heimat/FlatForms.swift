@@ -297,7 +297,7 @@ extension ExpenseForm {
         } label: { label() }
     }
 
-    /// "Münchener Straße 67", "Nina, Tom", or "Choose"
+    /// "Sunny WG", "Nina, Tom", or "Choose"
     private var withSummary: String {
         if target.isEmpty { return "Choose" }
         if !m.isCircle(target) { return m.flatName(target) }

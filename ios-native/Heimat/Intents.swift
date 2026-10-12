@@ -333,7 +333,7 @@ extension SiriData {
 
 // MARK: - Things Siri can name
 
-/// A group: "Add 20 euros to Münchener Straße", and in iPhone search.
+/// A group: "Add 20 euros to Sunny WG", and in iPhone search.
 struct GroupEntity: AppEntity, IndexedEntity {
     static var typeDisplayRepresentation: TypeDisplayRepresentation { "Group" }
     static var defaultQuery = GroupQuery()
@@ -710,7 +710,7 @@ extension AppModel {
         await loadFlat(); await loadBills(); await loadChores()
     }
 
-    /// your groups in iPhone search: type "Münchener" to open it
+    /// your groups in iPhone search: type "Sunny" to open it
     func indexForSearch() {
         let groups = flats.map { GroupEntity(SiriData.Group(id: $0.id, name: $0.name, kind: $0.kind ?? "flat")) }
         Task.detached {

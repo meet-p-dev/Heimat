@@ -32,7 +32,7 @@ struct WidgetData: Codable, Equatable {
 
     /// Placeholder for the widget gallery and for a first launch.
     static let sample = WidgetData(
-        flatName: "Münchener Straße 67", inFlat: true, net: -203.5, currency: "EUR",
+        flatName: "Sunny WG", inFlat: true, net: -203.5, currency: "EUR",
         daysUsed: 34, dayBudget: 140, weekHours: 12, weekCap: 20,
         recent: [
             .init(id: "1", title: "Kaufland", subtitle: "Kevin paid", amount: 25.21),
