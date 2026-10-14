@@ -476,6 +476,11 @@ struct CreateJoinForm: View {
                         TextField("e.g. WG Hauptstraße", text: $text)
                     } header: { Text("Flat name") } footer: { Text("You'll get a code to share with your flatmates.") }
                 }
+                if mode != .join {
+                    Section {
+                        Button { m.sheet = .splitwise } label: { Label("Coming from Splitwise? Import a group", systemImage: "square.and.arrow.down") }
+                    }
+                }
             }
             .navigationTitle(mode == .join ? "Join a group" : mode == .group ? "New group" : "Create a flat")
             .heimatSurface()

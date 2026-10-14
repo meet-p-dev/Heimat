@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import type { Theme, Profile, ModalId } from '../../lib/types'
 import { Sheet, Field, Btn } from '../ui'
 
-export default function CreateJoinModal({ open, mode, onClose, T, createFlat, joinFlat, busy, profile, initialCode }: {
+export default function CreateJoinModal({ open, mode, onClose, T, createFlat, joinFlat, busy, profile, initialCode, onSplitwise }: {
   open: boolean; mode: ModalId; onClose: () => void; T: Theme
   createFlat: (name: string) => void; joinFlat: (code: string) => void; busy: boolean; profile: Profile
   /* from a group's invite link — filled in, still joined only with a tap */
   initialCode?: string
+  /* "Coming from Splitwise?" — bring a group over instead of starting empty */
+  onSplitwise?: () => void
 }) {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
@@ -27,6 +29,7 @@ export default function CreateJoinModal({ open, mode, onClose, T, createFlat, jo
             <input id="cj-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. WG Hauptstraße, Sicily trip" />
           </Field>
           <Btn full type="submit" busy={busy} disabled={!name.trim()}>Create group</Btn>
+          {onSplitwise && <Btn full kind="ghost" onClick={onSplitwise} style={{ marginTop: 8 }}>Coming from Splitwise? Import a group</Btn>}
         </form>
       )}
     </Sheet>

@@ -228,6 +228,39 @@ const rpcs: Record<string, (a: Row) => any> = {
     db.flat_members.push({ id: uuid(), flat_id: id, user_id: ME, display_name: 'Priya Nair', claimed_at: stamp(), left_at: null })
     return id
   },
+  // a Splitwise import, as the server's import_group writes it (minus its checks)
+  import_group: ({ p }) => {
+    if ((db.imports ||= []).some((i) => i.hash === p.hash && i.flat_id)) throw new Error('import: already')
+    const id = uuid(), ids: Record<string, string> = { [p.me]: ME }
+    const dig = (cur: string) => (['JPY', 'KRW', 'VND', 'ISK', 'CLP', 'HUF'].includes(cur) ? 0 : 2)
+    const flat = { id, name: p.name, join_code: 'DEMO' + db.flats.length, kind: p.kind, simplify_debts: false, created_at: stamp() }
+    db.flats.push(flat)
+    for (const pp of p.people) {
+      if (pp.key !== p.me) ids[pp.key] = uuid()
+      db.flat_members.push({ id: uuid(), flat_id: id, user_id: ids[pp.key], display_name: pp.name, left_at: null,
+        claimed_at: pp.key === p.me ? stamp() : null, invite_email: null, invite_token: pp.key === p.me ? null : 'tok' + uuid().slice(0, 8) })
+    }
+    const map = (o: Record<string, number>) => Object.fromEntries(Object.entries(o).map(([k, v]) => [ids[k], v]))
+    for (const e of p.expenses) {
+      const paid = map(e.paid), owed = map(e.owed)
+      const payer = Object.entries(paid).sort((a, b) => b[1] - a[1])[0][0]
+      db.expenses.push({ id: uuid(), flat_id: id, description: e.t, amount: e.total / 10 ** dig(e.cur), currency: e.cur, paid_by: payer,
+        split_among: Object.keys(owed), category: e.c, spent_on: e.d, created_by: ME, created_at: stamp(), split_type: 'exact',
+        split: { values: owed }, payers: Object.keys(paid).length > 1 ? paid : null, shares: owed, deleted_at: null })
+    }
+    for (const s of p.payments) (db.settlements ||= []).push({ id: uuid(), flat_id: id, from_user: ids[s.from], to_user: ids[s.to], amount: s.total / 10 ** dig(s.cur), currency: s.cur, settled_on: s.d, created_by: ME, created_at: stamp() })
+    const imp = { id: uuid(), flat_id: id, hash: p.hash, expenses: p.expenses.length, payments: p.payments.length, created_at: stamp() }
+    db.imports.push(imp)
+    log('imported', 'Splitwise', id, null, { expenses: p.expenses.length, payments: p.payments.length })
+    return { flat, import: imp.id }
+  },
+  remove_import: ({ p_import }) => {
+    const imp = (db.imports ||= []).find((i) => i.id === p_import)
+    if (!imp?.flat_id) throw new Error('import: gone')
+    for (const t of ['expenses', 'settlements', 'flat_members', 'activity']) db[t] = (db[t] || []).filter((r) => r.flat_id !== imp.flat_id)
+    db.flats = db.flats.filter((f) => f.id !== imp.flat_id)
+    imp.flat_id = null
+  },
   join_flat: () => { throw new Error('Demo mode — there is no group with that code') },
   leave_flat: ({ p_flat }) => { const m = db.flat_members.find((x) => x.flat_id === p_flat && x.user_id === ME); if (m) m.left_at = stamp() },
   save_friend_expense: ({ p_id, p_expense }) => { const e = db.expenses.find((x) => x.id === p_id); if (e) Object.assign(e, p_expense) },

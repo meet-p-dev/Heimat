@@ -701,8 +701,11 @@ struct DataSettingsView: View {
                     ShareLink(item: csvURL) { settingRow("tablecells", .green, "Export shifts", sub: "A spreadsheet for timesheets or your tax return") }
                 }
                 Button { picking = true } label: { settingRow("square.and.arrow.down", .orange, "Import shifts", sub: "From a Splitlife export or a timesheet (CSV)") }
+                Button { m.sheet = .splitwise } label: { settingRow("person.3.fill", .green, "Import from Splitwise", sub: "A group with all its expenses and payments") }
             } header: { Text("Export & import") }
             .tint(.primary)
+
+            SplitwiseImportsSection()
 
             Section {
                 Button(role: .destructive) { confirmClear = true } label: { Text("Clear shifts on this phone") }

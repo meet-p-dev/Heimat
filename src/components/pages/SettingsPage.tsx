@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Palette, Droplets, Bell, Send, Globe, RefreshCw, CalendarDays, Timer, RotateCcw, Vibrate, Download, Upload, FileSpreadsheet, Trash2, Shield,
-  FileText, ExternalLink, ChevronRight, Info, Clock,
+  FileText, ExternalLink, ChevronRight, Info, Clock, Users,
 } from 'lucide-react'
 import type { Theme, Profile, Shift, Runway } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
@@ -13,17 +13,19 @@ import { dailyReminderHour, setDailyReminder } from '../../lib/reminders'
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { importShifts } from '../../lib/importShifts'
+import { SplitwiseImports } from '../modals/SplitwiseImportModal'
 import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, Avatar, TINT } from '../ui'
 import { LifeSettingsItem } from '../Life'
 import { partOn } from '../../lib/life'
 
 const THEMES: [ThemeMode, string][] = [['system', 'Automatic'], ['light', 'Light'], ['dark', 'Dark']]
 
-export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, shifts, runway, onBack, onOpenProfile, onReplayIntro, onEditProfile, showToast, clearLocal, addShifts }: {
+export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, uid, isAnon, shifts, runway, onBack, onOpenProfile, onReplayIntro, onEditProfile, showToast, clearLocal, addShifts, onImportSplitwise, placeNames, onPlacesChanged }: {
   T: Theme; prefs: Prefs; setPrefs: (p: Prefs) => void; profile: Profile; sProfile: (p: Profile) => void
   uid: string | null; isAnon: boolean
   shifts: Shift[]; runway: Runway | null
   addShifts: (s: Shift[]) => void
+  onImportSplitwise: () => void; placeNames: Record<string, string>; onPlacesChanged: () => void
   onBack: () => void; onOpenProfile: () => void
   onReplayIntro: () => void; onEditProfile: () => void; showToast: (m: string) => void; clearLocal: () => void
 }) {
@@ -236,7 +238,9 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
           <Item T={T} icon={Download} tint={TINT.blue} label="Export my data" sub="Profile and shifts as a file" onClick={exportAll} />
           {shifts.length > 0 && <Item T={T} icon={FileSpreadsheet} tint={TINT.green} label="Export shifts" sub="A spreadsheet for timesheets or your tax return" onClick={exportShifts} />}
           <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a Splitlife export or a timesheet (CSV)" onClick={pickImport} />
+          <Item T={T} icon={Users} tint={TINT.green} label="Import from Splitwise" sub="A group with all its expenses and payments" onClick={onImportSplitwise} />
         </Group>
+        <SplitwiseImports T={T} uid={uid} names={placeNames} onRemoved={onPlacesChanged} showToast={showToast} />
         <Group T={T} footer="Removes the shifts logged on this phone. Your account, profile and groups aren't affected.">
           <Item T={T} icon={Trash2} tint={TINT.red} label="Clear shifts on this phone" danger chevron={false} onClick={clear} />
         </Group>

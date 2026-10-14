@@ -108,4 +108,4 @@ export type TabId = 'home' | 'flat' | 'money' | 'work'
 /* pushed pages: the personal ones, and inside Groups a group, Non-group expenses or one person */
 export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills' | `balances:${string}` | 'activity'
 export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
-export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'myspend' | 'profile' | 'cats' | 'settleperson' | 'bill' | 'chore'
+export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'myspend' | 'profile' | 'cats' | 'settleperson' | 'bill' | 'chore' | 'splitwise'

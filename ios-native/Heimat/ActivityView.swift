@@ -180,6 +180,7 @@ struct ActivityRowView: View {
         case "swap_asked":       text = "\(who) asked \(to) to take \(what)"
         case "swap_accepted":    text = "\(who) took over \(what) from \(from)"
         case "swap_declined":    text = "\(who) couldn't take \(what) for \(from)"
+        case "imported":         text = "\(who) brought \(a.meta["expenses"] ?? "0") expenses over from \(what.isEmpty ? "Splitwise" : what)"
         default:                 text = "\(who) changed something"
         }
         var s = AttributedString(text)

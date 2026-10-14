@@ -166,12 +166,17 @@ struct Activity: Codable, Identifiable, Hashable {
 
     private struct MetaValue: Decodable {
         let text: String?
-        init(from decoder: Decoder) throws { text = try? decoder.singleValueContainer().decode(String.self) }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            // whole numbers as text too (an import's count of expenses)
+            text = (try? c.decode(String.self)) ?? (try? c.decode(Int.self)).map(String.init)
+        }
     }
 
     var symbol: String {
         switch kind {
         case "expense_added": "plus.circle.fill"
+        case "imported": "square.and.arrow.down.fill"
         case "expense_edited": "pencil.circle.fill"
         case "expense_deleted": "trash.circle.fill"
         case "expense_restored": "arrow.uturn.backward.circle.fill"
