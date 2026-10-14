@@ -1,7 +1,7 @@
 # Store listing — Splitlife
 
 Everything both stores ask for, in one place. Bundle id / package name:
-`app.heimat.mobile`. Support and privacy contact: patelmeet.2905@gmail.com.
+`app.heimat.mobile`. Support and privacy contact: hello@splitlife.de.
 
 Links:
 

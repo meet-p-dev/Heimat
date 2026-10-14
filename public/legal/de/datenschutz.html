@@ -156,6 +156,26 @@ footer a { color: var(--txt2); text-decoration: none }
 .toc ol { margin: 6px 0; padding-left: 20px }
 
 
+/* waiting list */
+.join { border-radius: 34px; padding: clamp(26px, 5vw, 56px); text-align: center; position: relative; overflow: hidden }
+.join::before { content: ''; position: absolute; inset: -40% -20% auto; height: 120%; background: radial-gradient(closest-side, rgba(61,220,151,.22), transparent); pointer-events: none; z-index: -1; animation: drift 14s ease-in-out infinite alternate }
+.join .sub { margin-left: auto; margin-right: auto }
+.wl { max-width: 560px; margin: 8px auto 0 }
+.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 99px; background: var(--glass); border: 1px solid var(--edge); margin-bottom: 14px }
+.seg input { position: absolute; opacity: 0; pointer-events: none }
+.seg span { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border-radius: 99px; font-weight: 650; font-size: 15px; color: var(--txt2); cursor: pointer; transition: background .25s, color .25s }
+.seg input:checked + span { background: var(--acc); color: #03140b }
+.seg input:focus-visible + span { outline: 2px solid var(--acc); outline-offset: 2px }
+.wl .row { display: flex; gap: 10px }
+.wl input[type=email] { flex: 1; min-width: 0; padding: 14px 20px; border-radius: 99px; border: 1px solid var(--edge); background: var(--glass-strong); color: var(--txt); font: inherit; font-size: 16px }
+.wl input[type=email]:focus { outline: 2px solid var(--acc); outline-offset: 1px }
+.wl button[disabled] { opacity: .6 }
+.wl .hp { position: absolute; left: -9999px; width: 1px; height: 1px }
+.wl-msg { min-height: 1.6em; margin: 12px 0 0; font-weight: 600; color: var(--acc) }
+.wl.done .row, .wl.done .seg { display: none }
+.wl.done .wl-msg { font-size: 19px }
+@media (max-width: 560px) { .wl .row { flex-direction: column } }
+
 /* theme switch */
 .tgl { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--edge); background: var(--glass); cursor: pointer; display: grid; place-items: center; padding: 0 }
 .tgl::before { content: ''; width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--txt); background: linear-gradient(90deg, var(--txt) 50%, transparent 50%); transition: transform .5s cubic-bezier(.2,.7,.2,1) }
@@ -217,7 +237,7 @@ footer a { color: var(--txt2); text-decoration: none }
 
   <h2 id="who">1. Verantwortlicher</h2>
   <p>Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
-  <address>Meet Patel (Postanschrift im <a href="../impressum.html">Impressum</a>)<br>E-Mail: <a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></address>
+  <address>Meet Patel (Postanschrift im <a href="../impressum.html">Impressum</a>)<br>E-Mail: <a href="mailto:hello@splitlife.de">hello@splitlife.de</a></address>
   <p>Splitlife ist ein privates, nicht kommerzielles Projekt. Ein Datenschutzbeauftragter ist nicht vorgeschrieben und daher nicht benannt; schreib bei Fragen einfach an die E-Mail-Adresse oben.</p>
 
   <h2 id="device">2. Was nur auf deinem Handy bleibt</h2>
@@ -275,7 +295,8 @@ footer a { color: var(--txt2); text-decoration: none }
     <tr><td>Supabase Inc.</td><td>Datenbank, Anmeldung, Versand von Benachrichtigungen und Einladungen (Server)</td><td>EU (Irland)</td></tr>
     <tr><td>Apple</td><td>App-Vertrieb, iPhone-Benachrichtigungen, iCloud-Backup, Siri</td><td>EU / USA</td></tr>
     <tr><td>Google</td><td>Android-Benachrichtigungen (Firebase), Einladungs-E-Mails (Gmail), Texterkennung auf dem Gerät</td><td>EU / USA</td></tr>
-    <tr><td>GitHub Inc.</td><td>Hosting dieser Website und der Web-App</td><td>USA</td></tr>
+    <tr><td>Vercel Inc.</td><td>Hosting dieser Website</td><td>USA</td></tr>
+    <tr><td>GitHub Inc.</td><td>Hosting der Web-App</td><td>USA</td></tr>
     <tr><td>open.er-api.com</td><td>Wechselkurse (keine personenbezogenen Daten außer der IP-Adresse)</td><td>—</td></tr>
   </table>
   <p>Supabase verarbeitet Daten im Auftrag von Splitlife auf Grundlage eines Auftragsverarbeitungsvertrags (Art. 28 DSGVO). Soweit Daten in die USA gelangen, stützt sich die Übermittlung auf das EU-US Data Privacy Framework oder die Standardvertragsklauseln der EU.</p>
@@ -294,7 +315,9 @@ footer a { color: var(--txt2); text-decoration: none }
   <p>Splitlife trifft keine automatisierten Entscheidungen über dich.</p>
 
   <h2 id="website">14. Diese Website</h2>
-  <p>Diese Website setzt keine Cookies, nutzt keine Analyse-Tools und lädt nichts von anderen Diensten – nicht einmal Schriften. Wie jeder Webhoster protokolliert GitHub bei deinem Besuch technische Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite), um die Seite auszuliefern und abzusichern (Art. 6 Abs. 1 lit. f DSGVO). Die Web-App speichert deine persönlichen Daten (Abschnitt 2) im Speicher deines Browsers.</p>
+  <p>Diese Website setzt keine Cookies, nutzt keine Analyse-Tools und lädt nichts von anderen Diensten – nicht einmal Schriften. Sie wird von Vercel gehostet; wie jeder Webhoster protokolliert Vercel bei deinem Besuch technische Daten (IP-Adresse, Zeitpunkt, aufgerufene Seite), um die Seite auszuliefern und abzusichern (Art. 6 Abs. 1 lit. f DSGVO). Die Web-App wird von GitHub gehostet und speichert deine persönlichen Daten (Abschnitt 2) im Speicher deines Browsers.</p>
+  <h3 id="waitlist">Warteliste</h3>
+  <p>Wenn du dich in die Warteliste einträgst, werden deine E-Mail-Adresse, deine Sprache, die gewählte Plattform (iPhone oder Android) und der Zeitpunkt in der Datenbank von Splitlife bei Supabase (EU, Irland) gespeichert. Gesendet wird erst, wenn du auf den Button drückst. Die Daten dienen nur dazu, dir eine Einladung für den frühen Zugang und Neuigkeiten zum Start zu schicken – keine Weitergabe, kein Verkauf. Für die iPhone-Beta wird deine E-Mail-Adresse an Apple übermittelt, damit TestFlight die Einladung verschicken kann. Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Du kannst sie jederzeit mit einer E-Mail an die Adresse in Abschnitt 1 widerrufen; dein Eintrag wird dann gelöscht. Spätestens 12 Monate nachdem Splitlife im App Store und bei Google Play ist, wird die Liste gelöscht.</p>
 
   <h2 id="other">15. Kinder, Sicherheit und Änderungen</h2>
   <p>Splitlife richtet sich nicht an Kinder unter 16 Jahren. Alle Verbindungen sind verschlüsselt (HTTPS), und der Server zeigt jeder Person nur die Gruppen, zu denen sie gehört. Ändert sich diese Erklärung, wird die neue Fassung hier mit neuem Datum veröffentlicht.</p>

@@ -156,6 +156,26 @@ footer a { color: var(--txt2); text-decoration: none }
 .toc ol { margin: 6px 0; padding-left: 20px }
 
 
+/* waiting list */
+.join { border-radius: 34px; padding: clamp(26px, 5vw, 56px); text-align: center; position: relative; overflow: hidden }
+.join::before { content: ''; position: absolute; inset: -40% -20% auto; height: 120%; background: radial-gradient(closest-side, rgba(61,220,151,.22), transparent); pointer-events: none; z-index: -1; animation: drift 14s ease-in-out infinite alternate }
+.join .sub { margin-left: auto; margin-right: auto }
+.wl { max-width: 560px; margin: 8px auto 0 }
+.seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 99px; background: var(--glass); border: 1px solid var(--edge); margin-bottom: 14px }
+.seg input { position: absolute; opacity: 0; pointer-events: none }
+.seg span { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border-radius: 99px; font-weight: 650; font-size: 15px; color: var(--txt2); cursor: pointer; transition: background .25s, color .25s }
+.seg input:checked + span { background: var(--acc); color: #03140b }
+.seg input:focus-visible + span { outline: 2px solid var(--acc); outline-offset: 2px }
+.wl .row { display: flex; gap: 10px }
+.wl input[type=email] { flex: 1; min-width: 0; padding: 14px 20px; border-radius: 99px; border: 1px solid var(--edge); background: var(--glass-strong); color: var(--txt); font: inherit; font-size: 16px }
+.wl input[type=email]:focus { outline: 2px solid var(--acc); outline-offset: 1px }
+.wl button[disabled] { opacity: .6 }
+.wl .hp { position: absolute; left: -9999px; width: 1px; height: 1px }
+.wl-msg { min-height: 1.6em; margin: 12px 0 0; font-weight: 600; color: var(--acc) }
+.wl.done .row, .wl.done .seg { display: none }
+.wl.done .wl-msg { font-size: 19px }
+@media (max-width: 560px) { .wl .row { flex-direction: column } }
+
 /* theme switch */
 .tgl { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--edge); background: var(--glass); cursor: pointer; display: grid; place-items: center; padding: 0 }
 .tgl::before { content: ''; width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--txt); background: linear-gradient(90deg, var(--txt) 50%, transparent 50%); transition: transform .5s cubic-bezier(.2,.7,.2,1) }
@@ -228,7 +248,7 @@ footer a { color: var(--txt2); text-decoration: none }
   <p>Diese Bedingungen können angepasst werden; die neue Fassung wird hier mit neuem Datum veröffentlicht. Es gilt deutsches Recht, soweit zwingende Verbraucherschutzvorschriften deines Wohnsitzlandes nichts anderes bestimmen.</p>
 
   <h2>Kontakt</h2>
-  <p><a href="mailto:patelmeet.2905@gmail.com">patelmeet.2905@gmail.com</a></p>
+  <p><a href="mailto:hello@splitlife.de">hello@splitlife.de</a></p>
 
   <p style="margin-top:34px"><a href="../impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutzerklärung</a> · <a href="../../">Startseite</a></p>
 </main>
