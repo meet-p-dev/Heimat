@@ -11,6 +11,8 @@ struct HomeView: View {
     @AppStorage(Push.askedKey) private var pushAsked = false
     /// Activity on Home: your own newest expenses, or everything happening in your groups
     @AppStorage("mt-h-home-activity") private var feed: Feed = .mine
+    /// "Get started" closed by hand (it also goes once every step is done)
+    @AppStorage("mt-h-start-hidden") private var startHidden = false
     enum Feed: String { case mine, everything }
 
     var body: some View {
@@ -18,7 +20,8 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 14) {
                     if let u = m.update { updateCard(u).transition(.opacity.combined(with: .scale(scale: 0.96))) }
-                    if m.flat != nil || !m.circles.isEmpty { balance() } else { noFlat }
+                    if hasPlace { balance() }
+                    if !hasPlace || (!startHidden && !steps.allSatisfy(\.done)) { getStarted }
                     quickActions
                     if m.profile.on(.limit) { tiles }
                     if askPush { pushCard.transition(.opacity.combined(with: .scale(scale: 0.96))) }
@@ -101,38 +104,60 @@ struct HomeView: View {
         .animation(.smooth, value: net)
     }
 
-    private var noFlat: some View {
-        HeimatCard(radius: 28, padding: 18, tinted: true) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top, spacing: 14) {
-                    Image(systemName: "person.2.fill")
-                        .font(.system(size: 21, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(width: 46, height: 46)
-                        .background(Tint.green.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Share bills with flatmates and friends").font(.system(size: 18, weight: .bold))
-                        Text("Make a group for your flat or a trip and invite people with a code — or split one bill with anyone from Groups.")
-                            .font(.system(size: 14)).foregroundStyle(.secondary)
-                    }
-                }
-                HStack(spacing: 10) {
-                    Button { m.sheet = .flat(.group) } label: {
-                        Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
-                    }
-                    .glassProminentButton()
-                    Button { m.sheet = .flat(.join) } label: {
-                        Label("Join", systemImage: "key.fill").frame(maxWidth: .infinity)
-                    }
-                    .glassButton()
-                }
-                .controlSize(.large)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-                .disabled(m.uid == nil)
-                .padding(.top, 18)
+    // MARK: - Get started
 
-                if m.isAnon {
+    private var hasPlace: Bool { !m.flats.isEmpty || !m.circles.isEmpty }
+
+    private struct Step: Identifiable {
+        let id: String, title: String, sub: String, symbol: String, done: Bool
+    }
+
+    /// The first things a new person does, from their setup answers, each ticked off by
+    /// what has actually happened — so the card is right on every phone, with no flags to sync.
+    private var steps: [Step] {
+        let share = m.profile.share ?? []
+        let group: (String, String) =
+            share.contains("flatmates") ? ("Set up your flat", "A group for your WG — invite your flatmates with a link.")
+            : share.contains("partner") ? ("Start a group with your partner", "Rent, groceries, trips — always even.")
+            : share.contains("family") ? ("Make a family group", "Share costs with family here or back home.")
+            : share.contains("friends") ? ("Make a group with friends", "For a trip or a flat — or split one bill from Groups.")
+            : ("Make your first group", "Or join one with the code a friend sent you.")
+        var out = [
+            Step(id: "group", title: group.0, sub: group.1, symbol: "person.3.fill", done: hasPlace),
+            Step(id: "expense", title: "Add your first expense", sub: "Who paid, how much, and how to split it.", symbol: "plus", done: !m.allExpenses.isEmpty),
+        ]
+        if m.profile.on(.work) {
+            out.append(Step(id: "shift", title: "Log a shift", sub: "Your pay this month, and an estimate of the tax.", symbol: "clock.fill", done: !m.shifts.isEmpty))
+        }
+        if m.isAnon {
+            out.append(Step(id: "account", title: "Save it with a free account", sub: "So nothing is lost if you change phone.", symbol: "checkmark.shield.fill", done: false))
+        }
+        return out
+    }
+
+    private var getStarted: some View {
+        let list = steps
+        let next = list.first { !$0.done }?.id
+        return HeimatCard(radius: 28, padding: 18, tinted: !hasPlace) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Get started").font(.system(size: 20, weight: .bold))
+                        Text("\(list.filter(\.done).count) of \(list.count) done")
+                            .font(.system(size: 13)).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    Spacer()
+                    if hasPlace {
+                        Button("Hide") { withAnimation(.smooth) { startHidden = true } }
+                            .font(.system(size: 14, weight: .semibold)).buttonStyle(.borderless)
+                    }
+                }
+                .padding(.bottom, 8)
+                ForEach(list) { st in
+                    if st.id != list.first?.id { RowDivider(inset: 44) }
+                    stepRow(st, isNext: st.id == next)
+                }
+                if m.isAnon && !hasPlace {
                     Button("Been here before? Sign in") { m.sheet = .auth(.signin) }
                         .buttonStyle(.borderless)
                         .font(.system(size: 13.5, weight: .semibold))
@@ -141,6 +166,57 @@ struct HomeView: View {
                 }
             }
         }
+    }
+
+    private func stepRow(_ st: Step, isNext: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: st.done ? "checkmark" : st.symbol)
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(st.done || isNext ? .white : .secondary)
+                    .frame(width: 30, height: 30)
+                    .background(st.done ? AnyShapeStyle(Tint.green.gradient) : isNext ? AnyShapeStyle(Color.accentColor.gradient) : AnyShapeStyle(.fill.tertiary), in: Circle())
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(st.title).font(.system(size: 15.5, weight: .semibold))
+                        .strikethrough(st.done).foregroundStyle(st.done ? .secondary : .primary)
+                    if isNext { Text(st.sub).font(.system(size: 13)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                }
+                Spacer(minLength: 0)
+            }
+            if isNext { stepActions(st).padding(.leading, 42).padding(.top, 10) }
+        }
+        .padding(.vertical, 10)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(st.done ? "\(st.title), done" : st.title)
+    }
+
+    @ViewBuilder private func stepActions(_ st: Step) -> some View {
+        HStack(spacing: 10) {
+            switch st.id {
+            case "group":
+                Button { m.sheet = .flat((m.profile.share ?? []).contains("flatmates") ? .create : .group) } label: {
+                    Label("New group", systemImage: "plus").frame(maxWidth: .infinity)
+                }
+                .glassProminentButton()
+                Button { m.sheet = .flat(.join) } label: {
+                    Label("Join", systemImage: "key.fill").frame(maxWidth: .infinity)
+                }
+                .glassButton()
+            case "expense":
+                Button { m.startAddExpense() } label: { Label("Add expense", systemImage: "plus").frame(maxWidth: .infinity) }
+                    .glassProminentButton()
+            case "shift":
+                Button { m.sheet = .shift(nil, nil) } label: { Label("Log a shift", systemImage: "clock").frame(maxWidth: .infinity) }
+                    .glassProminentButton()
+            default:
+                Button { m.sheet = .auth(.signup) } label: { Text("Create free account").frame(maxWidth: .infinity) }
+                    .glassProminentButton()
+            }
+        }
+        .controlSize(.regular)
+        .lineLimit(1)
+        .minimumScaleFactor(0.75)
+        .disabled(m.uid == nil)
     }
 
     // MARK: - Shortcuts

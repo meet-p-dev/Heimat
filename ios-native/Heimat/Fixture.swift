@@ -28,6 +28,25 @@ extension AppModel {
         func at(_ n: Int, _ hm: String) -> String { "\(ago(n))T\(hm):00.000000+00:00" }
         let now = "\(ago(70))T10:00:00Z"
 
+        // -HeimatNew: a brand-new person (setup not done, nothing yet) for looking at setup and
+        // Get started; add -HeimatInvited to arrive from a group's invite link
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("-HeimatNew") {
+            profile = Profile()
+            uid = me
+            isAnon = true
+            flats = []; circles = []; allExpenses = []; shifts = []
+            UserDefaults.standard.set(false, forKey: Push.askedKey)
+            if args.contains("-HeimatInvited") { pendingLink = .join("SUN4WG") }
+            // -HeimatSetUp: setup just finished (a student with a job in a WG), nothing added yet
+            if args.contains("-HeimatSetUp") {
+                profile.name = "Ana"; profile.share = ["flatmates", "friends"]; profile.doing = ["study", "shifts"]
+                profile.rate = 106.61; profile.onboarded = true
+                UserDefaults.standard.set(false, forKey: "mt-h-start-hidden")
+            }
+            return
+        }
+
         profile.onboarded = true
         profile.name = "Priya Nair"
         // a real-looking rupee rate, so amounts show in both currencies the way they do for testers

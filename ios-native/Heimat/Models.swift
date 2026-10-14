@@ -419,6 +419,27 @@ enum Countries {
         ("Spain", "EUR", "es"), ("United Kingdom", "GBP", "gb"), ("United States", "USD", "us"), ("Canada", "CAD", "ca"),
         ("Switzerland", "CHF", "ch"), ("Sweden", "SEK", "se"), ("Australia", "AUD", "au"), ("Poland", "PLN", "pl"), ("Ireland", "EUR", "ie"),
     ].map { Country(name: $0.0, cur: $0.1, iso: $0.2) }
+
+    /// A first guess for setup, so most people only confirm: where you live from the
+    /// phone's time zone (it follows you), where you're from from its region (it usually
+    /// stays as it was at home). Nil when the phone doesn't tell us. Same table as src/lib/data.ts.
+    static func guess(timeZone: String = TimeZone.current.identifier,
+                      region: String? = Locale.current.region?.identifier) -> (home: Country?, host: Country?) {
+        let tz: [String: String] = [
+            "Europe/Berlin": "de", "Europe/Busingen": "de", "Europe/Vienna": "at", "Europe/Amsterdam": "nl", "Europe/Paris": "fr",
+            "Europe/Rome": "it", "Europe/Madrid": "es", "Atlantic/Canary": "es", "Europe/London": "gb", "Europe/Zurich": "ch",
+            "Europe/Stockholm": "se", "Europe/Warsaw": "pl", "Europe/Dublin": "ie",
+            "America/Toronto": "ca", "America/Vancouver": "ca", "America/Edmonton": "ca", "America/Winnipeg": "ca",
+            "America/Halifax": "ca", "America/St_Johns": "ca", "America/Regina": "ca",
+            "America/New_York": "us", "America/Chicago": "us", "America/Denver": "us", "America/Los_Angeles": "us",
+            "America/Phoenix": "us", "America/Anchorage": "us", "Pacific/Honolulu": "us", "America/Detroit": "us",
+        ]
+        let hostIso = tz[timeZone] ?? (timeZone.hasPrefix("Australia/") ? "au" : nil)
+        let host = hostIso.flatMap { i in Countries.host.first { $0.iso == i } }
+        let r = region?.lowercased()
+        let home = r.flatMap { i in i == host?.iso ? nil : Countries.home.first { $0.iso == i } }
+        return (home, host)
+    }
 }
 
 /// A category as shown: built-in or one the flat added.

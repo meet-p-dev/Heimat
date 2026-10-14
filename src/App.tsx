@@ -873,7 +873,7 @@ export default function App() {
   if (!profile.onboarded) {
     return (
       <div className="h-app h-aurora">
-        <Onboarding T={T} isAnon={isAnon} accountName={accountName} onSignIn={() => setAuth('signin')} onDone={(p, next) => { saveProfile(p); if (next === 'signup') setAuth('signup') }} />
+        <Onboarding T={T} isAnon={isAnon} accountName={accountName} invited={!!pendingLink && !!(pendingLink.join || pendingLink.invite)} onSignIn={() => setAuth('signin')} onDone={(p, next) => { saveProfile(p); if (next === 'signup') setAuth('signup') }} />
         {authEl}
         {toastEl}
       </div>
@@ -943,7 +943,7 @@ export default function App() {
 
       <main ref={mainRef} className="h-main" onScroll={isNativeAndroid ? (e) => setScrolled(e.currentTarget.scrollTop > 8) : undefined}>
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: !isNativeAndroid && partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater, mine: myRecent, activity, placeName: placeOf, mixed: placesCount > 1, curOf, onAllActivity: () => openPage('activity'), update, onUpdate: () => update && openExternal(update.url) }} />}
+          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: !isNativeAndroid && partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, start: { share: profile.share || [], hasExpense: allExpenses.length > 0, hasShift: shifts.length > 0 }, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater, mine: myRecent, activity, placeName: placeOf, mixed: placesCount > 1, curOf, onAllActivity: () => openPage('activity'), update, onUpdate: () => update && openExternal(update.url) }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings, profile, sProfile }} />}

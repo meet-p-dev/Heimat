@@ -247,6 +247,18 @@ const channel: any = { on: () => channel, subscribe: () => channel, unsubscribe:
 
 export function demoClient(): any {
   db = seed()
+  // ?new: a brand-new person — nothing set up, no groups — for looking at setup and Get started
+  // (add &join=CODE to arrive from an invite link)
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).has('new')) {
+    for (const k of Object.keys(db)) db[k] = []
+    try {
+      if (!sessionStorage.getItem('demo-new')) {
+        sessionStorage.setItem('demo-new', '1')
+        for (const k of ['mt-h-profile', 'mt-h-flatid', 'mt-h-shifts', 'mt-h-start-hidden']) localStorage.removeItem(k)
+      }
+    } catch {}
+    return client()
+  }
   // a first start: the demo person has answered the questions, lives in the flat and works two jobs
   try {
     if (!localStorage.getItem('mt-h-profile')) {
@@ -261,6 +273,10 @@ export function demoClient(): any {
       }))))
     }
   } catch {}
+  return client()
+}
+
+function client(): any {
   return {
     auth: {
       getSession: () => ok({ session }),

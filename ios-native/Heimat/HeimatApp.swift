@@ -38,15 +38,7 @@ struct HeimatApp: App {
                         CloudBackup.shared.back(up: model)
                     }
                 }
-                .onOpenURL { url in
-                    switch DeepLink(url) {
-                    case .addExpense: model.startAddExpense()
-                    case .invite(let token): Task { await model.claimInvite(token) }
-                    // a group's invite link: the join form, code filled in — you still tap Join
-                    case .join(let code): model.joinPrefill = code; model.sheet = .flat(.join)
-                    case nil: break
-                    }
-                }
+                .onOpenURL { url in if let l = DeepLink(url) { model.open(l) } }
         }
     }
 }
@@ -173,6 +165,10 @@ struct RootView: View {
         }
         .animation(.smooth, value: m.toast)
         .sheet(item: $m.sheet) { SheetHost(route: $0) }
+        // an invite link that came before setup (or before the account) was finished
+        .onChange(of: m.sheet) { _, s in if s == nil { m.resumePendingLink() } }
+        .onChange(of: m.uid) { _, _ in m.resumePendingLink() }
+        .onChange(of: m.profile.onboarded) { _, _ in m.resumePendingLink() }
         #if DEBUG
         // -HeimatSheet settings|profile|expense|activity|spending|shift: open that sheet straight away (demo mode only)
         .task {

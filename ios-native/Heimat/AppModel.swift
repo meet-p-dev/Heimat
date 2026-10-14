@@ -655,6 +655,26 @@ final class AppModel {
     /// to the group you were invited to.
     /// a group code from an invite link, waiting for the join form to open
     var joinPrefill: String?
+    /// an invite link opened before setup was finished: kept until the person has a name
+    /// and a profile, then opened (resumePendingLink) — never lost, never on top of setup
+    var pendingLink: DeepLink?
+
+    func open(_ link: DeepLink) {
+        guard profile.onboarded, uid != nil else { pendingLink = link; return }
+        switch link {
+        case .addExpense: startAddExpense()
+        case .invite(let token): Task { await claimInvite(token) }
+        // a group's invite link: the join form, code filled in — you still tap Join
+        case .join(let code): joinPrefill = code; sheet = .flat(.join)
+        }
+    }
+
+    /// after setup, after signing up, once the account exists: the link that was waiting
+    func resumePendingLink() {
+        guard let l = pendingLink, profile.onboarded, uid != nil, sheet == nil else { return }
+        pendingLink = nil
+        open(l)
+    }
 
     func claimInvite(_ token: String) async {
         do {

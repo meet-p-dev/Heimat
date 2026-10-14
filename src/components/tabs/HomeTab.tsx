@@ -1,4 +1,4 @@
-import { Plus, Download, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound, Bell } from 'lucide-react'
+import { Plus, Download, Clock, ShoppingCart, LineChart, Wallet, Users, ShieldAlert, ChevronRight, ArrowRightLeft, KeyRound, Bell, Check, ShieldCheck } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Theme, Flat, Runway, Expense, Cat, ModalId, TabId, AuthMode } from '../../lib/types'
 import type { RunwayCalc, WorkStats, SettleSuggestion } from '../../lib/derive'
@@ -21,10 +21,12 @@ function QuickAction({ icon: I, tint, label, onClick, badge }: { icon: LucideIco
   )
 }
 
-export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth, pushAsk, pushBusy, onPushOn, onPushLater, mine, activity, placeName, mixed, curOf, onAllActivity, update, onUpdate }: {
+export default function HomeTab({ T, show, flat, scope, hasMoney, start, uid, isAnon, myNet, runwayCalc, runway, workStats: ws, fH, fHome, setModal, setTab, nameOf, startAddExpense, cats, openList, openCount, onLogShift, openSettle, onOpenExpense, onAuth, pushAsk, pushBusy, onPushOn, onPushLater, mine, activity, placeName, mixed, curOf, onAllActivity, update, onUpdate }: {
   T: Theme; flat: Flat | null
   /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
   scope: string; hasMoney: boolean
+  /* for Get started: the setup answer and what has happened yet */
+  start: { share: string[]; hasExpense: boolean; hasShift: boolean }
   /* the parts this person has switched on (src/lib/life.ts) */
   show: { work: boolean; list: boolean; limit: boolean; runway: boolean }
   uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
@@ -45,6 +47,26 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
 }) {
   const [feed, setFeed] = useState<'mine' | 'all'>(() => (LS.g<string>('mt-h-home-activity') === 'all' ? 'all' : 'mine'))
   const pickFeed = (v: 'mine' | 'all') => { setFeed(v); LS.s('mt-h-home-activity', v) }
+  const [startHidden, setStartHidden] = useState(() => LS.g<boolean>('mt-h-start-hidden') === true)
+  const hideStart = () => { setStartHidden(true); LS.s('mt-h-start-hidden', true) }
+  // the first things a new person does, from their setup answer, each ticked off by what
+  // has actually happened (same steps as the iPhone app's HomeView)
+  const g = start.share.includes('flatmates') ? ['Set up your flat', 'A group for your WG — invite your flatmates with a link.']
+    : start.share.includes('partner') ? ['Start a group with your partner', 'Rent, groceries, trips — always even.']
+    : start.share.includes('family') ? ['Make a family group', 'Share costs with family here or back home.']
+    : start.share.includes('friends') ? ['Make a group with friends', 'For a trip or a flat — or split one bill from Groups.']
+    : ['Make your first group', 'Or join one with the code a friend sent you.']
+  const steps: Step[] = [
+    { id: 'group', title: g[0], sub: g[1], Icon: Users, done: hasMoney, actions: [
+      { label: 'New group', Icon: Plus, onClick: () => setModal('create') },
+      { label: 'Join', Icon: KeyRound, kind: 'secondary', onClick: () => setModal('join') }] },
+    { id: 'expense', title: 'Add your first expense', sub: 'Who paid, how much, and how to split it.', Icon: Plus, done: start.hasExpense,
+      actions: [{ label: 'Add expense', Icon: Plus, onClick: startAddExpense }] },
+    ...(show.work ? [{ id: 'shift', title: 'Log a shift', sub: 'Your pay this month, and an estimate of the tax.', Icon: Clock, done: start.hasShift,
+      actions: [{ label: 'Log a shift', Icon: Clock, onClick: onLogShift }] }] : []),
+    ...(isAnon ? [{ id: 'account', title: 'Save it with a free account', sub: 'So nothing is lost if you change phone.', Icon: ShieldCheck, done: false,
+      actions: [{ label: 'Create free account', onClick: () => onAuth('signup') }] }] : []),
+  ]
   // myNet is whole cents from the ledger, so exactly zero is settled — no ±0,50 € blind spot
   const tone = myNet > 0 ? T.green : myNet < 0 ? T.red : T.txt
   const status = myNet > 0 ? 'you are owed' : myNet < 0 ? 'you owe' : 'all settled up'
@@ -85,21 +107,9 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
             <Btn size="md" kind="secondary" icon={ArrowRightLeft} onClick={() => openSettle(null)} style={{ flex: 1 }}>Settle up</Btn>
           </div>
         </Card>
-      ) : (
-        <Card T={T} grad style={{ padding: '20px 18px 18px', borderRadius: 28, marginBottom: 14 }}>
-          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            <span className="h-item-ic" style={{ background: TINT.green, width: 46, height: 46, borderRadius: 15 }}><Users size={23} /></span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 750, fontSize: 18, letterSpacing: -0.3 }}>Share bills with flatmates and friends</div>
-              <div style={{ fontSize: 14, color: T.txt2, marginTop: 4, lineHeight: 1.5 }}>Make a group for your flat or a trip and invite people with a code — or split one bill with anyone from Groups.</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
-            <Btn size="md" icon={Plus} disabled={!uid} onClick={() => setModal('create')} style={{ flex: 1 }}>New group</Btn>
-            <Btn size="md" kind="secondary" icon={KeyRound} disabled={!uid} onClick={() => setModal('join')} style={{ flex: 1 }}>Join</Btn>
-          </div>
-          {isAnon && <div style={{ textAlign: 'center', fontSize: 13.5, color: T.txt2, marginTop: 14 }}>Been here before? <button type="button" className="h-link" onClick={() => onAuth('signin')}>Sign in</button></div>}
-        </Card>
+      ) : null}
+      {(!hasMoney || (!startHidden && !steps.every((x) => x.done))) && (
+        <GetStarted T={T} steps={steps} canHide={hasMoney} uid={uid} onHide={hideStart} showSignIn={isAnon && !hasMoney} onAuth={onAuth} />
       )}
 
       {actions.length > 0 && <div style={{ display: 'grid', gridTemplateColumns: `repeat(${actions.length > 2 ? 4 : 2}, 1fr)`, gap: 10, marginBottom: 14 }}>
@@ -179,5 +189,49 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, uid, isAnon, m
         </>
       )}
     </>
+  )
+}
+
+type Step = { id: string; title: string; sub: string; Icon: LucideIcon; done: boolean
+  actions: { label: string; Icon?: LucideIcon; kind?: 'secondary'; onClick: () => void }[] }
+
+/* Get started: the steps, done ones ticked, the next one open with its buttons */
+function GetStarted({ T, steps, canHide, uid, onHide, showSignIn, onAuth }: {
+  T: Theme; steps: Step[]; canHide: boolean; uid: string | null; onHide: () => void; showSignIn: boolean; onAuth: (m: AuthMode) => void
+}) {
+  const next = steps.find((x) => !x.done)?.id
+  return (
+    <Card T={T} grad={!canHide} style={{ padding: '18px 18px 10px', borderRadius: 28, marginBottom: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 750, fontSize: 20, letterSpacing: -0.4 }}>Get started</div>
+          <div style={{ fontSize: 13, color: T.txt2, marginTop: 2, fontVariantNumeric: 'tabular-nums' }}>{steps.filter((x) => x.done).length} of {steps.length} done</div>
+        </div>
+        {canHide && <button type="button" className="h-link" style={{ fontWeight: 650, fontSize: 14 }} onClick={onHide}>Hide</button>}
+      </div>
+      {steps.map((x, i) => {
+        const open = x.id === next
+        return (
+          <div key={x.id} style={{ padding: '11px 0', borderTop: i ? `1px solid ${T.border}` : 'none' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }} aria-label={x.done ? `${x.title}, done` : undefined}>
+              <span style={{ width: 30, height: 30, borderRadius: 99, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: x.done ? TINT.green : open ? T.acc : T.border, color: x.done || open ? '#fff' : T.txt2 }}>
+                {x.done ? <Check size={15} strokeWidth={3} /> : <x.Icon size={15} strokeWidth={2.4} />}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 650, fontSize: 15.5, color: x.done ? T.txt2 : T.txt, textDecoration: x.done ? 'line-through' : 'none' }}>{x.title}</div>
+                {open && <div style={{ fontSize: 13, color: T.txt2, marginTop: 2, lineHeight: 1.45 }}>{x.sub}</div>}
+              </div>
+            </div>
+            {open && (
+              <div style={{ display: 'flex', gap: 10, marginTop: 10, paddingLeft: 42 }}>
+                {x.actions.map((a) => <Btn key={a.label} size="md" kind={a.kind} icon={a.Icon} disabled={!uid} onClick={() => { haptic(8); a.onClick() }} style={{ flex: 1 }}>{a.label}</Btn>)}
+              </div>
+            )}
+          </div>
+        )
+      })}
+      {showSignIn && <div style={{ textAlign: 'center', fontSize: 13.5, color: T.txt2, margin: '6px 0 6px' }}>Been here before? <button type="button" className="h-link" onClick={() => onAuth('signin')}>Sign in</button></div>}
+    </Card>
   )
 }
