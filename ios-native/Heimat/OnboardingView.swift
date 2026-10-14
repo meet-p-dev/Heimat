@@ -17,6 +17,8 @@ struct OnboardingView: View {
     @State private var guessed = false
     @State private var sheet: SheetRoute?
     @FocusState private var nameFocused: Bool
+    /// a backup in this person's iCloud: a new phone (or a reinstall) can start from it
+    @State private var backup: CloudBackup.Payload?
 
     var body: some View {
         NavigationStack {
@@ -34,6 +36,9 @@ struct OnboardingView: View {
         .onChange(of: m.isAnon) { _, anon in if !anon && step == 0 { step = 1 } }
         .onChange(of: m.accountName) { _, n in if let n, draft.name.isEmpty { draft.name = n } }
         .onAppear(perform: guessCountries)
+        .task { backup = CloudBackup.shared.available ? CloudBackup.shared.peek() : nil }
+        // on a fresh install iCloud hands the backup over a moment after launch
+        .onReceive(NotificationCenter.default.publisher(for: CloudBackup.changed)) { _ in backup = CloudBackup.shared.peek() }
         #if DEBUG
         // demo mode: -HeimatStep 1|2|3 opens that step, with a made-up name
         .onAppear {
@@ -57,6 +62,7 @@ struct OnboardingView: View {
                     Text("Split life, not friendships.").font(.title3.weight(.semibold))
                     Text("The free money app for life abroad.").font(.body).foregroundStyle(.secondary)
                 }
+                if let b = backup { restoreCard(b) }
                 if invited {
                     HStack(alignment: .top, spacing: 12) {
                         SettingIcon(symbol: "envelope.open.fill", color: .green)
@@ -91,6 +97,32 @@ struct OnboardingView: View {
             .controlSize(.large)
             .padding(.horizontal, 24).padding(.bottom, 8)
         }
+    }
+
+    /// "Welcome back": everything personal from the backup, then sign in for the groups.
+    private func restoreCard(_ b: CloudBackup.Payload) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                SettingIcon(symbol: "icloud.and.arrow.down.fill", color: .blue)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Welcome back").font(.headline)
+                    Text("Your Splitlife is backed up in iCloud: \(CloudBackup.summary(b)).")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
+            Button { restore() } label: { Label("Restore my data", systemImage: "arrow.down.circle.fill").frame(maxWidth: .infinity) }
+                .glassProminentButton().controlSize(.large)
+        }
+        .padding(14)
+        .glassSurface(in: .rect(cornerRadius: 20))
+    }
+
+    private func restore() {
+        Haptic.tap()
+        guard CloudBackup.shared.restore(into: m) else { return }
+        if !m.profile.onboarded { var p = m.profile; p.onboarded = true; m.saveProfile(p) }
+        // the groups live with the account, not in the backup
+        if m.isAnon { m.show("Restored — sign in to get your groups back"); m.sheet = .auth(.signin) }
     }
 
     private func feature(_ symbol: String, _ color: Color, _ title: String, _ body: String) -> some View {

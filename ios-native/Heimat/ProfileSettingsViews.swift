@@ -573,32 +573,37 @@ struct BackupSettingsView: View {
     @Environment(AppModel.self) private var m
     @State private var cloudOn = CloudBackup.shared.enabled
     @State private var lastBackup: Date?
+    /// what is in iCloud now (refreshed when iCloud delivers or changes it)
+    @State private var backup: CloudBackup.Payload?
     @State private var confirmRestore = false
+    @State private var confirmDelete = false
+    /// switching on while iCloud holds another phone's backup: restore it, or replace it?
+    @State private var foreign: CloudBackup.Payload?
 
     var body: some View {
         Form {
             Section {
                 Toggle(isOn: Binding(get: { cloudOn }, set: { on in
+                    if on, let f = CloudBackup.shared.foreignBackup() { foreign = f; return }
                     CloudBackup.shared.enabled = on
                     cloudOn = on
-                    if on { CloudBackup.shared.back(up: m) }
-                    else { CloudBackup.shared.turnOff() }
-                    lastBackup = CloudBackup.shared.lastBackup
+                    if on { CloudBackup.shared.back(up: m) } else { CloudBackup.shared.turnOff() }
+                    refresh()
                 })) {
                     settingRow("icloud.fill", .blue, "Back up to iCloud")
                 }
                 .disabled(!CloudBackup.shared.available)
             } footer: {
                 Text(CloudBackup.shared.available
-                     ? "Your profile and shifts are copied to your own iCloud so a new phone can pick them up. Nothing goes to Splitlife's servers. Groups don't need it — they are saved with your account."
-                     : "Sign in to iCloud on this phone to back up your profile and shifts.")
+                     ? "Your profile, shifts and settings are copied to your own iCloud whenever you leave the app, so a new phone can pick them up. Nothing goes to Splitlife's servers. Groups don't need it — they are saved with your account."
+                     : "Sign in to iCloud on this phone (Settings → your name) to back up your profile and shifts.")
             }
 
             if cloudOn {
                 Section {
                     Button {
                         CloudBackup.shared.back(up: m)
-                        lastBackup = CloudBackup.shared.lastBackup
+                        refresh()
                         Haptic.success()
                         m.show("Backed up to iCloud")
                     } label: {
@@ -606,19 +611,44 @@ struct BackupSettingsView: View {
                             Text(lastBackup.map { "Last: \(Fmt.relDay(Fmt.ymd($0)).lowercased())" } ?? "Never").foregroundStyle(.secondary)
                         } label: { Text("Back up now").foregroundStyle(.tint) }
                     }
-                    if CloudBackup.shared.peek() != nil {
-                        Button("Restore from iCloud") { confirmRestore = true }
-                    }
                 }
+            }
+
+            if let b = backup {
+                Section {
+                    Button("Restore from iCloud") { confirmRestore = true }
+                    Button("Delete backup from iCloud", role: .destructive) { confirmDelete = true }
+                } header: { Text("In iCloud") } footer: { Text(CloudBackup.summary(b)) }
             }
         }
         .navigationTitle("iCloud backup")
         .heimatSurface()
         .navigationBarTitleDisplayMode(.inline)
-        .task { lastBackup = CloudBackup.shared.lastBackup }
-        .confirmationDialog("Restore from iCloud? The shifts on this phone are replaced by the backup.", isPresented: $confirmRestore, titleVisibility: .visible) {
-            Button("Restore", role: .destructive) { _ = CloudBackup.shared.restore(into: m) }
+        .task { refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: CloudBackup.changed)) { _ in refresh() }
+        .confirmationDialog("Restore from iCloud? Your profile, shifts and settings on this phone are replaced by the backup.",
+                            isPresented: $confirmRestore, titleVisibility: .visible) {
+            Button("Restore", role: .destructive) { CloudBackup.shared.restore(into: m); refresh() }
         }
+        .confirmationDialog("Delete the backup from iCloud? This phone keeps its data.", isPresented: $confirmDelete, titleVisibility: .visible) {
+            Button("Delete backup", role: .destructive) { CloudBackup.shared.deleteBackup(); refresh() }
+        }
+        .confirmationDialog(foreign.map { "iCloud already has a backup (\(CloudBackup.summary($0))). Restore it to this phone, or replace it with what's on this phone?" } ?? "",
+                            isPresented: Binding(get: { foreign != nil }, set: { if !$0 { foreign = nil } }), titleVisibility: .visible) {
+            Button("Restore it to this phone") { CloudBackup.shared.restore(into: m); refresh() }
+            Button("Replace it with this phone's data", role: .destructive) {
+                CloudBackup.shared.enabled = true
+                CloudBackup.shared.back(up: m)
+                refresh()
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private func refresh() {
+        cloudOn = CloudBackup.shared.enabled
+        lastBackup = CloudBackup.shared.lastBackup
+        backup = CloudBackup.shared.peek()
     }
 }
 
