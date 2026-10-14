@@ -12,8 +12,8 @@ import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe, subs
 import { dailyReminderHour, setDailyReminder } from '../../lib/reminders'
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
-import { importShifts } from '../../lib/importShifts'
-import { SplitwiseImports } from '../modals/SplitwiseImportModal'
+import { importShifts, type ImportedShift } from '../../lib/importShifts'
+import { GroupImports } from '../modals/ImportGroupModal'
 import { Page, Group, Item, Toggle, Stepper, SegmentedControl, Sheet, Field, Btn, Avatar, TINT } from '../ui'
 import { LifeSettingsItem } from '../Life'
 import { partOn } from '../../lib/life'
@@ -35,6 +35,11 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
   const [testBusy, setTestBusy] = useState(false)
   const [testMsg, setTestMsg] = useState<string | null>(null)
   const [rateOpen, setRateOpen] = useState(false)
+  /* shifts read from a file that says no hourly wage (a calendar, a time tracker): each job's
+     wage is asked for, and a job can be left out (a calendar's other events) */
+  const [wageAsk, setWageAsk] = useState<{ shifts: ImportedShift[]; note: string } | null>(null)
+  const [wages, setWages] = useState<Record<string, string>>({})
+  const [keep, setKeep] = useState<Record<string, boolean>>({})
   const [rate, setRate] = useState('')
   const [fetching, setFetching] = useState(false)
   /* a page inside Settings: Notifications, Currency, Work limits, Export & import */
@@ -111,11 +116,27 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
     const r = await saveTextFile(`heimat-shifts-${tod()}.csv`, shiftsCsv(shifts), 'text/csv')
     showToast(r === 'saved' ? 'Shifts exported' : r === 'copied' ? 'CSV copied to clipboard' : r === 'failed' ? "Couldn't export" : 'Export ready')
   }
-  /* a Splitlife export (JSON or CSV) or a timesheet from a spreadsheet; shifts already here are skipped */
+  const addImported = (list: ImportedShift[]) => {
+    const stamp = Date.now().toString(36)
+    addShifts(list.map((s, i) => ({
+      id: s.id || `${stamp}${i.toString(36)}${Math.random().toString(36).slice(2, 6)}`, date: s.date, employer: s.employer,
+      start: s.start, end: s.end, breakMin: s.breakMin, paidBreak: s.paidBreak, wage: s.wage,
+      ...(s.hours != null ? { hours: s.hours } : {}), ...(s.pay != null ? { pay: s.pay } : {}),
+    })))
+    showToast(`Added ${list.length} shift${list.length === 1 ? '' : 's'}`)
+  }
+  /* jobs the file gives no wage for, each with how many shifts, in the order they come */
+  const unwaged = (list: ImportedShift[]) => {
+    const out = new Map<string, number>()
+    for (const s of list) if (!s.wage && s.pay == null) out.set(s.employer, (out.get(s.employer) || 0) + 1)
+    return [...out]
+  }
+  /* a Splitlife export (JSON or CSV), a timesheet or time tracker's CSV, or a rota calendar
+     (.ics); shifts already here are skipped */
   const pickImport = () => {
     const input = document.createElement('input')
     input.type = 'file'
-    input.accept = '.json,.csv,.txt,application/json,text/csv,text/plain'
+    input.accept = '.json,.csv,.tsv,.txt,.ics,application/json,text/csv,text/plain,text/calendar'
     input.onchange = async () => {
       const f = input.files?.[0]
       if (!f) return
@@ -123,16 +144,28 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
       const r = importShifts(await f.text(), shifts)
       const note = [r.skipped && `${r.skipped} already here`, r.bad && `${r.bad} couldn't be read`].filter(Boolean).join(', ')
       if (!r.shifts.length) { showToast(note ? `Nothing new to add — ${note}` : 'No shifts found in that file'); return }
+      const jobs = unwaged(r.shifts)
+      if (jobs.length) {
+        // the wage last used for that job, if there is one
+        const known = (job: string) => [...shifts].reverse().find((s) => s.employer.trim().toLowerCase() === job.trim().toLowerCase() && s.wage > 0)?.wage
+        setWages(Object.fromEntries(jobs.map(([j]) => [j, known(j) ? String(known(j)).replace('.', ',') : ''])))
+        setKeep(Object.fromEntries(jobs.map(([j]) => [j, true])))
+        setWageAsk({ shifts: r.shifts, note })
+        return
+      }
       if (!confirm(`Add ${r.shifts.length} shift${r.shifts.length === 1 ? '' : 's'}?${note ? `\n\n(${note})` : ''}`)) return
-      const stamp = Date.now().toString(36)
-      addShifts(r.shifts.map((s, i) => ({
-        id: s.id || `${stamp}${i.toString(36)}${Math.random().toString(36).slice(2, 6)}`, date: s.date, employer: s.employer,
-        start: s.start, end: s.end, breakMin: s.breakMin, paidBreak: s.paidBreak, wage: s.wage,
-        ...(s.hours != null ? { hours: s.hours } : {}), ...(s.pay != null ? { pay: s.pay } : {}),
-      })))
-      showToast(`Added ${r.shifts.length} shift${r.shifts.length === 1 ? '' : 's'}`)
+      addImported(r.shifts)
     }
     input.click()
+  }
+  const wageJobs = wageAsk ? unwaged(wageAsk.shifts) : []
+  const wageReady = wageJobs.every(([j]) => !keep[j] || numVal(wages[j] || '') > 0) && wageJobs.some(([j]) => keep[j])
+  const addWithWages = () => {
+    if (!wageAsk) return
+    const list = wageAsk.shifts.filter((s) => s.wage || s.pay != null || keep[s.employer])
+      .map((s) => (s.wage || s.pay != null ? s : { ...s, wage: numVal(wages[s.employer] || '') }))
+    setWageAsk(null)
+    addImported(list)
   }
   const clear = () => {
     if (!confirm('Clear the shifts stored on this phone?\n\nYour account, profile and groups aren\'t affected. This cannot be undone — export first if you want a copy.')) return
@@ -237,14 +270,29 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
         <Group T={T} title="Export & import">
           <Item T={T} icon={Download} tint={TINT.blue} label="Export my data" sub="Profile and shifts as a file" onClick={exportAll} />
           {shifts.length > 0 && <Item T={T} icon={FileSpreadsheet} tint={TINT.green} label="Export shifts" sub="A spreadsheet for timesheets or your tax return" onClick={exportShifts} />}
-          <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a Splitlife export or a timesheet (CSV)" onClick={pickImport} />
-          <Item T={T} icon={Users} tint={TINT.green} label="Import from Splitwise" sub="A group with all its expenses and payments" onClick={onImportSplitwise} />
+          <Item T={T} icon={Upload} tint={TINT.orange} label="Import shifts" sub="From a time tracker, a rota calendar (.ics) or a spreadsheet" onClick={pickImport} />
+          <Item T={T} icon={Users} tint={TINT.green} label="Import a group" sub="From Splitwise, Tricount, Settle Up, Splid or a spreadsheet" onClick={onImportSplitwise} />
         </Group>
-        <SplitwiseImports T={T} uid={uid} names={placeNames} onRemoved={onPlacesChanged} showToast={showToast} />
+        <GroupImports T={T} uid={uid} names={placeNames} onRemoved={onPlacesChanged} showToast={showToast} />
         <Group T={T} footer="Removes the shifts logged on this phone. Your account, profile and groups aren't affected.">
           <Item T={T} icon={Trash2} tint={TINT.red} label="Clear shifts on this phone" danger chevron={false} onClick={clear} />
         </Group>
       </>)}
+
+      <Sheet open={!!wageAsk} onClose={() => setWageAsk(null)} title="Hourly wage" T={T}
+        footer={<Btn full disabled={!wageReady} onClick={addWithWages}>Add {wageAsk ? wageAsk.shifts.filter((s) => s.wage || s.pay != null || keep[s.employer]).length : 0} shifts</Btn>}>
+        <div style={{ fontSize: 14.5, color: T.txt2, margin: '0 0 12px', lineHeight: 1.5 }}>
+          The file doesn't say what these jobs pay. Untick anything that isn't a shift.{wageAsk?.note ? ` (${wageAsk.note})` : ''}
+        </div>
+        <Group T={T}>
+          {wageJobs.map(([job, n]) => (
+            <Item key={job} T={T} chevron={false} lead={<Toggle label={`Import ${job || 'shifts without a name'}`} on={!!keep[job]} onChange={(v) => setKeep({ ...keep, [job]: v })} />}
+              label={job || 'No job name'} sub={`${n} shift${n === 1 ? '' : 's'}`}
+              right={<input className="fld" aria-label={`Hourly wage at ${job}`} inputMode="decimal" placeholder={`${hostCur}/h`} disabled={!keep[job]}
+                value={wages[job] || ''} onChange={(e) => setWages({ ...wages, [job]: e.target.value })} style={{ width: 96, minHeight: 0, padding: '6px 10px', textAlign: 'right' }} />} />
+          ))}
+        </Group>
+      </Sheet>
 
       <Sheet open={rateOpen} onClose={() => setRateOpen(false)} title="Exchange rate" T={T} footer={<Btn full disabled={!numVal(rate)} onClick={saveRate}>Save rate</Btn>}>
         <Field T={T} label={`1 ${hostCur} = ? ${homeCur}`} htmlFor="st-rate" hint="Setting it by hand keeps it until the next daily update — turn off “Update daily” to keep yours.">

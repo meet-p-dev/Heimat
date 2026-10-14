@@ -14,7 +14,7 @@ struct ShiftImportTests {
         for case let c as [String: Any] in v["cases"] as! [Any] {
             n += 1
             let name = c["name"] as! String, want = c["want"] as! [String: Any]
-            let got = ShiftImport.run(c["text"] as! String, have: have)
+            let got = ShiftImport.run(c["text"] as! String, have: have, tz: TimeZone(identifier: v["tz"] as? String ?? "Europe/Berlin")!)
             let ws = (want["shifts"] as! [[String: Any]]).map {
                 ShiftImport.Row(id: $0["id"] as? String, date: $0["date"] as! String, employer: $0["employer"] as! String,
                                 start: $0["start"] as! String, end: $0["end"] as! String, breakMin: ($0["breakMin"] as! NSNumber).intValue,

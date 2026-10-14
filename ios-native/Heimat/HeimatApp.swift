@@ -137,7 +137,7 @@ struct SheetHost: View {
         case .analytics: NavigationStack { AnalyticsView() }
         case .myAnalytics: NavigationStack { AnalyticsView(personal: true) }
         case .activity: NavigationStack { ActivityView() }
-        case .splitwise: SplitwiseImportView()
+        case .splitwise: ImportGroupView()
         case .auth(let mode): AuthView(start: mode)
         case .flat(let mode): CreateJoinForm(mode: mode)
         case .expense(let e, let prefill): ExpenseForm(editing: e, prefill: prefill)

@@ -29,7 +29,7 @@ export default function CreateJoinModal({ open, mode, onClose, T, createFlat, jo
             <input id="cj-name" className="fld" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. WG Hauptstraße, Sicily trip" />
           </Field>
           <Btn full type="submit" busy={busy} disabled={!name.trim()}>Create group</Btn>
-          {onSplitwise && <Btn full kind="ghost" onClick={onSplitwise} style={{ marginTop: 8 }}>Coming from Splitwise? Import a group</Btn>}
+          {onSplitwise && <Btn full kind="ghost" onClick={onSplitwise} style={{ marginTop: 8 }}>Coming from Splitwise or Tricount? Import a group</Btn>}
         </form>
       )}
     </Sheet>

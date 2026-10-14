@@ -16,5 +16,5 @@ swiftc -O -parse-as-library ios-native/Heimat/Receipt.swift ios-native/Tests/Rec
 "$out/receipt-tests" tests/receipt-vectors.json
 swiftc -O -parse-as-library ios-native/Heimat/SiriAnswers.swift ios-native/Tests/SiriAnswersTests.swift -o "$out/siri-tests"
 "$out/siri-tests" tests/siri-vectors.json
-swiftc -O -parse-as-library ios-native/Heimat/SplitwiseImport.swift ios-native/Heimat/Ledger.swift ios-native/Heimat/Suggest.swift ios-native/Tests/SplitwiseImportTests.swift -o "$out/splitwise-import-tests"
-"$out/splitwise-import-tests" tests/splitwise-import-vectors.json
+swiftc -O -parse-as-library ios-native/Heimat/ExpenseImport.swift ios-native/Heimat/Xlsx.swift ios-native/Heimat/Ledger.swift ios-native/Heimat/Suggest.swift ios-native/Tests/ExpenseImportTests.swift -o "$out/expense-import-tests"
+"$out/expense-import-tests" tests/expense-import-vectors.json

@@ -1,17 +1,24 @@
 /*
-  Bringing a group over from Splitwise (src/lib/importSplitwise.ts). The iPhone app
-  (ios-native/Heimat/SplitwiseImport.swift) is held to the same vectors by
+  Bringing a group over from another app (src/lib/importExpenses.ts, src/lib/xlsx.ts). The
+  iPhone app (ios-native/Heimat/ExpenseImport.swift, Xlsx.swift) is held to the same vectors by
   scripts/test-ledger-swift.sh.
 */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { guessMe, importSplitwise, nameFromFile, swAmount, swDate } from '../src/lib/importSplitwise.ts'
+import { guessMe, importCsv, importSheets, nameFromFile, swAmount, swDate, sheetAmount } from '../src/lib/importExpenses.ts'
+import { readXlsx } from '../src/lib/xlsx.ts'
 
-const v = JSON.parse(readFileSync(new URL('./splitwise-import-vectors.json', import.meta.url), 'utf8'))
+const v = JSON.parse(readFileSync(new URL('./expense-import-vectors.json', import.meta.url), 'utf8'))
 
-test('every kind of file gives the checked answer', () => {
-  for (const c of v.cases) assert.deepEqual(importSplitwise(c.text, c.file), c.want, c.name)
+test('every kind of file gives the checked answer', async () => {
+  for (const c of v.cases) {
+    if (c.kind === 'xlsx') {
+      const sheets = await readXlsx(Buffer.from(c.b64, 'base64'))
+      assert.deepEqual(sheets, c.sheets, c.name + ': sheets')
+      assert.deepEqual(importSheets(sheets, { fileName: c.file, ...c.opts }), c.want, c.name)
+    } else assert.deepEqual(importCsv(c.text, { fileName: c.file, ...c.opts }), c.want, c.name)
+  }
 })
 
 test('every row keeps the balances exactly as Splitwise had them', () => {
@@ -50,7 +57,7 @@ test('random groups: rebuilt rows always move each balance by exactly its column
       nets.forEach((n, i) => (want[i] += n))
       csv += `2025-01-${String(1 + rnd(28)).padStart(2, '0')},Row ${r},General,${(cost / 100).toFixed(2)},EUR,${nets.map((n) => (n / 100).toFixed(2)).join(',')}\n`
     }
-    const res = importSplitwise(csv)
+    const res = importCsv(csv)
     if (!res.ok) { assert.ok(want.every((n) => n === 0), csv); continue }
     const got = new Array(people).fill(0)
     for (const e of res.file.expenses) {
@@ -70,6 +77,17 @@ test('dates, amounts, names', () => {
   assert.equal(swAmount('1000.50', 'JPY'), null)
   assert.equal(swAmount('-12.75', 'USD'), -1275)
   assert.equal(swAmount('1,234.50', 'EUR'), 123450)
+  assert.equal(sheetAmount('33.333333333333336', 'EUR'), 3333)
+  assert.equal(sheetAmount('€ 12,50', 'EUR'), 1250)
+  assert.equal(sheetAmount('', 'EUR'), 0)
+  assert.equal(sheetAmount('abc', 'EUR'), null)
+  assert.equal(swDate('10/13/2025', true), '2025-10-13')
+  assert.equal(swDate('13/10/2025'), '2025-10-13')
+  assert.equal(swDate('45748'), '2025-04-01')
+  assert.equal(swDate('2 Oct 2025'), '2025-10-02')
+  assert.equal(swDate('Oct 2, 2025'), '2025-10-02')
+  assert.equal(swDate('20230722'), '2023-07-22')
+  assert.equal(swDate('2. März 2025'), '2025-03-02')
   assert.equal(nameFromFile('wg-berlin_2024-05-03_export.csv'), 'Wg berlin')
   assert.equal(nameFromFile('export.csv'), '')
   const people = [{ key: '0', name: 'Alex Kim' }, { key: '1', name: 'Priya Nair' }, { key: '2', name: 'Priya S.' }]

@@ -2,29 +2,31 @@ import Foundation
 import CryptoKit
 import Supabase
 
-/// Bringing a group over from Splitwise (SplitwiseImport.swift reads the file; the server's
+/// Bringing a group over from another app (ExpenseImport.swift reads the file; the server's
 /// import_group writes it in one go and checks every balance) — the same as the web app's
-/// SplitwiseImportModal.
+/// ImportGroupModal.
 extension AppModel {
     struct ImportRecord: Decodable, Identifiable, Hashable {
         let id: String
         let flatId: String?
+        let source: String?
         let expenses: Int
         let payments: Int
-        enum CodingKeys: String, CodingKey { case id, expenses, payments, flatId = "flat_id" }
+        enum CodingKeys: String, CodingKey { case id, source, expenses, payments, flatId = "flat_id" }
     }
 
     private struct ImportPayload: Encodable {
-        let source = "splitwise"
+        let source: String
         let hash: String, name: String, kind: String, me: String
-        let people: [SplitwiseImport.Person]
-        let expenses: [SplitwiseImport.Expense]
-        let payments: [SplitwiseImport.Payment]
+        let people: [ExpenseImport.Person]
+        let expenses: [ExpenseImport.Expense]
+        let payments: [ExpenseImport.Payment]
         let balances: [String: Int]
     }
     private struct ImportResult: Decodable { let flat: Flat }
 
     /// a fingerprint of the file (as the web app makes it), so the same file isn't imported twice
+    static func importHash(_ data: Data) -> String { SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined() }
     static func importHash(_ text: String) -> String {
         var t = text
         if t.hasPrefix("\u{FEFF}") { t.removeFirst() }
@@ -33,10 +35,10 @@ extension AppModel {
     }
 
     /// nil when it worked (the new group is open, with the invite sheet); otherwise what went wrong
-    func importSplitwise(_ f: SplitwiseImport.File, me: String, name: String, kind: String, text: String) async -> String? {
+    func importGroup(_ f: ExpenseImport.File, me: String, name: String, kind: String, hash: String, source: String) async -> String? {
         if Self.fixtureMode { sheet = nil; show("Demo mode — nothing is imported"); return nil }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let p = ImportPayload(hash: Self.importHash(text), name: trimmed.isEmpty ? (f.name.isEmpty ? "From Splitwise" : f.name) : trimmed,
+        let p = ImportPayload(source: source, hash: hash, name: trimmed.isEmpty ? (f.name.isEmpty ? "Imported group" : f.name) : trimmed,
                               kind: kind, me: me, people: f.people, expenses: f.expenses, payments: f.payments, balances: f.balances)
         do {
             let r: ImportResult = try await client.rpc("import_group", params: ["p": p]).execute().value
@@ -61,7 +63,7 @@ extension AppModel {
     /// imports whose group is still there (only those can be taken back)
     func myImports() async -> [ImportRecord] {
         guard uid != nil, !Self.fixtureMode else { return [] }
-        let rows: [ImportRecord] = (try? await client.from("imports").select("id, flat_id, expenses, payments")
+        let rows: [ImportRecord] = (try? await client.from("imports").select("id, flat_id, source, expenses, payments")
             .order("created_at", ascending: false).execute().value) ?? []
         return rows.filter { $0.flatId != nil }
     }

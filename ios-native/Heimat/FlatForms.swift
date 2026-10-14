@@ -478,7 +478,7 @@ struct CreateJoinForm: View {
                 }
                 if mode != .join {
                     Section {
-                        Button { m.sheet = .splitwise } label: { Label("Coming from Splitwise? Import a group", systemImage: "square.and.arrow.down") }
+                        Button { m.sheet = .splitwise } label: { Label("Coming from Splitwise or Tricount? Import a group", systemImage: "square.and.arrow.down") }
                     }
                 }
             }

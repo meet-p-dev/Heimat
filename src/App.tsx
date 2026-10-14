@@ -38,7 +38,7 @@ import CategoriesModal from './components/modals/CategoriesModal'
 import SettleModal from './components/modals/SettleModal'
 import InviteModal from './components/modals/InviteModal'
 import CreateJoinModal from './components/modals/CreateJoinModal'
-import SplitwiseImportModal from './components/modals/SplitwiseImportModal'
+import ImportGroupModal from './components/modals/ImportGroupModal'
 import RunwayModal from './components/modals/RunwayModal'
 import ShiftModal from './components/modals/ShiftModal'
 import ProfileModal from './components/modals/ProfileModal'
@@ -366,7 +366,7 @@ export default function App() {
     if (error) { showToast(error.message); return }
     haptic(14); setFlatIdP((data as any).id); await loadMyFlats(); setModal(null); setTab('flat'); setPages([`group:${(data as any).id}`]); showToast('Group created — invite the people you split with')
   }
-  /* a group brought over from Splitwise: open it, then the invite sheet with everyone's links */
+  /* a group brought over from another app: open it, then the invite sheet with everyone's links */
   const imported = async (id: string, nm: string, others: number) => {
     haptic(14); setFlatIdP(id); await loadMyFlats(); setTab('flat'); setPages([`group:${id}`])
     setModal(others ? 'invite' : null)
@@ -1034,7 +1034,7 @@ export default function App() {
       <CategoriesModal {...{ open: modal === 'cats', onClose: closeModal, T, custom: flatCats, addCategory, deleteCategory }} />
       <InviteModal {...{ open: modal === 'invite', onClose: closeModal, T, flat, members, invite: inviteMember, revoke: revokeInvite, inviteBack, showToast }} />
       <CreateJoinModal {...{ open: modal === 'create' || modal === 'join', mode: modal, onClose: closeModal, T, createFlat, joinFlat, busy, profile, initialCode: joinPrefill, onSplitwise: () => setModal('splitwise') }} />
-      <SplitwiseImportModal {...{ open: modal === 'splitwise', onClose: closeModal, T, myName: profile.name || '', onImported: imported }} />
+      <ImportGroupModal {...{ open: modal === 'splitwise', onClose: closeModal, T, myName: profile.name || '', currency: hostCur, onImported: imported }} />
       <RunwayModal {...{ open: modal === 'runway', onClose: closeModal, T, runway, sRunway, hostCur, showToast }} />
       <ShiftModal {...{ open: modal === 'shift', onClose: closeModal, T, shifts, sShifts, showToast, hostCur, initialDate: shiftDate, editing: editShift }} />
       <ProfileModal {...{ open: modal === 'profile', onClose: closeModal, T, profile, uid, onSave: (p: Profile) => { saveProfile(p); showToast('Profile saved') } }} />

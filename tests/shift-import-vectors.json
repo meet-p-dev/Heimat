@@ -16,6 +16,7 @@
    "hours": 4
   }
  ],
+ "tz": "Europe/Berlin",
  "cases": [
   {
    "name": "own JSON export",
@@ -243,6 +244,166 @@
    "text": "hello there",
    "want": {
     "shifts": [],
+    "skipped": 0,
+    "bad": 1
+   }
+  },
+  {
+   "name": "Clockify detailed report",
+   "text": "Project,Client,Description,Task,User,Email,Tags,Billable,Start Date,Start Time,End Date,End Time,Duration (h),Duration (decimal),Billable Rate (EUR),Billable Amount (EUR)\nCafé Mondo,,Barista,,Priya,priya@example.com,,Yes,10/02/2026,09:00:00 AM,10/02/2026,05:30:00 PM,08:30:00,8.50,13.90,118.15\nCafé Mondo,,Barista,,Priya,priya@example.com,,Yes,10/03/2026,12:00:00 PM,10/03/2026,04:00:00 PM,04:00:00,4.00,13.90,55.60\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-10-02",
+      "employer": "Café Mondo",
+      "start": "09:00",
+      "end": "17:30",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 13.9,
+      "hours": null,
+      "pay": 118.15
+     },
+     {
+      "id": null,
+      "date": "2026-10-03",
+      "employer": "Café Mondo",
+      "start": "12:00",
+      "end": "16:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 13.9,
+      "hours": null,
+      "pay": 55.6
+     }
+    ],
+    "skipped": 0,
+    "bad": 0
+   }
+  },
+  {
+   "name": "Toggl detailed report",
+   "text": "User,Email,Client,Project,Task,Description,Billable,Start date,Start time,End date,End time,Duration,Tags,Amount ()\nPriya,priya@example.com,,Uni lab,,Lab work,No,2026-10-05,09:00:00,2026-10-05,13:15:00,04:15:00,,\nPriya,priya@example.com,,Uni lab,,,No,2026-10-06,,2026-10-06,,02:45:00,,\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-10-05",
+      "employer": "Uni lab",
+      "start": "09:00",
+      "end": "13:15",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-10-06",
+      "employer": "Uni lab",
+      "start": "",
+      "end": "",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": 2.75,
+      "pay": null
+     }
+    ],
+    "skipped": 0,
+    "bad": 0
+   }
+  },
+  {
+   "name": "clock in and out",
+   "text": "Job,Clock In,Clock Out,Break Hours,Hourly rate\nBar Rot,2026-10-07 18:00,2026-10-07 23:30,0.5,12.82\nBar Rot,08.10.2026 22:00,09.10.2026 06:00,0.75,12.82\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-10-07",
+      "employer": "Bar Rot",
+      "start": "18:00",
+      "end": "23:30",
+      "breakMin": 30,
+      "paidBreak": false,
+      "wage": 12.82,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-10-08",
+      "employer": "Bar Rot",
+      "start": "22:00",
+      "end": "06:00",
+      "breakMin": 45,
+      "paidBreak": false,
+      "wage": 12.82,
+      "hours": null,
+      "pay": null
+     }
+    ],
+    "skipped": 0,
+    "bad": 0
+   }
+  },
+  {
+   "name": "calendar file",
+   "text": "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Rota//EN\r\nBEGIN:VEVENT\r\nUID:1\r\nDTSTART;TZID=Europe/Berlin:20261012T090000\r\nDTEND;TZID=Europe/Berlin:20261012T173000\r\nSUMMARY:Café Mondo\\, Barista\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nUID:2\r\nDTSTART:20261013T160000Z\r\nDTEND:20261013T220000Z\r\nSUMMARY:Café Mondo\\, Barista\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART;VALUE=DATE:20261014\r\nDTEND;VALUE=DATE:20261015\r\nSUMMARY:Holiday\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART:20261015T200000Z\r\nDURATION:PT8H\r\nSUMMARY:Night shift\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART:20261016T080000Z\r\nDTEND:20261016T120000Z\r\nSTATUS:CANCELLED\r\nSUMMARY:Cancelled\r\nEND:VEVENT\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Europe/Berlin:20261017T100000\r\nDTEND;TZID=Europe/Berlin:20261017T14\r\n 0000\r\nSUMMARY:Folded line\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n",
+   "want": {
+    "shifts": [
+     {
+      "id": null,
+      "date": "2026-10-12",
+      "employer": "Café Mondo, Barista",
+      "start": "09:00",
+      "end": "17:30",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-10-13",
+      "employer": "Café Mondo, Barista",
+      "start": "18:00",
+      "end": "00:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-10-15",
+      "employer": "Night shift",
+      "start": "22:00",
+      "end": "06:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": null,
+      "pay": null
+     },
+     {
+      "id": null,
+      "date": "2026-10-17",
+      "employer": "Folded line",
+      "start": "10:00",
+      "end": "14:00",
+      "breakMin": 0,
+      "paidBreak": false,
+      "wage": 0,
+      "hours": null,
+      "pay": null
+     }
+    ],
     "skipped": 0,
     "bad": 1
    }

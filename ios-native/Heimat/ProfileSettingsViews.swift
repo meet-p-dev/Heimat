@@ -700,12 +700,12 @@ struct DataSettingsView: View {
                 if let csvURL, !m.shifts.isEmpty {
                     ShareLink(item: csvURL) { settingRow("tablecells", .green, "Export shifts", sub: "A spreadsheet for timesheets or your tax return") }
                 }
-                Button { picking = true } label: { settingRow("square.and.arrow.down", .orange, "Import shifts", sub: "From a Splitlife export or a timesheet (CSV)") }
-                Button { m.sheet = .splitwise } label: { settingRow("person.3.fill", .green, "Import from Splitwise", sub: "A group with all its expenses and payments") }
+                Button { picking = true } label: { settingRow("square.and.arrow.down", .orange, "Import shifts", sub: "From a time tracker, a rota calendar (.ics) or a spreadsheet") }
+                Button { m.sheet = .splitwise } label: { settingRow("person.3.fill", .green, "Import a group", sub: "From Splitwise, Tricount, Settle Up, Splid or a spreadsheet") }
             } header: { Text("Export & import") }
             .tint(.primary)
 
-            SplitwiseImportsSection()
+            GroupImportsSection()
 
             Section {
                 Button(role: .destructive) { confirmClear = true } label: { Text("Clear shifts on this phone") }
@@ -778,14 +778,17 @@ struct LifeSettingsView: View {
     }
 }
 
-/// Settings → Import shifts: pick a file, see what's new, add it (ShiftImport.swift).
+/// Settings → Import shifts: pick a file, see what's new, add it (ShiftImport.swift). A file
+/// that says no hourly wage (a calendar, a time tracker) asks for each job's wage first.
 private struct ImportShifts: ViewModifier {
     @Environment(AppModel.self) private var m
     @Binding var picking: Bool
     @State private var found: ShiftImport.Result?
+    @State private var asking: ShiftImport.Result?
 
     func body(content: Content) -> some View {
-        content.fileImporter(isPresented: $picking, allowedContentTypes: [.json, .commaSeparatedText, .plainText, .text]) { r in
+        content.fileImporter(isPresented: $picking, allowedContentTypes: [.json, .commaSeparatedText, .tabSeparatedText, .plainText, .text,
+                                                                         UTType(filenameExtension: "ics") ?? .calendarEvent]) { r in
             guard case .success(let url) = r else { return }
             let scoped = url.startAccessingSecurityScopedResource()
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }
@@ -793,8 +796,10 @@ private struct ImportShifts: ViewModifier {
                   let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else { m.show("Couldn't read that file"); return }
             let res = m.readShifts(text)
             if res.shifts.isEmpty { m.show(res.skipped + res.bad > 0 ? "Nothing new to add — \(ShiftImportNote.text(res))" : "No shifts found in that file") }
+            else if res.shifts.contains(where: { $0.wage == 0 && $0.pay == nil }) { asking = res }
             else { found = res }
         }
+        .sheet(item: Binding(get: { asking.map(WageAsk.init) }, set: { if $0 == nil { asking = nil } })) { a in ShiftWagesSheet(result: a.result) }
         .confirmationDialog(found.map { "Add \($0.shifts.count) shift\($0.shifts.count == 1 ? "" : "s")?" } ?? "", isPresented: Binding(get: { found != nil }, set: { if !$0 { found = nil } }), titleVisibility: .visible) {
             Button("Add") { if let f = found { m.addImported(f.shifts) }; found = nil }
         } message: {
@@ -802,3 +807,73 @@ private struct ImportShifts: ViewModifier {
         }
     }
 }
+
+private struct WageAsk: Identifiable { let result: ShiftImport.Result; var id: Int { result.shifts.count } }
+
+/// The jobs an imported file gives no hourly wage for, each with its shifts: the wage to use, or
+/// left out (a calendar's other events) — the web app's "Hourly wage" sheet.
+private struct ShiftWagesSheet: View {
+    @Environment(AppModel.self) private var m
+    @Environment(\.dismiss) private var dismiss
+    let result: ShiftImport.Result
+    @State private var wages: [String: String] = [:]
+    @State private var keep: [String: Bool] = [:]
+
+    /// each job without a wage, with how many shifts, in the order they come
+    private var jobs: [(String, Int)] {
+        var order: [String] = [], n: [String: Int] = [:]
+        for s in result.shifts where s.wage == 0 && s.pay == nil { if n[s.employer] == nil { order.append(s.employer) }; n[s.employer, default: 0] += 1 }
+        return order.map { ($0, n[$0]!) }
+    }
+    private func wage(_ job: String) -> Double { Double((wages[job] ?? "").replacingOccurrences(of: ",", with: ".")) ?? 0 }
+    private var chosen: [ShiftImport.Row] {
+        result.shifts.compactMap { s in
+            if s.wage != 0 || s.pay != nil { return s }
+            guard keep[s.employer] ?? true else { return nil }
+            var r = s; r.wage = wage(s.employer); return r
+        }
+    }
+    private var ready: Bool { jobs.allSatisfy { !(keep[$0.0] ?? true) || wage($0.0) > 0 } && jobs.contains { keep[$0.0] ?? true } }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    ForEach(jobs, id: \.0) { job, n in
+                        HStack(spacing: 12) {
+                            Toggle("", isOn: Binding(get: { keep[job] ?? true }, set: { keep[job] = $0 })).labelsHidden()
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(job.isEmpty ? "No job name" : job).lineLimit(2)
+                                Text("\(n) shift\(n == 1 ? "" : "s")").font(.caption).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            TextField("\(m.profile.hostCur)/h", text: Binding(get: { wages[job] ?? "" }, set: { wages[job] = $0 }))
+                                .keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 90)
+                                .disabled(!(keep[job] ?? true))
+                        }
+                    }
+                } footer: {
+                    Text("The file doesn't say what these jobs pay. Switch off anything that isn't a shift.\(ShiftImportNote.text(result).isEmpty ? "" : " (\(ShiftImportNote.text(result)))")")
+                }
+            }
+            .navigationTitle("Hourly wage")
+            .heimatSurface()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add \(chosen.count)") { m.addImported(chosen); dismiss() }.disabled(!ready)
+                }
+            }
+            .onAppear {
+                // the wage last used for that job, if there is one
+                for (job, _) in jobs where wages[job] == nil {
+                    if let w = m.shifts.last(where: { $0.employer.trimmingCharacters(in: .whitespaces).lowercased() == job.trimmingCharacters(in: .whitespaces).lowercased() && $0.wage > 0 })?.wage {
+                        wages[job] = w.formatted(.number.precision(.fractionLength(0...2)).grouping(.never))
+                    }
+                }
+            }
+        }
+    }
+}
+

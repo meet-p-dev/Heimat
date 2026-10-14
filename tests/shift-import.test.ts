@@ -11,13 +11,13 @@ import { importShifts, normDate, normNum, normTime } from '../src/lib/importShif
 const v = JSON.parse(readFileSync(new URL('./shift-import-vectors.json', import.meta.url), 'utf8'))
 
 test('every kind of file gives the checked answer', () => {
-  for (const c of v.cases) assert.deepEqual(importShifts(c.text, v.have), c.want, c.name)
+  for (const c of v.cases) assert.deepEqual(importShifts(c.text, v.have, v.tz), c.want, c.name)
 })
 
 test('importing what was just imported adds nothing', () => {
   for (const c of v.cases) {
-    const once = importShifts(c.text, v.have)
-    const again = importShifts(c.text, [...v.have, ...once.shifts.map((s: { id: string | null }) => ({ ...s, id: s.id || undefined }))])
+    const once = importShifts(c.text, v.have, v.tz)
+    const again = importShifts(c.text, [...v.have, ...once.shifts.map((s: { id: string | null }) => ({ ...s, id: s.id || undefined }))], v.tz)
     assert.equal(again.shifts.length, 0, c.name)
   }
 })

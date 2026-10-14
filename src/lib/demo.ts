@@ -249,9 +249,9 @@ const rpcs: Record<string, (a: Row) => any> = {
         split: { values: owed }, payers: Object.keys(paid).length > 1 ? paid : null, shares: owed, deleted_at: null })
     }
     for (const s of p.payments) (db.settlements ||= []).push({ id: uuid(), flat_id: id, from_user: ids[s.from], to_user: ids[s.to], amount: s.total / 10 ** dig(s.cur), currency: s.cur, settled_on: s.d, created_by: ME, created_at: stamp() })
-    const imp = { id: uuid(), flat_id: id, hash: p.hash, expenses: p.expenses.length, payments: p.payments.length, created_at: stamp() }
+    const imp = { id: uuid(), flat_id: id, source: p.source, hash: p.hash, expenses: p.expenses.length, payments: p.payments.length, created_at: stamp() }
     db.imports.push(imp)
-    log('imported', 'Splitwise', id, null, { expenses: p.expenses.length, payments: p.payments.length })
+    log('imported', ({ splitwise: 'Splitwise', tricount: 'Tricount', settleup: 'Settle Up', splid: 'Splid' } as Record<string, string>)[p.source] || 'a spreadsheet', id, null, { expenses: p.expenses.length, payments: p.payments.length })
     return { flat, import: imp.id }
   },
   remove_import: ({ p_import }) => {

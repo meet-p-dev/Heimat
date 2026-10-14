@@ -1,0 +1,1050 @@
+{
+ "cases": [
+  {
+   "name": "splitwise: flat in euros",
+   "kind": "csv",
+   "file": "sunny-wg_2025-05-03_export.csv",
+   "text": "Date,Description,Category,Cost,Currency,Alex Kim,Priya Nair,Tom Berg\n2025-03-01,Rewe,Groceries,30.00,EUR,20.00,-10.00,-10.00\n2025-03-02,Rent March,Rent,900.00,EUR,300.00,0.00,-300.00\n2025-03-04,Priya N. paid Alex K.,Payment,10.00,EUR,-10.00,10.00,0.00\n2025-03-05,Pizza,Dining out,10.00,EUR,6.67,-3.33,-3.34\n2025-03-06,\"Döner, Club Mate\",General,12.00,EUR,0.00,0.00,0.00\n\n,Total balance, , ,EUR,316.67,-3.33,-313.34\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Sunny wg",
+     "layout": "net",
+     "people": [
+      {
+       "key": "0",
+       "name": "Alex Kim"
+      },
+      {
+       "key": "1",
+       "name": "Priya Nair"
+      },
+      {
+       "key": "2",
+       "name": "Tom Berg"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-03-01",
+       "t": "Rewe",
+       "c": "groceries",
+       "cur": "EUR",
+       "total": 3000,
+       "paid": {
+        "0": 3000
+       },
+       "owed": {
+        "0": 1000,
+        "1": 1000,
+        "2": 1000
+       }
+      },
+      {
+       "d": "2025-03-02",
+       "t": "Rent March",
+       "c": "rent",
+       "cur": "EUR",
+       "total": 90000,
+       "paid": {
+        "0": 90000
+       },
+       "owed": {
+        "0": 60000,
+        "2": 30000
+       }
+      },
+      {
+       "d": "2025-03-05",
+       "t": "Pizza",
+       "c": "eatout",
+       "cur": "EUR",
+       "total": 1000,
+       "paid": {
+        "0": 1000
+       },
+       "owed": {
+        "0": 333,
+        "1": 333,
+        "2": 334
+       }
+      }
+     ],
+     "payments": [
+      {
+       "d": "2025-03-04",
+       "t": "Priya N. paid Alex K.",
+       "from": "1",
+       "to": "0",
+       "cur": "EUR",
+       "total": 1000
+      }
+     ],
+     "balances": {
+      "0|EUR": 31667,
+      "1|EUR": -333,
+      "2|EUR": -31334
+     },
+     "totals": "yes",
+     "skipped": 1,
+     "bad": [],
+     "from": "2025-03-01",
+     "to": "2025-03-05",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "splitwise: trip in three currencies",
+   "kind": "csv",
+   "file": "Lisbon trip_2025-08-20_export.csv",
+   "text": "Date,Description,Category,Cost,Currency,Priya,Sam,Lena\n2025-08-01,Hotel,Hotel,300.00,EUR,100.00,100.00,-200.00\n2025-08-02,Train tickets,Bus/train,3000.00,JPY,2000.00,-1000.00,-1000.00\n2025-08-03,Uber,Taxi,25.50,USD,-12.75,12.75,0.00\n2025-08-04,Lena paid Priya,Payment,50.00,EUR,-50.00,0.00,50.00\n\n,Total balance,,,EUR,50.00,100.00,-150.00\n,Total balance,,,JPY,2000.00,-1000.00,-1000.00\n,Total balance,,,USD,-12.75,12.75,0.00\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Lisbon trip",
+     "layout": "net",
+     "people": [
+      {
+       "key": "0",
+       "name": "Priya"
+      },
+      {
+       "key": "1",
+       "name": "Sam"
+      },
+      {
+       "key": "2",
+       "name": "Lena"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-08-01",
+       "t": "Hotel",
+       "c": "other",
+       "cur": "EUR",
+       "total": 30000,
+       "paid": {
+        "0": 15000,
+        "1": 15000
+       },
+       "owed": {
+        "0": 5000,
+        "1": 5000,
+        "2": 20000
+       }
+      },
+      {
+       "d": "2025-08-02",
+       "t": "Train tickets",
+       "c": "transport",
+       "cur": "JPY",
+       "total": 3000,
+       "paid": {
+        "0": 3000
+       },
+       "owed": {
+        "0": 1000,
+        "1": 1000,
+        "2": 1000
+       }
+      },
+      {
+       "d": "2025-08-03",
+       "t": "Uber",
+       "c": "transport",
+       "cur": "USD",
+       "total": 2550,
+       "paid": {
+        "1": 2550
+       },
+       "owed": {
+        "0": 1275,
+        "1": 1275
+       }
+      }
+     ],
+     "payments": [
+      {
+       "d": "2025-08-04",
+       "t": "Lena paid Priya",
+       "from": "2",
+       "to": "0",
+       "cur": "EUR",
+       "total": 5000
+      }
+     ],
+     "balances": {
+      "0|EUR": 5000,
+      "0|JPY": 2000,
+      "0|USD": -1275,
+      "1|EUR": 10000,
+      "1|JPY": -1000,
+      "1|USD": 1275,
+      "2|EUR": -15000,
+      "2|JPY": -1000
+     },
+     "totals": "yes",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-08-01",
+     "to": "2025-08-04",
+     "currencies": [
+      "EUR",
+      "JPY",
+      "USD"
+     ]
+    }
+   }
+  },
+  {
+   "name": "splitwise: odd rows",
+   "kind": "csv",
+   "file": "export.csv",
+   "text": "Date,Description,Category,Cost,Currency,Me,You\n2024-12-24,Gift return,Gifts,-40.00,EUR,-20.00,20.00\n2024-12-25,Broken,General,10.00,EUR,5.00,-4.00\n2024-13-01,Bad date,General,10.00,EUR,5.00,-5.00\n2024-12-26,Electricity,Electricity,61.00,EUR,30.50,-30.50\n,Total balance,,,EUR,10.51,-10.51\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "",
+     "layout": "net",
+     "people": [
+      {
+       "key": "0",
+       "name": "Me"
+      },
+      {
+       "key": "1",
+       "name": "You"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2024-12-24",
+       "t": "Gift return",
+       "c": "other",
+       "cur": "EUR",
+       "total": 2000,
+       "paid": {
+        "1": 2000
+       },
+       "owed": {
+        "0": 2000
+       }
+      },
+      {
+       "d": "2024-12-26",
+       "t": "Electricity",
+       "c": "utilities",
+       "cur": "EUR",
+       "total": 6100,
+       "paid": {
+        "0": 6100
+       },
+       "owed": {
+        "0": 3050,
+        "1": 3050
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|EUR": 1050,
+      "1|EUR": -1050
+     },
+     "totals": "rounding",
+     "skipped": 0,
+     "bad": [
+      3,
+      4
+     ],
+     "from": "2024-12-24",
+     "to": "2024-12-26",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "splitwise: German resave",
+   "kind": "csv",
+   "file": "WG Küche.csv",
+   "text": "﻿Date;Description;Category;Cost;Currency;Jonas;Mia\r\n01.02.2025;Strom Februar;Electricity;84,20;EUR;42,10;-42,10\r\n03.02.2025;Mia paid Jonas;Payment;42,10;EUR;-42,10;42,10\r\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "WG Küche",
+     "layout": "net",
+     "people": [
+      {
+       "key": "0",
+       "name": "Jonas"
+      },
+      {
+       "key": "1",
+       "name": "Mia"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-02-01",
+       "t": "Strom Februar",
+       "c": "utilities",
+       "cur": "EUR",
+       "total": 8420,
+       "paid": {
+        "0": 8420
+       },
+       "owed": {
+        "0": 4210,
+        "1": 4210
+       }
+      }
+     ],
+     "payments": [
+      {
+       "d": "2025-02-03",
+       "t": "Mia paid Jonas",
+       "from": "1",
+       "to": "0",
+       "cur": "EUR",
+       "total": 4210
+      }
+     ],
+     "balances": {},
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-02-01",
+     "to": "2025-02-03",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "splitwise: several people up",
+   "kind": "csv",
+   "file": "g.csv",
+   "text": "Date,Description,Category,Cost,Currency,A,B,C,D\n2025-01-10,Party,Entertainment - Other,100.00,EUR,30.00,20.00,-25.00,-25.00\n2025-01-11,Odd cents,General,10.01,EUR,2.00,2.00,-4.00,0.00\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "G",
+     "layout": "net",
+     "people": [
+      {
+       "key": "0",
+       "name": "A"
+      },
+      {
+       "key": "1",
+       "name": "B"
+      },
+      {
+       "key": "2",
+       "name": "C"
+      },
+      {
+       "key": "3",
+       "name": "D"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-01-10",
+       "t": "Party",
+       "c": "other",
+       "cur": "EUR",
+       "total": 10000,
+       "paid": {
+        "0": 5500,
+        "1": 4500
+       },
+       "owed": {
+        "0": 2500,
+        "1": 2500,
+        "2": 2500,
+        "3": 2500
+       }
+      },
+      {
+       "d": "2025-01-11",
+       "t": "Odd cents",
+       "c": "other",
+       "cur": "EUR",
+       "total": 1001,
+       "paid": {
+        "0": 501,
+        "1": 500
+       },
+       "owed": {
+        "0": 301,
+        "1": 300,
+        "2": 400
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|EUR": 3200,
+      "1|EUR": 2200,
+      "2|EUR": -2900,
+      "3|EUR": -2500
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-01-10",
+     "to": "2025-01-11",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "tricount: paid by / paid for",
+   "kind": "csv",
+   "file": "Ski trip.csv",
+   "text": "Date,Title,Paid by Pierre,Paid by Sophie,Paid by Brad,Paid for Pierre,Paid for Sophie,Paid for Brad,Currency,Category\n20230722,Hotel aBis,358.0,0.0,0.0,0.0,169.0,189.0,EUR,Hosting\n2023-07-23,Groceries,0,100,0,33.33,33.33,33.33,EUR,Food & Drink\n2023-07-24,Refund ski pass,-30,0,0,-10,-10,-10,EUR,\n2023-07-25,Brad paid Pierre,0,0,50,50,0,0,EUR,Transfer\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Ski trip",
+     "layout": "paidfor",
+     "people": [
+      {
+       "key": "0",
+       "name": "Pierre"
+      },
+      {
+       "key": "1",
+       "name": "Sophie"
+      },
+      {
+       "key": "2",
+       "name": "Brad"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2023-07-22",
+       "t": "Hotel aBis",
+       "c": "other",
+       "cur": "EUR",
+       "total": 35800,
+       "paid": {
+        "0": 35800
+       },
+       "owed": {
+        "1": 16900,
+        "2": 18900
+       }
+      },
+      {
+       "d": "2023-07-23",
+       "t": "Groceries",
+       "c": "eatout",
+       "cur": "EUR",
+       "total": 10000,
+       "paid": {
+        "1": 10000
+       },
+       "owed": {
+        "0": 3334,
+        "1": 3333,
+        "2": 3333
+       }
+      },
+      {
+       "d": "2023-07-24",
+       "t": "Refund ski pass",
+       "c": "other",
+       "cur": "EUR",
+       "total": 2000,
+       "paid": {
+        "1": 1000,
+        "2": 1000
+       },
+       "owed": {
+        "0": 2000
+       }
+      }
+     ],
+     "payments": [
+      {
+       "d": "2023-07-25",
+       "t": "Brad paid Pierre",
+       "from": "2",
+       "to": "0",
+       "cur": "EUR",
+       "total": 5000
+      }
+     ],
+     "balances": {
+      "0|EUR": 25466,
+      "1|EUR": -9233,
+      "2|EUR": -16233
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2023-07-22",
+     "to": "2023-07-25",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "settle up: who paid + shares",
+   "kind": "csv",
+   "file": "settleup.csv",
+   "text": "Who paid,Amount,Currency,Purpose,Date,Anna,Ben,Chris\nAnna,60.00,EUR,Dinner,2025-06-01 19:30,20.00,20.00,20.00\nBen,45.00,EUR,Tickets,2025-06-02 10:00,,15.00,30.00\nAnna,12.00,EUR,Taxi,2025-06-03 23:10,0,0,0\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Settleup",
+     "layout": "shares",
+     "people": [
+      {
+       "key": "0",
+       "name": "Anna"
+      },
+      {
+       "key": "1",
+       "name": "Ben"
+      },
+      {
+       "key": "2",
+       "name": "Chris"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-06-01",
+       "t": "Dinner",
+       "c": "eatout",
+       "cur": "EUR",
+       "total": 6000,
+       "paid": {
+        "0": 6000
+       },
+       "owed": {
+        "0": 2000,
+        "1": 2000,
+        "2": 2000
+       }
+      },
+      {
+       "d": "2025-06-02",
+       "t": "Tickets",
+       "c": "other",
+       "cur": "EUR",
+       "total": 4500,
+       "paid": {
+        "1": 4500
+       },
+       "owed": {
+        "1": 1500,
+        "2": 3000
+       }
+      },
+      {
+       "d": "2025-06-03",
+       "t": "Taxi",
+       "c": "transport",
+       "cur": "EUR",
+       "total": 1200,
+       "paid": {
+        "0": 1200
+       },
+       "owed": {
+        "0": 400,
+        "1": 400,
+        "2": 400
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|EUR": 4800,
+      "1|EUR": 600,
+      "2|EUR": -5400
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-06-01",
+     "to": "2025-06-03",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "splid-like list",
+   "kind": "csv",
+   "file": "Barcelona.csv",
+   "text": "Title,Amount,Currency,Date,Paid by,For whom\nTapas,45.00,EUR,2025-09-12,Lena,All\nMuseum,30.00,EUR,2025-09-13,Sam,\"Lena, Sam\"\nFlamenco,25.00,EUR,2025-09-13,Omar,Omar & Lena\nLena paid Omar back,10.00,EUR,2025-09-14,Lena,Omar\nIce cream,-,EUR,2025-09-14,Sam,All\nTotal,100.00,,,,\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Barcelona",
+     "layout": "list",
+     "people": [
+      {
+       "key": "0",
+       "name": "Lena"
+      },
+      {
+       "key": "1",
+       "name": "Sam"
+      },
+      {
+       "key": "2",
+       "name": "Omar"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-09-12",
+       "t": "Tapas",
+       "c": "other",
+       "cur": "EUR",
+       "total": 4500,
+       "paid": {
+        "0": 4500
+       },
+       "owed": {
+        "0": 1500,
+        "1": 1500,
+        "2": 1500
+       }
+      },
+      {
+       "d": "2025-09-13",
+       "t": "Museum",
+       "c": "other",
+       "cur": "EUR",
+       "total": 3000,
+       "paid": {
+        "1": 3000
+       },
+       "owed": {
+        "0": 1500,
+        "1": 1500
+       }
+      },
+      {
+       "d": "2025-09-13",
+       "t": "Flamenco",
+       "c": "other",
+       "cur": "EUR",
+       "total": 2500,
+       "paid": {
+        "2": 2500
+       },
+       "owed": {
+        "0": 1250,
+        "2": 1250
+       }
+      }
+     ],
+     "payments": [
+      {
+       "d": "2025-09-14",
+       "t": "Lena paid Omar back",
+       "from": "0",
+       "to": "2",
+       "cur": "EUR",
+       "total": 1000
+      }
+     ],
+     "balances": {
+      "0|EUR": 1250,
+      "2|EUR": -1250
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [
+      6
+     ],
+     "from": "2025-09-12",
+     "to": "2025-09-14",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "German spreadsheet, month first",
+   "kind": "csv",
+   "file": "WG.csv",
+   "text": "Datum;Beschreibung;Betrag;Bezahlt von;Für wen\n10/02/2025;Strom;90,00;Jonas;Alle\n10/13/2025;Putzmittel;12,50;Mia;Jonas und Mia\n",
+   "opts": {},
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "WG",
+     "layout": "list",
+     "people": [
+      {
+       "key": "0",
+       "name": "Jonas"
+      },
+      {
+       "key": "1",
+       "name": "Mia"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-10-02",
+       "t": "Strom",
+       "c": "utilities",
+       "cur": "EUR",
+       "total": 9000,
+       "paid": {
+        "0": 9000
+       },
+       "owed": {
+        "0": 4500,
+        "1": 4500
+       }
+      },
+      {
+       "d": "2025-10-13",
+       "t": "Putzmittel",
+       "c": "household",
+       "cur": "EUR",
+       "total": 1250,
+       "paid": {
+        "1": 1250
+       },
+       "owed": {
+        "0": 625,
+        "1": 625
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|EUR": 3875,
+      "1|EUR": -3875
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-10-02",
+     "to": "2025-10-13",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  },
+  {
+   "name": "unknown columns",
+   "kind": "csv",
+   "file": "shared.csv",
+   "text": "When,What,How much,Who,With\n2025-04-01,Pizza,30,Ana,Ana+Ben+Cem\n2025-04-02,Beer,12,Ben,Ana+Ben\n",
+   "opts": {},
+   "want": {
+    "ok": false,
+    "error": "not_recognised",
+    "header": [
+     "When",
+     "What",
+     "How much",
+     "Who",
+     "With"
+    ],
+    "sample": [
+     [
+      "2025-04-01",
+      "Pizza",
+      "30",
+      "Ana",
+      "Ana+Ben+Cem"
+     ],
+     [
+      "2025-04-02",
+      "Beer",
+      "12",
+      "Ben",
+      "Ana+Ben"
+     ]
+    ]
+   }
+  },
+  {
+   "name": "unknown columns, picked",
+   "kind": "csv",
+   "file": "shared.csv",
+   "text": "When,What,How much,Who,With\n2025-04-01,Pizza,30,Ana,Ana+Ben+Cem\n2025-04-02,Beer,12,Ben,Ana+Ben\n",
+   "opts": {
+    "currency": "GBP",
+    "map": {
+     "date": 0,
+     "description": 1,
+     "amount": 2,
+     "payer": 3,
+     "forWhom": 4,
+     "currency": -1,
+     "category": -1
+    }
+   },
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Shared",
+     "layout": "list",
+     "people": [
+      {
+       "key": "0",
+       "name": "Ana"
+      },
+      {
+       "key": "1",
+       "name": "Ben"
+      },
+      {
+       "key": "2",
+       "name": "Cem"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-04-01",
+       "t": "Pizza",
+       "c": "eatout",
+       "cur": "GBP",
+       "total": 3000,
+       "paid": {
+        "0": 3000
+       },
+       "owed": {
+        "0": 1000,
+        "1": 1000,
+        "2": 1000
+       }
+      },
+      {
+       "d": "2025-04-02",
+       "t": "Beer",
+       "c": "eatout",
+       "cur": "GBP",
+       "total": 1200,
+       "paid": {
+        "1": 1200
+       },
+       "owed": {
+        "0": 600,
+        "1": 600
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|GBP": 1400,
+      "1|GBP": -400,
+      "2|GBP": -1000
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-04-01",
+     "to": "2025-04-02",
+     "currencies": [
+      "GBP"
+     ]
+    }
+   }
+  },
+  {
+   "name": "shift timesheet",
+   "kind": "csv",
+   "file": "shifts.csv",
+   "text": "Date,Employer,Start,End,Break (min)\n2026-09-01,Café Rot,09:00,17:00,30\n",
+   "opts": {},
+   "want": {
+    "ok": false,
+    "error": "not_recognised",
+    "header": [
+     "Date",
+     "Employer",
+     "Start",
+     "End",
+     "Break (min)"
+    ],
+    "sample": [
+     [
+      "2026-09-01",
+      "Café Rot",
+      "09:00",
+      "17:00",
+      "30"
+     ]
+    ]
+   }
+  },
+  {
+   "name": "only a header",
+   "kind": "csv",
+   "file": "x.csv",
+   "text": "Date,Description,Category,Cost,Currency,A,B\n",
+   "opts": {},
+   "want": {
+    "ok": false,
+    "error": "empty"
+   }
+  },
+  {
+   "name": "nothing",
+   "kind": "csv",
+   "file": "x.csv",
+   "text": "  \n",
+   "opts": {},
+   "want": {
+    "ok": false,
+    "error": "empty"
+   }
+  },
+  {
+   "name": "excel workbook",
+   "kind": "xlsx",
+   "file": "Prague.xlsx",
+   "b64": "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",
+   "opts": {},
+   "sheets": [
+    [
+     [
+      "Trip to Prague"
+     ],
+     [
+      "Summary",
+      "120"
+     ]
+    ],
+    [
+     [
+      "Trip to Prague"
+     ],
+     [
+      "Title",
+      "Amount",
+      "Currency",
+      "Date",
+      "Paid by",
+      "Anna",
+      "Ben",
+      "Chris"
+     ],
+     [
+      "Hostel",
+      "100",
+      "EUR",
+      "45748",
+      "Anna",
+      "33.3333333333333",
+      "33.3333333333333",
+      "33.3333333333333"
+     ],
+     [
+      "Beer & snacks",
+      "20.4",
+      "EUR",
+      "45749",
+      "Ben",
+      "10.2",
+      "",
+      "10.2"
+     ]
+    ]
+   ],
+   "want": {
+    "ok": true,
+    "file": {
+     "name": "Prague",
+     "layout": "shares",
+     "people": [
+      {
+       "key": "0",
+       "name": "Anna"
+      },
+      {
+       "key": "1",
+       "name": "Ben"
+      },
+      {
+       "key": "2",
+       "name": "Chris"
+      }
+     ],
+     "expenses": [
+      {
+       "d": "2025-04-01",
+       "t": "Hostel",
+       "c": "other",
+       "cur": "EUR",
+       "total": 10000,
+       "paid": {
+        "0": 10000
+       },
+       "owed": {
+        "0": 3334,
+        "1": 3333,
+        "2": 3333
+       }
+      },
+      {
+       "d": "2025-04-02",
+       "t": "Beer & snacks",
+       "c": "eatout",
+       "cur": "EUR",
+       "total": 2040,
+       "paid": {
+        "1": 2040
+       },
+       "owed": {
+        "0": 1020,
+        "2": 1020
+       }
+      }
+     ],
+     "payments": [],
+     "balances": {
+      "0|EUR": 5646,
+      "1|EUR": -1293,
+      "2|EUR": -4353
+     },
+     "totals": "none",
+     "skipped": 0,
+     "bad": [],
+     "from": "2025-04-01",
+     "to": "2025-04-02",
+     "currencies": [
+      "EUR"
+     ]
+    }
+   }
+  }
+ ]
+}
