@@ -153,14 +153,15 @@ async function subscribeNative(): Promise<{ ok: boolean; reason?: string }> {
 /* Foreground taps and deliveries. Registered once at startup so a notification
    tapped from the tray brings the user to fresh data. The token itself is saved by
    resaveIfSubscribed, once there's a signed-in account to save it for. */
-export async function initNativeListeners(onOpened: () => void) {
+export async function initNativeListeners(onOpened: (open?: string) => void) {
   if (!isNative || pushMissingInBuild) return
   const { PushNotifications } = await import('@capacitor/push-notifications')
   await PushNotifications.addListener('pushNotificationActionPerformed', (a) => {
     // a new version's notification goes to its download
-    const url = (a.notification?.data as { url?: string } | undefined)?.url
-    if (typeof url === 'string' && url.startsWith('https://')) openExternal(url)
-    onOpened()
+    const data = a.notification?.data as { url?: string; open?: string } | undefined
+    if (typeof data?.url === 'string' && data.url.startsWith('https://')) openExternal(data.url)
+    // "Anything to add today?" opens a new expense
+    onOpened(data?.open)
   })
   await PushNotifications.addListener('pushNotificationReceived', () => onOpened())
 }

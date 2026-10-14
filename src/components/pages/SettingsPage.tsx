@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   Palette, Droplets, Bell, Send, Globe, RefreshCw, CalendarDays, Timer, RotateCcw, Vibrate, Download, Upload, FileSpreadsheet, Trash2, Shield,
-  FileText, ExternalLink, ChevronRight, Info,
+  FileText, ExternalLink, ChevronRight, Info, Clock,
 } from 'lucide-react'
 import type { Theme, Profile, Shift, Runway } from '../../lib/types'
 import type { Prefs, ThemeMode } from '../../lib/prefs'
@@ -9,6 +9,7 @@ import { DEFAULT_PREFS } from '../../lib/prefs'
 import { fixDe, rateDe, numVal, relDay, tod } from '../../lib/format'
 import { fetchRate } from '../../lib/rates'
 import { pushSupported, needsInstall, isSubscribed, subscribe, unsubscribe, subscribeError, sendTestNotification, pushMissingInBuild } from '../../lib/push'
+import { dailyReminderHour, setDailyReminder } from '../../lib/reminders'
 import { isNative, isNativeAndroid, openExternal, webOrigin, copyText } from '../../lib/native'
 import { saveTextFile, shiftsCsv } from '../../lib/exportData'
 import { importShifts } from '../../lib/importShifts'
@@ -37,6 +38,17 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
   /* a page inside Settings: Notifications, Currency, Work limits, Export & import */
   const [page, setPage] = useState<null | 'notif' | 'currency' | 'limits' | 'data'>(null)
   useEffect(() => { isSubscribed().then(setNotif).catch(() => {}) }, [])
+  /* the daily "anything to add today?": its local hour, null = off, undefined = not loaded */
+  const [daily, setDaily] = useState<number | null | undefined>(undefined)
+  const [dailyHour, setDailyHour] = useState(20)
+  useEffect(() => { if (page === 'notif') dailyReminderHour(uid).then((h) => { setDaily(h); if (h != null) setDailyHour(h) }) }, [page, uid])
+  const saveDaily = async (h: number | null) => {
+    const was = daily
+    setDaily(h); if (h != null) setDailyHour(h)
+    if (!(await setDailyReminder(uid, h))) { setDaily(was); showToast("Couldn't save — check your connection") }
+  }
+  let tzName = ''
+  try { tzName = Intl.DateTimeFormat().resolvedOptions().timeZone.replace(/_/g, ' ') } catch { /* no Intl */ }
 
   const set = <K extends keyof Prefs>(k: K, v: Prefs[K]) => setPrefs({ ...prefs, [k]: v })
   const hostCur = profile.hostCur || 'EUR'
@@ -184,6 +196,14 @@ export default function SettingsPage({ T, prefs, setPrefs, profile, sProfile, ui
         <Group T={T} footer={pushMissingInBuild ? "Notifications aren't available in this test version yet." : needsInstall() ? 'Add Splitlife to your Home Screen first.' : 'When someone adds an expense with you, settles up, reminds you, or a bill or chore is due.'}>
           <Item T={T} icon={Bell} tint={TINT.red} label="Allow notifications" right={<Toggle label="Allow notifications" on={notif} disabled={notifBusy} onChange={toggleNotif} />} />
         </Group>
+        {notif && daily !== undefined && <Group T={T} footer={`“Anything to add today?” — only on days you haven't added an expense, and only while you share costs with someone. In this device's time zone${tzName ? ` (${tzName})` : ''}.`}>
+          <Item T={T} icon={Clock} tint={TINT.orange} label="Daily reminder" sub="When you haven't added anything that day"
+            right={<Toggle label="Daily reminder" on={daily !== null} onChange={(v) => saveDaily(v ? dailyHour : null)} />} />
+          {daily !== null && <Item T={T} label="Time" right={
+            <select className="fld" aria-label="Time of the daily reminder" value={dailyHour} onChange={(e) => saveDaily(Number(e.target.value))} style={{ width: 'auto', minHeight: 36, padding: '4px 10px' }}>
+              {Array.from({ length: 8 }, (_, i) => 16 + i).map((h) => <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>)}
+            </select>} />}
+        </Group>}
         {/* the only way to tell "nothing has happened" from "nothing arrives" */}
         {notif && <Group T={T} footer={testMsg ? <span style={{ color: T.txt }}>{testMsg}</span> : 'Not getting any? Send one to each of your phones to check.'}>
           <Item T={T} icon={Send} tint={TINT.blue} label="Send a test notification" chevron={false} disabled={testBusy} onClick={sendTest}

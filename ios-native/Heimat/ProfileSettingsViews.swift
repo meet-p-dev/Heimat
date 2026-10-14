@@ -433,7 +433,11 @@ private func linkRow(_ symbol: String, _ color: Color, _ title: String) -> some 
 // MARK: Settings pages
 
 struct NotificationSettingsView: View {
+    @Environment(AppModel.self) private var m
     @State private var pushOn = false
+    /// the daily "anything to add today?": nil until loaded from the server
+    @State private var daily: Int??
+    @State private var hour = 20
     @State private var pushDenied = false
     /// what the last test notification came back with, in words
     @State private var pushTest: String?
@@ -475,6 +479,8 @@ struct NotificationSettingsView: View {
                 }
             }
 
+            if pushOn, let d = daily { dailySection(on: d != nil) }
+
             // the only way to tell "nothing has happened" from "nothing arrives"
             if pushOn {
                 Section {
@@ -491,7 +497,33 @@ struct NotificationSettingsView: View {
         .navigationTitle("Notifications")
         .heimatSurface()
         .navigationBarTitleDisplayMode(.inline)
-        .task { pushOn = await Self.isOn(); pushDenied = await Push.shared.permission() == .denied }
+        .task {
+            pushOn = await Self.isOn(); pushDenied = await Push.shared.permission() == .denied
+            daily = await m.dailyReminderHour()
+            if case .some(.some(let h)) = daily { hour = h }
+        }
+    }
+
+    /// Once a day, in this phone's time, on days nothing was added yet.
+    private func dailySection(on: Bool) -> some View {
+        Section {
+            Toggle(isOn: Binding(get: { on }, set: { new in
+                daily = .some(new ? hour : nil)
+                Task { if !(await m.setDailyReminder(new ? hour : nil)) { daily = .some(on ? hour : nil); m.show("Couldn't save — check your connection") } }
+            })) {
+                settingRow("square.and.pencil", .orange, "Daily reminder", sub: "When you haven't added anything that day")
+            }
+            if on {
+                Picker("Time", selection: Binding(get: { hour }, set: { h in
+                    hour = h; daily = .some(h)
+                    Task { await m.setDailyReminder(h) }
+                })) {
+                    ForEach(Array(16...23), id: \.self) { Text(String(format: "%02d:00", $0)).tag($0) }
+                }
+            }
+        } footer: {
+            Text("“Anything to add today?” — only on days you haven't added an expense, and only while you share costs with someone. In your phone's time zone (\(TimeZone.current.identifier.replacingOccurrences(of: "_", with: " "))).")
+        }
     }
 }
 

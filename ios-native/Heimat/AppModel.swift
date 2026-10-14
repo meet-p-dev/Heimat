@@ -264,7 +264,51 @@ final class AppModel {
         }
         await loadMyFlats()
         await checkUpdate()
+        await syncTimeZone()
         if prefs.autoRate && homeCur != hostCur && profile.rateAt != Fmt.today() { _ = await refreshRate() }
+    }
+
+    // MARK: reminders
+
+    /// Reminders (bills, chore turns, the daily "anything to add?") go out in this phone's own
+    /// time, so the server is told its time zone — again only when it changes or someone else
+    /// signs in. The time zone, not the country: the US, Canada or Australia have several.
+    func syncTimeZone() async {
+        #if DEBUG
+        if Self.fixtureMode { return }
+        #endif
+        guard let uid else { return }
+        let tz = TimeZone.current.identifier, key = "\(uid)|\(tz)"
+        guard UserDefaults.standard.string(forKey: "mt-h-tz-sent") != key else { return }
+        do {
+            _ = try await client.rpc("set_time_zone", params: ["p_tz": tz]).execute()
+            UserDefaults.standard.set(key, forKey: "mt-h-tz-sent")
+        } catch {}
+    }
+
+    /// The daily reminder's local hour, nil when off (20:00 until changed).
+    func dailyReminderHour() async -> Int?? {
+        #if DEBUG
+        if Self.fixtureMode { return .some(20) }
+        #endif
+        guard let uid else { return nil }
+        struct Row: Decodable { let daily_hour: Int? }
+        guard let rows: [Row] = try? await client.from("notify_prefs").select("daily_hour").eq("user_id", value: uid).execute().value
+        else { return nil }
+        return .some(rows.first.map { $0.daily_hour } ?? 20)
+    }
+
+    @discardableResult
+    func setDailyReminder(_ hour: Int?) async -> Bool {
+        #if DEBUG
+        if Self.fixtureMode { return true }
+        #endif
+        await syncTimeZone()
+        do {
+            struct P: Encodable { let p_hour: Int? }
+            _ = try await client.rpc("set_daily_reminder", params: P(p_hour: hour)).execute()
+            return true
+        } catch { return false }
     }
 
     // MARK: updates

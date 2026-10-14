@@ -210,6 +210,10 @@ extension Push: UNUserNotificationCenterDelegate {
             await Push.shared.model?.checkUpdate()
             return
         }
+        // "Anything to add today?": straight into a new expense
+        if response.notification.request.content.userInfo["open"] as? String == "add" {
+            await MainActor.run { Push.shared.model?.open(.addExpense) }
+        }
         await Push.shared.model?.reload()
     }
 }

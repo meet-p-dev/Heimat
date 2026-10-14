@@ -34,6 +34,8 @@ type Payload = {
   flat_id?: string
   actor?: string          // who did it — never notified
   to_user?: string        // settlement recipient
+  from_user?: string      // settlement: who paid (the payer hears about one the other person recorded)
+  open?: string           // reminder: the screen tapping it opens ('add' = a new expense)
   paid_by?: string        // who put the money down, who may not be in the split
   title?: string          // list item title / broadcast heading
   amount?: number
@@ -270,11 +272,16 @@ Deno.serve(async (req) => {
             : paid !== 0 ? ' · you paid' : '')
       }
     } else if (body.event === 'settlement' && body.to_user && body.actor && body.flat_id) {
-      if (body.to_user === body.actor) return done(0, { sent: 0, skipped: 'self' }, 'self')
+      // both sides of a payment, except whoever recorded it: the one who was paid, and — when
+      // the other person (or someone else) recorded it — the one who paid
       const who = await nameOf(body.actor, body.flat_id)
-      recipients = [body.to_user]
+      const sum = money(Number(body.amount || 0), body.currency)
+      recipients = [body.to_user, body.from_user].filter((u): u is string => !!u && u !== body.actor)
+      if (!recipients.length) return done(0, { sent: 0, skipped: 'self' }, 'self')
       title = 'Payment recorded'
-      bodyFor = () => `${who} paid you ${money(Number(body.amount || 0), body.currency)}`
+      bodyFor = (uid) => uid === body.to_user
+        ? (body.actor === body.from_user ? `${who} paid you ${sum}` : `${who} recorded a payment of ${sum} to you`)
+        : `${who} recorded your payment of ${sum}`
     } else if (body.event === 'nudge' && body.to_user && body.actor && body.flat_id) {
       // one person, on purpose: a reminder is a private thing
       const who = await nameOf(body.actor, body.flat_id)
@@ -306,7 +313,8 @@ Deno.serve(async (req) => {
     // each their own (rent today must not replace your chore turn)
     const tag = body.event === 'reminder' ? undefined : body.event
 
-    const { results, pruned } = await deliverAll(conf, subs as Sub[], (s) => ({ title, body: bodyFor(s.user_id), tag }))
+    const open = body.event === 'reminder' && body.open === 'add' ? 'add' : undefined
+    const { results, pruned } = await deliverAll(conf, subs as Sub[], (s) => ({ title, body: bodyFor(s.user_id), tag, ...(open ? { open } : {}) }))
     const sent = results.filter((r) => r.ok).length
     console.log(summaryLine(event, recipients.length, results, configured, conf.problems))
 

@@ -51,6 +51,7 @@ import NotifPrompt from './components/NotifPrompt'
 import ListPage from './components/ListPage'
 import LiquidGlass from './components/LiquidGlass'
 import { IconBtn, Avatar } from './components/ui'
+import { syncTimeZone } from './lib/reminders'
 import { pushSupported, needsInstall, permission as notifPermission, isSubscribed, subscribe, subscribeError, initNativeListeners, resaveIfSubscribed, forgetThisDevice, pushSwitchedOff } from './lib/push'
 import { isNative, isNativeAndroid, hideSplash, applyStatusBarTheme, onHardwareBack, onAppResume, onAppLink, webOrigin, resetUrl, androidUpdate, openExternal } from './lib/native'
 import { touchAppUser, appUserName } from './lib/appUser'
@@ -808,7 +809,9 @@ export default function App() {
     if (places) loadMyFlats()
     if (flatId) loadFlat(); else if (!places) loadOverview()
   }
-  useEffect(() => { if (isNative) initNativeListeners(() => refresh.current(true)) }, [])
+  useEffect(() => { if (isNative) initNativeListeners((open) => { if (open === 'add') setPendingLink({ quick: 'add' }); refresh.current(true) }) }, [])
+  // reminders go out in this device's time: tell the server its time zone (once per change)
+  useEffect(() => { syncTimeZone(uid) }, [uid])
   useEffect(() => onAppResume(() => refresh.current()), [])
   useEffect(() => { if (uid && sb) androidUpdate((n, a) => sb!.rpc(n, a)).then(setUpdate) }, [uid])
 

@@ -23,8 +23,9 @@ export type SendResult = {
   reason?: string
 }
 
-/* url: where tapping it takes you (the iPhone app opens it — used for TestFlight) */
-export type Notice = { title: string; body: string; tag?: string; url?: string }
+/* url: where tapping it takes you (the iPhone app opens it — used for TestFlight);
+   open: a screen in the app to open when tapped ('add': a new expense) */
+export type Notice = { title: string; body: string; tag?: string; url?: string; open?: string }
 
 // Apple allows a provider token to be reused for up to an hour; minting one per
 // notification gets you throttled with 429 TooManyProviderTokenUpdates. The promise is
@@ -52,6 +53,7 @@ export const resetApnsCache = () => { cached = null }
 export const apnsPayload = (n: Notice) => ({
   aps: { alert: { title: n.title, body: n.body }, sound: 'default' },
   ...(n.url ? { url: n.url } : {}),
+  ...(n.open ? { open: n.open } : {}),
 })
 
 async function post(cfg: ApnsConfig, host: string, deviceToken: string, n: Notice): Promise<HttpAnswer> {

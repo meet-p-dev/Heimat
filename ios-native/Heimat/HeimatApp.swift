@@ -29,6 +29,8 @@ struct HeimatApp: App {
                     // pick up anything Siri or a widget wrote while we were away
                     if new == .active {
                         model.reloadLocal(); Push.shared.clearBadge()
+                        // travelled? reminders follow the phone's time zone
+                        Task { await model.syncTimeZone() }
                         // a build that came out while the app was in the background
                         Task { await model.checkUpdate() }
                     }
