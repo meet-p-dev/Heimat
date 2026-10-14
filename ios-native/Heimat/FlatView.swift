@@ -775,20 +775,32 @@ struct AnalyticsView: View {
     private var whoPaid: some View {
         VStack(spacing: 0) {
             SectionLabel(personal ? "Where it went" : "Who paid").padding(.bottom, 10)
-            HeimatCard(radius: 24, padding: 14) {
-                Chart(payers, id: \.name) { p in
-                    BarMark(x: .value("Paid", p.total), y: .value("Who", p.name))
-                        .foregroundStyle(Color.accentColor.gradient)
-                        .cornerRadius(6)
-                        .annotation(position: .trailing, alignment: .leading) {
-                            Text(m.fH(p.total))
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary).monospacedDigit()
+            // Plain rows, not Swift Charts: on iOS 27 its axis labels landed on top of the
+            // bars and the amount annotations were dropped.
+            HeimatCard(radius: 24, padding: 16) {
+                let top = max(payers.map(\.total).max() ?? 0, 0.01)
+                VStack(spacing: 14) {
+                    ForEach(payers, id: \.name) { p in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 8) {
+                                Text(p.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                                Spacer(minLength: 8)
+                                Text(m.fH(p.total))
+                                    .font(.system(size: 14, weight: .semibold)).monospacedDigit()
+                            }
+                            GeometryReader { g in
+                                Capsule().fill(.fill.tertiary)
+                                    .overlay(alignment: .leading) {
+                                        Capsule().fill(Color.accentColor.gradient)
+                                            .frame(width: max(8, g.size.width * p.total / top))
+                                    }
+                            }
+                            .frame(height: 8)
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("\(p.name), \(m.fH(p.total))")
+                    }
                 }
-                .chartXAxis(.hidden)
-                .chartXScale(domain: 0...(payers.map(\.total).max() ?? 1) * 1.28)
-                .frame(height: CGFloat(payers.count) * 42)
             }
         }
     }
