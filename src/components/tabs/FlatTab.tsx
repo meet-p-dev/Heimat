@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { CSSProperties } from 'react'
-import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, ChevronRight, Split } from 'lucide-react'
+import { Plus, UserPlus, ShoppingCart, LineChart, Copy, LogOut, Receipt, ArrowRightLeft, ChevronRight, Split, MoreVertical } from 'lucide-react'
 import type { Theme, Flat, Member, Expense, ListItem, Cat, ModalId } from '../../lib/types'
 import { hasLeft, isPending } from '../../lib/types'
 import { haptic } from '../../lib/haptic'
@@ -9,12 +9,15 @@ import { pairwiseFor, toMajor } from '../../lib/ledger'
 import type { Ledger } from '../../lib/ledger'
 import { monthLabel, money } from '../../lib/format'
 import { copyText } from '../../lib/native'
-import { Card, Btn, Avatar, SectionLabel, Group, Item, EmptyState, Toggle, TINT } from '../ui'
+import { Card, Btn, IconBtn, Avatar, SectionLabel, Group, Item, EmptyState, Toggle, TINT } from '../ui'
+import { purposeEmoji } from '../pages/GroupSettingsPage'
 import ExpenseRow from '../ExpenseRow'
 
 /* One group's page (a flat is a group), pushed from its card on the Groups tab. */
-export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra, simplified = false, setSimplify, onAllBalances }: {
+export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense, openSettle, items, openList, cats, startAddExpense, openAnalytics, showToast, onPerson, showList = true, extra, simplified = false, setSimplify, onAllBalances, onSettings }: {
   T: Theme; flat: Flat; members: Member[]; ledger: Ledger; uid: string | null
+  /* "⋯": the group's settings — name, what it's for, people, code, leaving */
+  onSettings?: () => void
   fH: (v: number) => string; nameOf: (u: string) => string; setModal: (m: ModalId) => void
   leaveFlat: () => void; expenses: Expense[]; onOpenExpense: (e: Expense) => void; openSettle: (init: SettleSuggestion | null) => void
   items: ListItem[]; openList: () => void; cats: Cat[]
@@ -52,10 +55,11 @@ export default function FlatTab({ T, flat, members, ledger, uid, fH, nameOf, set
       <Card T={T} grad style={{ padding: 18, borderRadius: 28, marginBottom: 6 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{flat.name}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}><span aria-hidden="true" style={{ marginRight: 6 }}>{purposeEmoji(flat)}</span>{flat.name}</div>
             <button type="button" onClick={copyCode} className="h-pill" aria-label={`Copy group code ${flat.join_code}`} style={{ background: T.accSoft, color: T.acc, border: 'none', marginTop: 7, cursor: 'pointer', letterSpacing: 0.6 }}><Copy size={12} /> {flat.join_code}</button>
           </div>
           <Btn size="sm" icon={UserPlus} onClick={() => setModal('invite')}>Invite</Btn>
+          {onSettings && <IconBtn label="Group settings" size={36} onClick={() => { haptic(6); onSettings() }}><MoreVertical size={18} /></IconBtn>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: 16 }}>
           {members.slice(0, 6).map((m, i) => <span key={m.user_id} style={{ marginLeft: i ? -9 : 0, borderRadius: 99, boxShadow: '0 0 0 2.5px var(--bg)', display: 'flex' }}><Avatar name={m.display_name} seed={m.user_id} size={30} /></span>)}

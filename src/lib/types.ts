@@ -32,7 +32,9 @@ export interface Profile {
   jobs?: Record<string, { kind: 'minijob' | 'werkstudent' | 'shortterm' | 'regular'; main: boolean }>
 }
 
-export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean }
+export interface Flat { id: string; name: string; join_code: string; kind?: string; simplify_debts?: boolean
+  /* what it's for: home, trip, couple, friends, work, other (none yet: from kind) */
+  purpose?: string | null }
 export interface Member {
   id?: string
   user_id: string; flat_id: string; display_name: string
@@ -106,6 +108,6 @@ export interface Derived { paidHours: number; legalHours: number; pay: number; w
 
 export type TabId = 'home' | 'flat' | 'money' | 'work'
 /* pushed pages: the personal ones, and inside Groups a group, Non-group expenses or one person */
-export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills' | `balances:${string}` | 'activity'
+export type PageId = 'profile' | 'settings' | `group:${string}` | 'nongroup' | `person:${string}` | 'mybills' | `balances:${string}` | 'activity' | `groupsettings:${string}`
 export type AuthMode = 'signup' | 'signin' | 'forgot' | 'reset' | 'password' | 'email'
 export type ModalId = null | 'exp' | 'expdetail' | 'settle' | 'invite' | 'create' | 'join' | 'runway' | 'shift' | 'pickflat' | 'analytics' | 'myspend' | 'profile' | 'cats' | 'settleperson' | 'bill' | 'chore' | 'splitwise'

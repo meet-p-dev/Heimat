@@ -51,7 +51,7 @@ struct GroupPage: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 7) {
-                        Text(flat.name)
+                        Text("\(flat.emoji) \(flat.name)")
                             .font(.system(size: 22, weight: .bold)).lineLimit(1)
                         Button {
                             UIPasteboard.general.string = flat.joinCode
@@ -75,6 +75,24 @@ struct GroupPage: View {
                     }
                     .glassProminentButton()
                     .controlSize(.small)
+                    Menu {
+                        Button { m.groupsPath.append(.settings(id)) } label: { Label("Group settings", systemImage: "slider.horizontal.3") }
+                        Button { m.groupsPath.append(.settings(id)) } label: { Label("People", systemImage: "person.2") }
+                        Button { m.sheet = .invite } label: { Label("Invite people", systemImage: "person.badge.plus") }
+                        Button {
+                            UIPasteboard.general.string = flat.joinCode
+                            Haptic.success()
+                            m.show("Group code copied")
+                        } label: { Label("Copy group code", systemImage: "doc.on.doc") }
+                        Divider()
+                        Button(role: .destructive) { confirmLeave = true } label: { Label("Leave group", systemImage: "rectangle.portrait.and.arrow.right") }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 15, weight: .bold))
+                            .frame(width: 34, height: 34)
+                            .glassSurface(in: Circle(), interactive: true)
+                    }
+                    .accessibilityLabel("Group options")
                 }
                 HStack(spacing: 0) {
                     ForEach(Array(m.roster.prefix(6).enumerated()), id: \.element.id) { i, mem in

@@ -47,6 +47,7 @@ import AuthPage from './components/pages/AuthPage'
 import ProfilePage from './components/pages/ProfilePage'
 import type { GroupLine } from './components/pages/ProfilePage'
 import SettingsPage from './components/pages/SettingsPage'
+import GroupSettingsPage from './components/pages/GroupSettingsPage'
 import Intro from './components/Intro'
 import NotifPrompt from './components/NotifPrompt'
 import ListPage from './components/ListPage'
@@ -634,6 +635,35 @@ export default function App() {
     if (error) { showToast(error.message); return }
     haptic(12); showToast('Payment recorded'); loadFlat()
   }
+  /* the group's settings page ("⋯" on its card) */
+  const updateGroup = async (name: string, purpose: string): Promise<string | null> => {
+    if (!sb || !flat) return 'Still connecting…'
+    const { data, error } = await sb.rpc('update_group', { p_flat: flat.id, p_name: name.trim(), p_purpose: purpose })
+    if (error) return friendsMessage(error, "Couldn't save that. Try again.")
+    const f = data as Flat
+    setFlat((x) => (x && x.id === f.id ? { ...x, name: f.name, purpose: f.purpose } : x))
+    setMyFlats((xs) => xs.map((x) => (x.id === f.id ? { ...x, name: f.name, purpose: f.purpose } : x)))
+    return null
+  }
+  const renameMember = async (userId: string, name: string): Promise<string | null> => {
+    if (!sb || !flat) return 'Still connecting…'
+    const { error } = await sb.rpc('rename_member', { p_flat: flat.id, p_uid: userId, p_name: name.trim() })
+    if (error) return /only they can/.test(error.message) ? 'Only they can change the name they go by.' : friendsMessage(error, "Couldn't rename them. Try again.")
+    haptic(10); loadFlat(); loadMyFlats()
+    return null
+  }
+  const removeMember = async (m: Member) => {
+    if (!sb || !flat) return
+    const { error } = await sb.rpc('remove_member', { p_flat: flat.id, p_uid: m.user_id })
+    if (error) { showToast(error.message.startsWith('Settle up') ? error.message : friendsMessage(error, "Couldn't remove them right now.")); return }
+    haptic(12); showToast(`${m.display_name} is no longer in the group`); loadFlat()
+  }
+  const deleteGroup = async () => {
+    if (!sb || !flat) return
+    const { error } = await sb.rpc('delete_group', { p_flat: flat.id })
+    if (error) { showToast(/not_settled|settle up/.test(error.message) ? 'Everyone has to be settled up first' : friendsMessage(error, "Couldn't delete it. Try again.")); return }
+    haptic(14); setPages([]); setFlatIdP(null); await loadMyFlats(); showToast('Group deleted')
+  }
   const leaveFlat = async () => {
     if (!sb) return
     if (!confirm("Leave this group? You'll stop seeing its shared bills.")) return
@@ -1015,12 +1045,17 @@ export default function App() {
               ? <BalanceRoster {...{ T, members, ledger, uid, nameOf }} onPerson={(id: string) => openPage(`person:${id}`)} />
               : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
           </Page>
+        : p.startsWith('groupsettings:')
+        ? (flat && flat.id === p.slice(14)
+            ? <GroupSettingsPage key={p} {...{ T, flat, members, uid, ledger, fH, simplified: openSimplified, onBack: closePage, onInvite: () => setModal('invite'), onCategories: () => setModal('cats'), onRemind: remindPerson, showToast }}
+                a={{ update: updateGroup, rename: renameMember, remove: removeMember, revoke: revokeInvite, leave: leaveFlat, remove_group: deleteGroup, setSimplify }} />
+            : <Page key={p} T={T} title="Group settings" onBack={closePage}><div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div></Page>)
         : p.startsWith('person:')
         ? <PersonPage key={p} c={fc} person={p.slice(7)} onBack={closePage} />
         : (
           <Page key={p} T={T} title={myFlats.find((f) => f.id === p.slice(6))?.name || ''} onBack={closePage}>
             {flat && flat.id === p.slice(6)
-              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), simplified: openSimplified, setSimplify, onAllBalances: () => openPage(`balances:${flat.id}`), extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
+              ? <FlatTab {...{ T, flat, members, ledger, uid, fH, nameOf, setModal, leaveFlat, expenses, onOpenExpense: openExpense, openSettle, items, openList: () => setShowList(true), startAddExpense, openAnalytics: () => setModal('analytics'), cats, showToast, onPerson: (id: string) => openPage(`person:${id}`), showList: partOn(profile, 'list'), simplified: openSimplified, setSimplify, onAllBalances: () => openPage(`balances:${flat.id}`), onSettings: () => openPage(`groupsettings:${flat.id}`), extra: <>{partOn(profile, 'bills') && <BillsSection b={billsCtx} flatId={flat.id} />}{partOn(profile, 'chores') && <ChoresSection c={choresCtx} flatId={flat.id} />}</> }} />
               : <div style={{ padding: 24, textAlign: 'center', color: T.txt3 }}>Loading…</div>}
           </Page>
         ))}

@@ -31,7 +31,7 @@ export type ActivityLook = 'add' | 'edit' | 'delete' | 'undo' | 'settle' | 'pers
 export function lookOf(kind: string): ActivityLook {
   switch (kind) {
     case 'expense_added': case 'imported': return 'add'
-    case 'expense_edited': return 'edit'
+    case 'expense_edited': case 'renamed': return 'edit'
     case 'expense_deleted': return 'delete'
     case 'expense_restored': case 'settle_undone': case 'chore_undone': return 'undo'
     case 'settled': return 'settle'
@@ -80,6 +80,7 @@ export function sentenceOf(a: Activity, name: (u: string | null) => string, me: 
     bill_paid: `${who} marked ${what} as paid`, bill_unpaid: `${who} marked ${what} as not paid`,
     chore_added: `${who} added the chore ${what}`, chore_edited: `${who} changed the chore ${what}`, chore_removed: `${who} removed the chore ${what}`,
     chore_done: `${who} did ${what}`, chore_undone: `${who} un-ticked ${what}`, chore_skipped: `${who} passed ${what} on to ${to}`,
+    renamed: `${who} renamed the group to ${what}`,
     imported: `${who} brought ${Number(a.meta?.expenses) || 0} expenses over from ${what || 'Splitwise'}`,
     swap_asked: `${who} asked ${to} to take ${what}`, swap_accepted: `${who} took over ${what} from ${from}`, swap_declined: `${who} couldn't take ${what} for ${from}`,
   }

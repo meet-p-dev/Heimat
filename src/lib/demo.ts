@@ -261,6 +261,24 @@ const rpcs: Record<string, (a: Row) => any> = {
     db.flats = db.flats.filter((f) => f.id !== imp.flat_id)
     imp.flat_id = null
   },
+  update_group: ({ p_flat, p_name, p_purpose }) => {
+    const f = flatOf(p_flat)
+    if (!f) throw new Error('Not your group')
+    if (f.name !== p_name) log('renamed', p_name, p_flat, null, { was: f.name })
+    Object.assign(f, { name: p_name, purpose: p_purpose ?? f.purpose })
+    return f
+  },
+  rename_member: ({ p_flat, p_uid, p_name }) => {
+    const m = db.flat_members.find((x) => x.flat_id === p_flat && x.user_id === p_uid)
+    if (!m) throw new Error('Not in this group')
+    if (p_uid !== ME && m.claimed_at) throw new Error('group: only they can change their name')
+    m.display_name = p_name
+  },
+  remove_member: ({ p_flat, p_uid }) => { const m = db.flat_members.find((x) => x.flat_id === p_flat && x.user_id === p_uid); if (m) m.left_at = stamp() },
+  delete_group: ({ p_flat }) => {
+    for (const t of ['expenses', 'settlements', 'flat_members', 'activity']) db[t] = (db[t] || []).filter((r) => r.flat_id !== p_flat)
+    db.flats = db.flats.filter((f) => f.id !== p_flat)
+  },
   join_flat: () => { throw new Error('Demo mode — there is no group with that code') },
   leave_flat: ({ p_flat }) => { const m = db.flat_members.find((x) => x.flat_id === p_flat && x.user_id === ME); if (m) m.left_at = stamp() },
   save_friend_expense: ({ p_id, p_expense }) => { const e = db.expenses.find((x) => x.id === p_id); if (e) Object.assign(e, p_expense) },

@@ -3,6 +3,7 @@
   ios-native/Heimat/GroupsView.swift (docs/friends-screens.md).
 */
 import { NextBillLine, MyBillsCard } from './Bills'
+import { purposeEmoji } from './pages/GroupSettingsPage'
 import type { BillsCtx } from './Bills'
 import { ChoreCardLine } from './Chores'
 import type { ChoresCtx } from './Chores'
@@ -88,7 +89,7 @@ export function GroupsTab({ c }: { c: FriendsCtx }) {
       {c.groups.map((g) => {
         const people = c.members.filter((m) => m.flat_id === g.id && !m.left_at)
         const waiting = people.filter(isPending).length
-        return card(g.id, g.name, people.map((m) => ({ id: m.user_id, name: m.display_name })),
+        return card(g.id, `${purposeEmoji(g)} ${g.name}`, people.map((m) => ({ id: m.user_id, name: m.display_name })),
           `${people.length} ${people.length === 1 ? 'person' : 'people'}${waiting ? ` · ${waiting} invited` : ''}`,
           myBalance(c.books, c.uid, g.id), () => c.openGroup(g.id), { label: 'Invite', icon: UserPlus, on: () => c.invite(g.id) },
           <>{c.chores && <ChoreCardLine c={c.chores} flatId={g.id} />}{c.bills && <NextBillLine b={c.bills} flatId={g.id} />}</>)

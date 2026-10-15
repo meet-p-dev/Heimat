@@ -13,11 +13,20 @@ struct Flat: Codable, Identifiable, Hashable {
     /// "simplify debts": the group shows the fewest payments rather than who owes whom pair
     /// by pair (AppModel.isSimplified; switched with set_simplify_debts)
     var simplifyDebts: Bool?
+    /// what it's for: home, trip, couple, friends, work, other (none yet: from kind) — Group settings
+    var purpose: String?
     var isGroup: Bool { kind == "group" }
+    var purposeKey: String { purpose ?? (kind == "flat" ? "home" : "other") }
+    /// the emoji on its card
+    var emoji: String { Flat.purposes.first { $0.0 == purposeKey }?.1 ?? "✨" }
+    static let purposes: [(String, String, String)] = [
+        ("home", "🏠", "Home"), ("trip", "✈️", "Trip"), ("couple", "💑", "Couple"),
+        ("friends", "🎉", "Friends"), ("work", "💼", "Work"), ("other", "✨", "Other"),
+    ]
     /// a hidden circle that holds expenses between friends, outside any group (see docs/friends-screens.md)
     var isDirect: Bool { kind == "direct" }
     var noun: String { "group" }
-    enum CodingKeys: String, CodingKey { case id, name, kind, joinCode = "join_code", simplifyDebts = "simplify_debts" }
+    enum CodingKeys: String, CodingKey { case id, name, kind, purpose, joinCode = "join_code", simplifyDebts = "simplify_debts" }
 }
 
 struct Member: Codable, Identifiable, Hashable {
@@ -112,6 +121,8 @@ enum GroupsRoute: Hashable {
     case person(String)
     /// everyone's balances in a group (the group page shows only yours)
     case balances(String)
+    /// "⋯" on a group's card: name, what it's for, people, code, leaving
+    case settings(String)
 }
 
 struct Settlement: Codable, Identifiable, Hashable {
@@ -177,6 +188,7 @@ struct Activity: Codable, Identifiable, Hashable {
         switch kind {
         case "expense_added": "plus.circle.fill"
         case "imported": "square.and.arrow.down.fill"
+        case "renamed": "pencil.circle.fill"
         case "expense_edited": "pencil.circle.fill"
         case "expense_deleted": "trash.circle.fill"
         case "expense_restored": "arrow.uturn.backward.circle.fill"

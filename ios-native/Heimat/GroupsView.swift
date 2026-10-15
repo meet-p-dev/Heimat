@@ -51,6 +51,7 @@ struct GroupsView: View {
                 case .myBills: MyBillsView()
                 case .person(let p): PersonView(person: p)
                 case .balances(let id): AllBalancesView(id: id)
+                case .settings(let id): GroupSettingsView(id: id)
                 }
             }
         }
@@ -102,7 +103,7 @@ struct GroupCard: View {
         let waiting = people.filter(\.isPending).count
         HeimatCard(radius: 24, padding: 16, action: { m.switchFlat(flat.id); m.groupsPath = [.group(flat.id)] }) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(flat.name)
+                Text("\(flat.emoji) \(flat.name)")
                     .font(.system(size: 19, weight: .bold)).lineLimit(1)
                     .padding(.trailing, 92)   // room for Invite
                 HStack(spacing: 10) {
