@@ -16,7 +16,22 @@ struct Flat: Codable, Identifiable, Hashable {
     /// what it's for: home, trip, couple, friends, work, other (none yet: from kind) — Group settings
     var purpose: String?
     var isGroup: Bool { kind == "group" }
-    var purposeKey: String { purpose ?? (kind == "flat" ? "home" : "other") }
+    var purposeKey: String { purpose ?? Flat.guessPurpose(name, kind: kind) }
+    /// what a group is for, guessed from its name until someone picks: "WG Küche" is a home,
+    /// "Lisbon trip" a trip, "Anna & Ben" a couple (the web's guessPurpose: the same rules)
+    static func guessPurpose(_ name: String, kind: String?) -> String {
+        let n = name.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        func has(_ words: String) -> Bool {
+            n.range(of: "(^|[^\\p{L}])(" + words + ")(?![\\p{L}])", options: .regularExpression) != nil
+        }
+        if has("wg|flat|flatmates?|wohnung|home|haus|house|apartment|apt|zuhause|mitbewohner|roommates?|room mates|family|familie") { return "home" }
+        if has("trip|reise|urlaub|holiday|holidays|vacation|tour|travel|ski|weekend|wochenende|roadtrip|festival|ausflug") { return "trip" }
+        if has("work|office|team|büro|buero|kollegen|colleagues|job|company|firma|lunch") { return "work" }
+        if n.range(of: "(❤|💕|💑)", options: .regularExpression) != nil || has("couple|us two|we two|wir zwei|wir beide|date night")
+            || n.range(of: "^\\p{L}+\\s*[&+]\\s*\\p{L}+$|^\\p{L}+\\s+(and|und)\\s+\\p{L}+$", options: .regularExpression) != nil { return "couple" }
+        if has("friends|freunde|party|crew|squad|gang|birthday|geburtstag|dinner|bbq|grill|stammtisch|club") { return "friends" }
+        return kind == "flat" ? "home" : "other"
+    }
     /// the emoji on its card
     var emoji: String { Flat.purposes.first { $0.0 == purposeKey }?.1 ?? "✨" }
     static let purposes: [(String, String, String)] = [

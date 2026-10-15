@@ -75,24 +75,15 @@ struct GroupPage: View {
                     }
                     .glassProminentButton()
                     .controlSize(.small)
-                    Menu {
-                        Button { m.groupsPath.append(.settings(id)) } label: { Label("Group settings", systemImage: "slider.horizontal.3") }
-                        Button { m.groupsPath.append(.settings(id)) } label: { Label("People", systemImage: "person.2") }
-                        Button { m.sheet = .invite } label: { Label("Invite people", systemImage: "person.badge.plus") }
-                        Button {
-                            UIPasteboard.general.string = flat.joinCode
-                            Haptic.success()
-                            m.show("Group code copied")
-                        } label: { Label("Copy group code", systemImage: "doc.on.doc") }
-                        Divider()
-                        Button(role: .destructive) { confirmLeave = true } label: { Label("Leave group", systemImage: "rectangle.portrait.and.arrow.right") }
-                    } label: {
+                    // "⋯": the group's settings — name, what it's for, people, code, leaving
+                    Button { Haptic.tap(); m.groupsPath.append(.settings(id)) } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 15, weight: .bold))
                             .frame(width: 34, height: 34)
                             .glassSurface(in: Circle(), interactive: true)
                     }
-                    .accessibilityLabel("Group options")
+                    .buttonStyle(PressStyle())
+                    .accessibilityLabel("Group settings")
                 }
                 HStack(spacing: 0) {
                     ForEach(Array(m.roster.prefix(6).enumerated()), id: \.element.id) { i, mem in

@@ -14,6 +14,8 @@ struct GroupSettingsView: View {
     @State private var removing: Member?
     @State private var confirmLeave = false
     @State private var confirmDelete = false
+    /// until someone picks, what it's for follows the name as it's typed
+    @State private var picked = false
 
     private var flat: Flat? { m.flat?.id == id ? m.flat : nil }
     private var people: [Member] {
@@ -36,7 +38,7 @@ struct GroupSettingsView: View {
         .navigationTitle("Group settings")
         .navigationBarTitleDisplayMode(.inline)
         .heimatSurface()
-        .onAppear { if let flat { name = flat.name; purpose = flat.purposeKey } }
+        .onAppear { if let flat { name = flat.name; purpose = flat.purposeKey; picked = flat.purpose != nil } }
         .onChange(of: flat?.name) { _, v in if let v { name = v } }
     }
 
@@ -70,11 +72,12 @@ struct GroupSettingsView: View {
         Form {
             Section("Group") {
                 TextField("Group name", text: $name)
+                    .onChange(of: name) { _, v in if !picked { purpose = Flat.guessPurpose(v, kind: flat.kind) } }
                 VStack(alignment: .leading, spacing: 8) {
                     Text("What's it for?").font(.subheadline).foregroundStyle(.secondary)
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 8)], spacing: 8) {
                         ForEach(Flat.purposes, id: \.0) { key, emoji, label in
-                            Button { purpose = key; Haptic.tap() } label: {
+                            Button { purpose = key; picked = true; Haptic.tap() } label: {
                                 Text("\(emoji) \(label)").font(.system(size: 14, weight: .semibold))
                                     .frame(maxWidth: .infinity).padding(.vertical, 8)
                                     .background(purpose == key ? Color.hGreen.opacity(0.16) : Color.clear, in: Capsule())
@@ -97,7 +100,16 @@ struct GroupSettingsView: View {
 
             Section {
                 ForEach(people) { x in
+                    // its options open at the row tapped, not wherever the screen was last touched
                     Button { person = x } label: { personRow(x) }
+                        .confirmationDialog(x.displayName, isPresented: shown(person, x), titleVisibility: .visible) {
+                            personActions(x, flat)
+                        } message: {
+                            if x.userId != m.uid, !x.isPending, !x.hasLeft { Text("Only they can change the name they go by.") }
+                        }
+                        .confirmationDialog(removeTitle(flat), isPresented: shown(removing, x), titleVisibility: .visible) {
+                            Button(x.isPending ? "Withdraw invite" : "Remove", role: .destructive) { doRemove() }
+                        }
                 }
                 Button { m.sheet = .invite } label: { Label("Invite people", systemImage: "person.badge.plus") }
             } header: { Text("People · \(m.roster.count)") } footer: {
@@ -131,18 +143,10 @@ struct GroupSettingsView: View {
             }
         }
         .tint(.primary)
-        .confirmationDialog(person?.displayName ?? "", isPresented: personShown, titleVisibility: .visible) {
-            if let x = person { personActions(x, flat) }
-        } message: {
-            if let x = person, x.userId != m.uid, !x.isPending, !x.hasLeft { Text("Only they can change the name they go by.") }
-        }
         .alert(renameTitle, isPresented: renameShown) {
             TextField("Name", text: $newName)
             Button("Cancel", role: .cancel) {}
             Button("Save") { saveRename() }
-        }
-        .confirmationDialog(removeTitle(flat), isPresented: removeShown, titleVisibility: .visible) {
-            Button(removing?.isPending == true ? "Withdraw invite" : "Remove", role: .destructive) { doRemove() }
         }
         .confirmationDialog("Leave this group? You'll stop seeing its shared bills.", isPresented: $confirmLeave, titleVisibility: .visible) {
             Button("Leave group", role: .destructive) { Task { m.groupsPath = []; await m.leaveFlat() } }
@@ -154,9 +158,11 @@ struct GroupSettingsView: View {
 
     // MARK: someone's options
 
-    private var personShown: Binding<Bool> { Binding(get: { person != nil }, set: { if !$0 { person = nil } }) }
+    /// shown for this row: someone's options, or the question before removing them
+    private func shown(_ state: Member?, _ x: Member) -> Binding<Bool> {
+        Binding(get: { state?.id == x.id }, set: { if !$0 { if person?.id == x.id { person = nil }; if removing?.id == x.id { removing = nil } } })
+    }
     private var renameShown: Binding<Bool> { Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }) }
-    private var removeShown: Binding<Bool> { Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }) }
     private var renameTitle: String {
         guard let x = renaming else { return "" }
         return x.userId == m.uid ? "Your name in this group" : "Rename " + x.displayName

@@ -12,7 +12,18 @@ export const PURPOSES: [string, string, string][] = [
   ['home', '🏠', 'Home'], ['trip', '✈️', 'Trip'], ['couple', '💑', 'Couple'],
   ['friends', '🎉', 'Friends'], ['work', '💼', 'Work'], ['other', '✨', 'Other'],
 ]
-export const purposeOf = (f: Flat) => f.purpose || (f.kind === 'flat' ? 'home' : 'other')
+/* what a group is for, guessed from its name until someone picks: "WG Küche" is a home,
+   "Lisbon trip" a trip, "Anna & Ben" a couple (ios-native Flat.guessPurpose: the same rules) */
+export function guessPurpose(name: string, kind?: string): string {
+  const n = name.toLowerCase().trim()
+  if (/(^|[^\p{L}])(wg|flat|flatmates?|wohnung|home|haus|house|apartment|apt|zuhause|mitbewohner|roommates?|room mates|family|familie)(?![\p{L}])/u.test(n)) return 'home'
+  if (/(^|[^\p{L}])(trip|reise|urlaub|holiday|holidays|vacation|tour|travel|ski|weekend|wochenende|roadtrip|festival|ausflug)(?![\p{L}])/u.test(n)) return 'trip'
+  if (/(^|[^\p{L}])(work|office|team|büro|buero|kollegen|colleagues|job|company|firma|lunch)(?![\p{L}])/u.test(n)) return 'work'
+  if (/(❤|💕|💑|(^|[^\p{L}])(couple|us two|we two|wir zwei|wir beide|date night)(?![\p{L}]))/u.test(n) || /^\p{L}+\s*[&+]\s*\p{L}+$|^\p{L}+\s+(and|und)\s+\p{L}+$/u.test(n)) return 'couple'
+  if (/(^|[^\p{L}])(friends|freunde|party|crew|squad|gang|birthday|geburtstag|dinner|bbq|grill|stammtisch|club)(?![\p{L}])/u.test(n)) return 'friends'
+  return kind === 'flat' ? 'home' : 'other'
+}
+export const purposeOf = (f: Flat) => f.purpose || guessPurpose(f.name, f.kind)
 export const purposeEmoji = (f: Flat) => PURPOSES.find(([k]) => k === purposeOf(f))?.[1] || '✨'
 
 export interface GroupActions {
@@ -34,11 +45,14 @@ export default function GroupSettingsPage({ T, flat, members, uid, ledger, fH, s
 }) {
   const [name, setName] = useState(flat.name)
   const [purpose, setPurpose] = useState(purposeOf(flat))
+  // until someone picks, what it's for follows the name as it's typed
+  const [picked, setPicked] = useState(!!flat.purpose)
   const [busy, setBusy] = useState(false)
   const [person, setPerson] = useState<Member | null>(null)
   const [renaming, setRenaming] = useState<Member | null>(null)
   const [newName, setNewName] = useState('')
-  useEffect(() => { setName(flat.name); setPurpose(purposeOf(flat)) }, [flat.id, flat.name, flat.purpose])
+  useEffect(() => { setName(flat.name); setPurpose(purposeOf(flat)); setPicked(!!flat.purpose) }, [flat.id, flat.name, flat.purpose])
+  const typeName = (v: string) => { setName(v); if (!picked) setPurpose(guessPurpose(v, flat.kind)) }
 
   const url = webOrigin()
   const people = members.filter((m) => m.flat_id === flat.id)
@@ -81,12 +95,12 @@ export default function GroupSettingsPage({ T, flat, members, uid, ledger, fH, s
       <Group T={T} title="Group">
         <div style={{ padding: '12px 16px 4px' }}>
           <Field T={T} label="Name" htmlFor="gs-name">
-            <input id="gs-name" className="fld" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} placeholder="Group name" />
+            <input id="gs-name" className="fld" value={name} maxLength={60} onChange={(e) => typeName(e.target.value)} placeholder="Group name" />
           </Field>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.txt2, margin: '4px 2px 8px' }}>What's it for?</div>
           <div role="radiogroup" aria-label="What's it for?" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
             {PURPOSES.map(([k, emoji, label]) => (
-              <button key={k} type="button" role="radio" aria-checked={purpose === k} onClick={() => { haptic(5); setPurpose(k) }}
+              <button key={k} type="button" role="radio" aria-checked={purpose === k} onClick={() => { haptic(5); setPurpose(k); setPicked(true) }}
                 style={{ padding: '8px 12px', borderRadius: 99, border: `1.5px solid ${purpose === k ? T.acc : T.border}`, background: purpose === k ? T.accSoft : 'transparent',
                   color: purpose === k ? T.acc : T.txt, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
                 {emoji} {label}
