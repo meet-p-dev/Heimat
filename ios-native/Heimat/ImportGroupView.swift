@@ -91,7 +91,7 @@ struct ImportGroupView: View {
             }
             .onAppear {
                 // -HeimatSplitwise: the preview with a made-up group, for looking at it in the simulator
-                if AppModel.fixtureMode, ProcessInfo.processInfo.arguments.contains("-HeimatSplitwise"), file == nil {
+                if AppModel.isDemo, ProcessInfo.processInfo.arguments.contains("-HeimatSplitwise"), file == nil {
                     app = .splitwise
                     read(Data(Self.sample.utf8), fileName: "sunny-wg_2025-05-03_export.csv")
                 }

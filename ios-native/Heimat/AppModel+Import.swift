@@ -36,7 +36,7 @@ extension AppModel {
 
     /// nil when it worked (the new group is open, with the invite sheet); otherwise what went wrong
     func importGroup(_ f: ExpenseImport.File, me: String, name: String, kind: String, hash: String, source: String) async -> String? {
-        if Self.fixtureMode { sheet = nil; show("Demo mode — nothing is imported"); return nil }
+        if Self.isDemo { sheet = nil; show("Demo mode — nothing is imported"); return nil }
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let p = ImportPayload(source: source, hash: hash, name: trimmed.isEmpty ? (f.name.isEmpty ? "Imported group" : f.name) : trimmed,
                               kind: kind, me: me, people: f.people, expenses: f.expenses, payments: f.payments, balances: f.balances)
@@ -62,7 +62,7 @@ extension AppModel {
 
     /// imports whose group is still there (only those can be taken back)
     func myImports() async -> [ImportRecord] {
-        guard uid != nil, !Self.fixtureMode else { return [] }
+        guard uid != nil, !Self.isDemo else { return [] }
         let rows: [ImportRecord] = (try? await client.from("imports").select("id, flat_id, source, expenses, payments")
             .order("created_at", ascending: false).execute().value) ?? []
         return rows.filter { $0.flatId != nil }

@@ -5,11 +5,20 @@ import Supabase
 /// people who haven't joined, deleting a group — the server's update_group, rename_member
 /// and delete_group (migration 20261017000000_group_settings).
 extension AppModel {
+    /// demo mode (-HeimatFixture) in a debug build; never in a release build, which has no demo data
+    static var isDemo: Bool {
+        #if DEBUG
+        return fixtureMode
+        #else
+        return false
+        #endif
+    }
+
     /// nil when it worked; otherwise what to say
     func updateGroup(_ id: String, name: String, purpose: String) async -> String? {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !n.isEmpty else { return "Give the group a name" }
-        if Self.fixtureMode {
+        if Self.isDemo {
             if let i = flats.firstIndex(where: { $0.id == id }) { flats[i].name = n; flats[i].purpose = purpose }
             return nil
         }
@@ -28,7 +37,7 @@ extension AppModel {
     func renameMember(_ member: Member, to name: String) async -> String? {
         let n = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !n.isEmpty else { return "Enter a name" }
-        if Self.fixtureMode {
+        if Self.isDemo {
             if let i = members.firstIndex(where: { $0.id == member.id }) { members[i].displayName = n }
             return nil
         }
@@ -47,7 +56,7 @@ extension AppModel {
     /// the group and everything in it — the server refuses while money is owed and someone
     /// else has joined
     func deleteGroup(_ id: String) async {
-        if Self.fixtureMode { show("Demo mode — nothing is deleted"); return }
+        if Self.isDemo { show("Demo mode — nothing is deleted"); return }
         do {
             _ = try await client.rpc("delete_group", params: ["p_flat": id]).execute()
             Haptic.success()
