@@ -208,6 +208,11 @@ const rpcs: Record<string, (a: Row) => any> = {
     const pts = db.chores.find((c) => c.id === p_chore)?.points ?? 1
     if (t) Object.assign(t, p_done ? { state: 'done', done_by: ME, done_at: stamp(), points: pts } : { state: 'open', done_by: null, done_at: null, points: null })
   },
+  chore_remind: ({ p_chore }) => {
+    const t = db.chore_turns.find((x) => x.chore_id === p_chore && x.state === 'open' && x.assignee !== ME)
+    if (!t) throw new Error("chores: there's nobody to remind right now")
+    return db.flat_members.find((m) => m.user_id === t.assignee)?.display_name || 'them'
+  },
   chore_skip: ({ p_chore, p_n }) => {
     const t = db.chore_turns.find((x) => x.chore_id === p_chore && x.n === p_n)
     if (t) t.state = 'missed'

@@ -138,6 +138,8 @@ export default function App() {
   const [flatCats, setFlatCats] = useState<FlatCategory[]>([])
   const [busy, setBusy] = useState(false)
   const [myFlats, setMyFlats] = useState<Flat[]>([])
+  /* your groups have been loaded once: until then Home doesn't offer "Get started" */
+  const [placesLoaded, setPlacesLoaded] = useState(false)
   /* the hidden circles behind expenses outside any group, and every place's people,
      expenses and payments — for Groups, Non-group expenses, people's pages and Home */
   const [circles, setCircles] = useState<Flat[]>([])
@@ -198,7 +200,7 @@ export default function App() {
     if (!sb || !uid) return
     const { data: mem } = await sb.from('flat_members').select('flat_id').eq('user_id', uid)
     const ids = [...new Set((mem || []).map((m: any) => m.flat_id))]
-    if (!ids.length) { setMyFlats([]); setCircles([]); setFlatIdP(null); setAllMembers([]); setAllExpenses([]); setAllSettles([]); return }
+    if (!ids.length) { setMyFlats([]); setCircles([]); setFlatIdP(null); setAllMembers([]); setAllExpenses([]); setAllSettles([]); setPlacesLoaded(true); return }
     // a flat is a group; the hidden circles of expenses outside any group are kept apart
     const { data: fl } = await sb.from('flats').select('*').in('id', ids).order('created_at')
     const all = (fl as Flat[]) || []
@@ -207,6 +209,7 @@ export default function App() {
     setCircles(all.filter(isDirect))
     const cur = LS.g<string>('mt-h-flatid')
     if (!cur || !list.some((f) => f.id === cur)) setFlatIdP(list[0] ? list[0].id : null)
+    setPlacesLoaded(true)
     loadOverview(all.map((f) => f.id))
   }
   /* three queries for every group and circle at once */
@@ -983,7 +986,7 @@ export default function App() {
 
       <main ref={mainRef} className="h-main" onScroll={isNativeAndroid ? (e) => setScrolled(e.currentTarget.scrollTop > 8) : undefined}>
         <div key={tab} className="h-main-in h-stagger">
-          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: !isNativeAndroid && partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, start: { share: profile.share || [], hasExpense: allExpenses.length > 0, hasShift: shifts.length > 0 }, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater, mine: myRecent, activity, placeName: placeOf, mixed: placesCount > 1, curOf, onAllActivity: () => openPage('activity'), update, onUpdate: () => update && openExternal(update.url) }} />}
+          {tab === 'home' && <HomeTab {...{ T, show: { work: partOn(profile, 'work'), list: partOn(profile, 'list'), limit: partOn(profile, 'limit'), runway: !isNativeAndroid && partOn(profile, 'runway') }, flat, scope, hasMoney: !!flat || circles.length > 0, start: { share: profile.share || [], hasExpense: allExpenses.length > 0, hasShift: shifts.length > 0, loaded: placesLoaded }, uid, isAnon, myNet: overallNet, runwayCalc, runway, workStats, fH, fHome, setModal, setTab, expenses, nameOf, startAddExpense, cats, openList: () => setShowList(true), openCount: items.filter((i) => !i.bought).length, onLogShift: () => openShift(null), openSettle: (sg: SettleSuggestion | null) => (flat ? openSettle(sg) : (setTab('flat'), setPages(['nongroup']))), onOpenExpense: openExpense, onAuth: setAuth, pushAsk, pushBusy: notifBusy, onPushOn: enableNotif, onPushLater: pushLater, mine: myRecent, activity, placeName: placeOf, mixed: placesCount > 1, curOf, onAllActivity: () => openPage('activity'), update, onUpdate: () => update && openExternal(update.url) }} />}
           {tab === 'flat' && (uid || !authErr ? <GroupsTab c={fc} /> : <NoFlat T={T} setModal={setModal} authErr={authErr} uid={uid} isAnon={isAnon} onSignIn={() => setAuth('signin')} />)}
           {tab === 'money' && <MoneyTab {...{ T, runway, runwayCalc, fH, fHome, hostCur, homeCur, rate, rateAt: profile.rateAt, setModal, inFlat, openSettings }} />}
           {tab === 'work' && <WorkTab {...{ T, workStats, shifts, fH, fHome, onLogShift: openShift, onEditShift: openEditShift, openSettings, profile, sProfile }} />}

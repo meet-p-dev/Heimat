@@ -26,7 +26,8 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, start, uid, is
   /* what the balance covers ("Across 2 groups and friends"), and whether there is any to show */
   scope: string; hasMoney: boolean
   /* for Get started: the setup answer and what has happened yet */
-  start: { share: string[]; hasExpense: boolean; hasShift: boolean }
+  /* loaded: your groups are known — until then no "Get started", which would be wrong for someone with groups */
+  start: { share: string[]; hasExpense: boolean; hasShift: boolean; loaded?: boolean }
   /* the parts this person has switched on (src/lib/life.ts) */
   show: { work: boolean; list: boolean; limit: boolean; runway: boolean }
   uid: string | null; isAnon: boolean; myNet: number; runwayCalc: RunwayCalc | null; runway: Runway | null; workStats: WorkStats
@@ -108,7 +109,7 @@ export default function HomeTab({ T, show, flat, scope, hasMoney, start, uid, is
           </div>
         </Card>
       ) : null}
-      {(!hasMoney || (!startHidden && !steps.every((x) => x.done))) && (
+      {start.loaded !== false && (!hasMoney || (!startHidden && !steps.every((x) => x.done))) && (
         <GetStarted T={T} steps={steps} canHide={hasMoney} uid={uid} onHide={hideStart} showSignIn={isAnon && !hasMoney} onAuth={onAuth} />
       )}
 

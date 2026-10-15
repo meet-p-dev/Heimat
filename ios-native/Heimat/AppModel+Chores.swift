@@ -44,7 +44,7 @@ extension AppModel {
         return by.map { ($0.key, $0.value.0, $0.value.1) }.sorted { $0.points != $1.points ? $0.points > $1.points : $0.user < $1.user }
     }
 
-    struct ChoreRow: Encodable { let flat_id: String, name: String, cadence: String, anchor_on: String, points: Int, rota: [String] }
+    struct ChoreRow: Encodable { let flat_id: String, name: String, cadence: String, anchor_on: String, points: Int, rota: [String], on_day: Bool }
 
     func saveChore(id: String?, _ row: ChoreRow) async -> Bool {
         #if DEBUG
@@ -84,6 +84,12 @@ extension AppModel {
     func askSwap(_ t: ChoreTurn, to person: String) async {
         struct P: Encodable { let p_chore: String, p_n: Int, p_to: String }
         if await choreCall("chore_swap_ask", P(p_chore: t.choreId, p_n: t.n, p_to: person)) { show("Asked \(personName(person))") }
+    }
+
+    /// a nudge to whoever's turn it is now — once a day from each person
+    func remindChore(_ c: Chore, who: String) async {
+        struct P: Encodable { let p_chore: String }
+        if await choreCall("chore_remind", P(p_chore: c.id), success: true) { show("Reminded \(personName(who))") }
     }
 
     func answerSwap(_ s: ChoreSwap, accept: Bool) async {

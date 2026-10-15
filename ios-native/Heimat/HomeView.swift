@@ -21,7 +21,10 @@ struct HomeView: View {
                 VStack(spacing: 14) {
                     if let u = m.update { updateCard(u).transition(.opacity.combined(with: .scale(scale: 0.96))) }
                     if hasPlace { balance() }
-                    if !hasPlace || (!startHidden && !steps.allSatisfy(\.done)) { getStarted }
+                    // until your groups are known, no "Get started" — it would be wrong for someone with groups
+                    if !m.placesLoaded && !hasPlace {
+                        ProgressView().frame(maxWidth: .infinity, minHeight: 140)
+                    } else if !hasPlace || (!startHidden && !steps.allSatisfy(\.done)) { getStarted }
                     quickActions
                     if m.profile.on(.limit) { tiles }
                     if askPush { pushCard.transition(.opacity.combined(with: .scale(scale: 0.96))) }

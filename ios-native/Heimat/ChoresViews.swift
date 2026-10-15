@@ -81,6 +81,8 @@ struct ChoreRowView: View {
     let chore: Chore
     @State private var busy = false
     @State private var asking = false
+    /// "Ask someone else…": who, as a second step so the first list stays short
+    @State private var picking = false
 
     var body: some View {
         let (now, next) = m.turns(of: chore)
@@ -133,38 +135,65 @@ struct ChoreRowView: View {
         .buttonStyle(PressStyle())
         .foregroundStyle(.primary)
         .confirmationDialog(chore.name, isPresented: $asking, titleVisibility: .visible) {
-            if let now, started {
-                if done {
-                    Button("Not done after all") { Task { await m.tickChore(now, done: false) } }
-                } else if !mine {
-                    // someone did it for them: it counts for whoever ticks it
-                    Button("I did it") { Task { await m.tickChore(now, done: true) } }
-                }
-            }
-            if mine, let now {
-                if next?.assignee != nil && next?.assignee != m.uid {
-                    Button("Skip this turn") { Task { await m.skipChore(now) } }
-                }
-                ForEach(m.members(of: chore.flatId).filter { !$0.isPending && !$0.hasLeft && $0.userId != m.uid }) { p in
-                    Button("Ask \(p.displayName) to take it") { Task { await m.askSwap(now, to: p.userId) } }
-                }
-            }
-            Button("Edit chore") { m.sheet = .chore(chore, chore.flatId) }
+            actions(now, next, started: started, done: done, mine: mine)
         } message: {
-            if mine { Text("Skip passes it to whoever is next, and your turn comes back after. A swap only happens when they say yes.") }
-            else if !done && started { Text("\"I did it\" counts the points for you.") }
+            if mine { Text("Skip passes it to whoever is next, and your turn comes back after.") }
+            else if !done && isOpen(now) { Text("\"I did it\" counts the points for you.") }
         }
+        .confirmationDialog("Ask who?", isPresented: $picking, titleVisibility: .visible) {
+            if let now {
+                ForEach(others) { p in
+                    Button(p.displayName) { Task { await m.askSwap(now, to: p.userId) } }
+                }
+            }
+        } message: { Text("They get a request, and the turn only moves when they say yes.") }
+    }
+
+    private var others: [Member] { m.members(of: chore.flatId).filter { !$0.isPending && !$0.hasLeft && $0.userId != m.uid } }
+    /// someone's turn is on now: started, not over, not done
+    private func isOpen(_ t: ChoreTurn?) -> Bool {
+        guard let t else { return false }
+        return t.state == "open" && t.startsOn <= Fmt.today() && t.endsOn >= Fmt.today()
+    }
+
+    @ViewBuilder private func actions(_ now: ChoreTurn?, _ next: ChoreTurn?, started: Bool, done: Bool, mine: Bool) -> some View {
+        if let now, started {
+            if done {
+                Button("Not done after all") { Task { await m.tickChore(now, done: false) } }
+            } else if !mine && isOpen(now), let who = now.assignee {
+                Button("Remind \(m.personName(who))") { Task { await m.remindChore(chore, who: who) } }
+                // someone did it for them: it counts for whoever ticks it
+                Button("I did it") { Task { await m.tickChore(now, done: true) } }
+            }
+        }
+        if mine, let now {
+            if next?.assignee != nil && next?.assignee != m.uid {
+                Button("Skip this turn") { Task { await m.skipChore(now) } }
+            }
+            if !others.isEmpty { Button("Ask someone else to take it…") { picking = true } }
+        }
+        Button("Edit chore") { m.sheet = .chore(chore, chore.flatId) }
     }
 
     private func name(_ u: String?) -> String { u == nil ? "nobody" : u == m.uid ? "you" : m.personName(u!) }
 
     private func line(_ now: ChoreTurn?, _ next: ChoreTurn?, started: Bool) -> String {
         guard let now else { return Chore.label(chore.cadence) }
+        let onDay = chore.onDay == true
+        // a chore on its day says when that day is: "today", "tue 21 oct"
+        func when(_ d: String) -> String { Fmt.relDay(d).lowercased() }
         if now.state == "done" {
-            return "Done by \(name(now.doneBy))" + (next?.assignee).map { " · next: \(name($0))" }.orEmpty
+            return "Done by \(name(now.doneBy))" + (next?.assignee).map { " · next: \(name($0))" + (onDay ? ", " + when(next!.startsOn) : "") }.orEmpty
         }
-        if !started { return "Starts \(Fmt.relDay(now.startsOn)) · \(name(now.assignee)) first" }
-        let until = now.endsOn == Fmt.today() ? "last day today" : "until \(Fmt.relDay(now.endsOn))"
+        if now.state == "missed" || now.endsOn < Fmt.today() {
+            guard let next else { return "Missed" }
+            return "Next: \(name(next.assignee)), " + when(next.startsOn)
+        }
+        if !started {
+            if onDay { let n = name(now.assignee); return n.prefix(1).uppercased() + n.dropFirst() + ", " + when(now.startsOn) }
+            return "Starts \(Fmt.relDay(now.startsOn)) · \(name(now.assignee)) first"
+        }
+        let until = now.startsOn == now.endsOn ? "today" : now.endsOn == Fmt.today() ? "last day today" : "until \(Fmt.relDay(now.endsOn))"
         let whose = now.assignee == m.uid ? "Your turn" : now.assignee == nil ? "Nobody's turn" : "\(m.personName(now.assignee!))'s turn"
         return "\(whose) · \(until)"
     }
@@ -206,6 +235,7 @@ struct ChoreForm: View {
     @State private var cadence = "weekly"
     @State private var start = Date()
     @State private var points = 1
+    @State private var onDay = false
     @State private var rota: [String] = []
     /// a cadence that isn't one of the presets: shown as a number and a unit
     @State private var custom = false
@@ -238,7 +268,13 @@ struct ChoreForm: View {
                     }
                 } footer: { Text("Each turn lasts this long, then it's the next person's.") }
                 Section {
-                    DatePicker("First turn starts", selection: $start, displayedComponents: .date)
+                    Toggle("Done on the day", isOn: $onDay)
+                } footer: {
+                    Text(onDay ? "Each turn is just the day it falls on — like bin day. Whoever it is hears the evening before and that morning."
+                               : "Each turn lasts until the next one starts — any day in between is fine.")
+                }
+                Section {
+                    DatePicker(onDay ? "First day" : "First turn starts", selection: $start, displayedComponents: .date)
                     Picker("Size", selection: $points) { ForEach(Chore.sizes, id: \.0) { Text("\($0.1) · \($0.0) pt\($0.0 == 1 ? "" : "s")").tag($0.0) } }
                 } footer: { Text("Bigger chores earn more points on this month's table.") }
                 Section {
@@ -280,7 +316,7 @@ struct ChoreForm: View {
             }
             .onAppear {
                 if let c = editing {
-                    name = c.name; cadence = c.cadence; start = Fmt.date(c.anchorOn) ?? Date(); points = c.points
+                    name = c.name; cadence = c.cadence; start = Fmt.date(c.anchorOn) ?? Date(); points = c.points; onDay = c.onDay == true
                     custom = !Chore.presets.contains(c.cadence)
                     rota = c.rota.filter { u in people.contains { $0.userId == u } }
                 } else {
@@ -296,7 +332,7 @@ struct ChoreForm: View {
     private func save() {
         saving = true
         let row = AppModel.ChoreRow(flat_id: flatId, name: name.trimmingCharacters(in: .whitespaces), cadence: cadence,
-                                    anchor_on: Fmt.ymd(start), points: points, rota: rota)
+                                    anchor_on: Fmt.ymd(start), points: points, rota: rota, on_day: onDay)
         Task {
             if await m.saveChore(id: editing?.id, row) { dismiss() }
             saving = false

@@ -4,7 +4,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
    keeps the turns — who has which period, skips and swaps, missed and done — so every
    phone and the reminders agree; the app asks (my_chores) and acts through its functions. */
 
-export interface Chore { id: string; flat_id: string; name: string; cadence: string; anchor_on: string; points: number; rota: string[] }
+export interface Chore { id: string; flat_id: string; name: string; cadence: string; anchor_on: string; points: number; rota: string[]
+  /* done on its day (bin day): each turn is just the day it falls on */
+  on_day?: boolean }
 export interface ChoreTurn {
   chore_id: string; n: number; flat_id: string; starts_on: string; ends_on: string
   assignee: string | null; state: 'open' | 'done' | 'missed'; done_by: string | null; done_at: string | null; points: number | null

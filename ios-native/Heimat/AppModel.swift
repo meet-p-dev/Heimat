@@ -45,6 +45,9 @@ final class AppModel {
     /// pages pushed inside the Groups tab
     var groupsPath: [GroupsRoute] = []
     var flatId: String? { didSet { UserDefaults.standard.set(flatId, forKey: "flatId") } }
+    /// your groups have been loaded once (or shown from the copy on the phone): until then Home
+    /// doesn't offer "Get started", which would be wrong for someone who has groups
+    var placesLoaded = false
     var members: [Member] = []
     /// the same three tables across every flat you belong to, for Home
     var activity: [Activity] = []
@@ -245,6 +248,8 @@ final class AppModel {
         #if DEBUG
         if Self.fixtureMode { loadFixture(); await checkUpdate(); return }
         #endif
+        // last time's groups at once, while the server is asked again
+        if let s = client.auth.currentSession { restoreSnapshot(for: s.user.id.uuidString.lowercased()) }
         if let legacy = await LegacyImport.run() { adopt(legacy) }
         do {
             if client.auth.currentSession == nil, let (a, r) = legacyTokens {
@@ -382,17 +387,21 @@ final class AppModel {
         #if DEBUG
         if Self.fixtureMode { await loadFlat(); return }
         #endif
-        guard let uid else { return }
+        guard let uid else { placesLoaded = true; return }
         do {
             struct Row: Decodable { let flat_id: String }
             let mem: [Row] = try await client.from("flat_members").select("flat_id").eq("user_id", value: uid).execute().value
             let ids = Array(Set(mem.map(\.flat_id)))
-            guard !ids.isEmpty else { flats = []; circles = []; flatId = nil; clearFlat(); allMembers = []; allExpenses = []; allSettles = []; allCats = []; return }
+            guard !ids.isEmpty else {
+                flats = []; circles = []; flatId = nil; clearFlat(); allMembers = []; allExpenses = []; allSettles = []; allCats = []
+                placesLoaded = true; saveSnapshot(); return
+            }
             let all: [Flat] = try await client.from("flats").select().in("id", values: ids).order("created_at").execute().value
             flats = all.filter { !$0.isDirect }
             circles = all.filter(\.isDirect)
             if flatId == nil || !flats.contains(where: { $0.id == flatId }) { flatId = flats.first?.id }
             await loadFlat()
+            placesLoaded = true
             subscribe()
             subscribeEverywhere()
         } catch {
@@ -489,6 +498,7 @@ final class AppModel {
         }
         // only how rows look (a group's own category icons), so a failure here costs nothing else
         allCats = (try? await client.from("flat_categories").select().in("flat_id", values: ids).execute().value) ?? allCats
+        saveSnapshot()
     }
 
     /// a newer copy of one of your groups (its name, its "simplify debts" switch)
@@ -1086,6 +1096,7 @@ final class AppModel {
     }
 
     func signOut() async {
+        Self.dropSnapshot()
         // while still signed in — afterwards the database no longer knows it's yours
         await Push.shared.forget()
         try? await client.auth.signOut()
@@ -1099,6 +1110,7 @@ final class AppModel {
 
     /// App Store 5.1.1(v): an app that can create an account must be able to delete one.
     func deleteAccount() async -> String? {
+        Self.dropSnapshot()
         do {
             try await client.functions.invoke("delete-account")
         } catch {

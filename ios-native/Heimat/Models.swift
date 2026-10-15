@@ -599,10 +599,12 @@ struct Chore: Codable, Identifiable, Hashable {
     var anchorOn: String
     var points: Int
     var rota: [String]
+    /// done on its day (bin day): each turn is just the day it falls on
+    var onDay: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, name, cadence, points, rota
-        case flatId = "flat_id", anchorOn = "anchor_on"
+        case flatId = "flat_id", anchorOn = "anchor_on", onDay = "on_day"
     }
     static let sizes: [(Int, String)] = [(1, "Small"), (2, "Medium"), (3, "Big")]
 

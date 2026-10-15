@@ -6,7 +6,7 @@ import type { Chore, ChoreTurn, ChoreSwap, ChoreRow, ChoreData } from '../lib/ch
 import { CHORE_PRESETS, SIZES, turnsOf, myTurns, board, parseCadence, cadenceOf, cadenceLabel, type Unit } from '../lib/chores'
 import { relDay, tod } from '../lib/format'
 import { haptic } from '../lib/haptic'
-import { Sheet, Field, Btn, SegmentedControl, Alert, Stepper, SectionLabel, Avatar, TINT } from './ui'
+import { Sheet, Field, Btn, SegmentedControl, Alert, Stepper, SectionLabel, Avatar, Toggle, TINT } from './ui'
 import { AddLink, EmptyPrompt } from './Bills'
 
 /* Chores (docs/chores-screens.md; iOS: ChoresViews.swift). */
@@ -17,7 +17,7 @@ export interface ChoresCtx {
   /* your own name, for your face (who() says "You") */
   meName?: string
   edit: (c: Chore | null, flatId: string) => void
-  call: (fn: 'chore_tick' | 'chore_skip' | 'chore_swap_ask' | 'chore_swap_answer', args: Record<string, unknown>, ok?: string) => Promise<void>
+  call: (fn: 'chore_tick' | 'chore_skip' | 'chore_swap_ask' | 'chore_swap_answer' | 'chore_remind', args: Record<string, unknown>, ok?: string) => Promise<void>
 }
 
 /* A group's chores. Each row shows whose turn it is — their face — and what to do:
@@ -79,10 +79,14 @@ function ChoreRowView({ c, chore, act }: { c: ChoresCtx; chore: Chore; act: () =
   const mine = now?.assignee === c.uid && now?.state === 'open'
   const face = done ? now?.done_by : now?.assignee
   const name = (u: string | null | undefined) => (!u ? 'nobody' : u === c.uid ? 'you' : c.who(u))
+  // a chore on its day says when that day is: "today", "Tue 21 Oct"
+  const when = (d: string) => relDay(d).toLowerCase()
+  const nextLine = next?.assignee ? ` · next: ${name(next.assignee)}${chore.on_day ? `, ${when(next.starts_on)}` : ''}` : ''
   const line = !now ? cadenceLabel(chore.cadence) : done
-    ? `Done by ${name(now.done_by)}${next?.assignee ? ` · next: ${name(next.assignee)}` : ''}`
-    : !started ? `Starts ${relDay(now.starts_on)} · ${name(now.assignee)} first`
-    : `${now.assignee === c.uid ? 'Your turn' : now.assignee ? `${c.who(now.assignee)}'s turn` : "Nobody's turn"} · ${now.ends_on === today ? 'last day today' : `until ${relDay(now.ends_on)}`}`
+    ? `Done by ${name(now.done_by)}${nextLine}`
+    : now.state === 'missed' || now.ends_on < today ? (next ? `Next: ${name(next.assignee)}, ${when(next.starts_on)}` : 'Missed')
+    : !started ? (chore.on_day ? `${name(now.assignee)[0].toUpperCase()}${name(now.assignee).slice(1)}, ${when(now.starts_on)}` : `Starts ${relDay(now.starts_on)} · ${name(now.assignee)} first`)
+    : `${now.assignee === c.uid ? 'Your turn' : now.assignee ? `${c.who(now.assignee)}'s turn` : "Nobody's turn"} · ${now.starts_on === now.ends_on ? 'today' : now.ends_on === today ? 'last day today' : `until ${relDay(now.ends_on)}`}`
   const tick = async () => {
     if (!now || busy) return
     haptic(10); setBusy(true)
@@ -112,9 +116,12 @@ function ChoreRowView({ c, chore, act }: { c: ChoresCtx; chore: Chore; act: () =
   )
 }
 
-/* tapping a chore: undo, "I did it" for someone else, skip, ask someone to take it, or edit */
+/* tapping a chore: undo, remind whoever's turn it is, "I did it" for them, skip, ask someone
+   else to take it (who: a second step, so the list stays short), or edit */
 function ChoreActions({ c, chore, onClose }: { c: ChoresCtx; chore: Chore | null; onClose: () => void }) {
   const { T } = c
+  const [picking, setPicking] = useState(false)
+  useEffect(() => { if (!chore) setPicking(false) }, [chore])
   const t = chore ? turnsOf(c.d, chore.id) : { now: null as ChoreTurn | null, next: null as ChoreTurn | null }
   const started = !!t.now && t.now.starts_on <= tod()
   const done = t.now?.state === 'done'
@@ -122,23 +129,38 @@ function ChoreActions({ c, chore, onClose }: { c: ChoresCtx; chore: Chore | null
   const others = chore ? c.members.filter((m) => m.flat_id === chore.flat_id && !m.left_at && !isPending(m) && m.user_id !== c.uid) : []
   const go = async (fn: Parameters<ChoresCtx['call']>[0], args: Record<string, unknown>, ok?: string) => { onClose(); await c.call(fn, args, ok) }
   const rows: { label: string; run: () => void }[] = []
+  const open = !!t.now && t.now.state === 'open' && started && t.now.ends_on >= tod()
   if (chore && t.now && started) {
     if (done) rows.push({ label: 'Not done after all', run: () => go('chore_tick', { p_chore: chore.id, p_n: t.now!.n, p_done: false }) })
-    // someone did it for them: it counts for whoever ticks it
-    else if (!mine) rows.push({ label: 'I did it', run: () => go('chore_tick', { p_chore: chore.id, p_n: t.now!.n, p_done: true }) })
+    else if (!mine && open && t.now.assignee) {
+      const who = c.who(t.now.assignee)
+      rows.push({ label: `Remind ${who}`, run: () => go('chore_remind', { p_chore: chore.id }, `Reminded ${who}`) })
+      // someone did it for them: it counts for whoever ticks it
+      rows.push({ label: 'I did it', run: () => go('chore_tick', { p_chore: chore.id, p_n: t.now!.n, p_done: true }) })
+    }
   }
   if (chore && mine && t.now) {
     if (t.next?.assignee && t.next.assignee !== c.uid) rows.push({ label: 'Skip this turn', run: () => go('chore_skip', { p_chore: chore.id, p_n: t.now!.n }, 'Skipped — it comes back to you next time') })
-    for (const m of others) rows.push({ label: `Ask ${m.display_name} to take it`, run: () => go('chore_swap_ask', { p_chore: chore.id, p_n: t.now!.n, p_to: m.user_id }, `Asked ${m.display_name}`) })
+    if (others.length) rows.push({ label: 'Ask someone else to take it…', run: () => setPicking(true) })
   }
-  const note = mine ? 'Skip passes it to whoever is next, and your turn comes back after. A swap only happens when they say yes.'
-    : !done && started ? '"I did it" counts the points for you.' : null
+  const note = picking ? 'They get a request, and the turn only moves when they say yes.'
+    : mine ? 'Skip passes it to whoever is next, and your turn comes back after.'
+    : !done && open ? '"I did it" counts the points for you.' : null
   return (
-    <Sheet open={!!chore} onClose={onClose} title={chore?.name || ''} T={T}>
+    <Sheet open={!!chore} onClose={onClose} title={picking ? 'Ask who?' : chore?.name || ''} T={T}>
       {note && <div style={{ fontSize: 13.5, color: T.txt2, margin: '0 4px 12px', lineHeight: 1.5 }}>{note}</div>}
       <div className="glass h-group" style={{ marginBottom: 8 }}>
-        {rows.map((r) => <button key={r.label} type="button" className="h-item" onClick={r.run}>{r.label}</button>)}
-        <button type="button" className="h-item" onClick={() => { onClose(); if (chore) c.edit(chore, chore.flat_id) }}>Edit chore</button>
+        {picking
+          ? others.map((m) => (
+              <button key={m.user_id} type="button" className="h-item" style={{ gap: 12 }}
+                onClick={() => chore && t.now && go('chore_swap_ask', { p_chore: chore.id, p_n: t.now.n, p_to: m.user_id }, `Asked ${m.display_name}`)}>
+                <Avatar name={m.display_name} seed={m.user_id} size={30} />{m.display_name}
+              </button>
+            ))
+          : <>
+              {rows.map((r) => <button key={r.label} type="button" className="h-item" onClick={r.run}>{r.label}</button>)}
+              <button type="button" className="h-item" onClick={() => { onClose(); if (chore) c.edit(chore, chore.flat_id) }}>Edit chore</button>
+            </>}
       </div>
     </Sheet>
   )
@@ -189,6 +211,7 @@ export function ChoreModal({ c, open, onClose, editing, flatId, save, remove }: 
   const [cadence, setCadence] = useState('weekly')
   const [start, setStart] = useState(monday())
   const [points, setPoints] = useState('1')
+  const [onDay, setOnDay] = useState(false)
   const [rota, setRota] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
@@ -196,14 +219,14 @@ export function ChoreModal({ c, open, onClose, editing, flatId, save, remove }: 
     if (!open) return
     setErr(null); setBusy(false)
     setName(editing?.name || ''); setCadence(editing?.cadence || 'weekly'); setStart(editing?.anchor_on || monday())
-    setPoints(String(editing?.points || 1))
+    setPoints(String(editing?.points || 1)); setOnDay(!!editing?.on_day)
     setRota(editing ? editing.rota.filter((u) => people.some((p) => p.user_id === u)) : people.map((p) => p.user_id))
   }, [open])
   const ok = !!name.trim() && rota.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(start) && !busy && !!c.uid
   const submit = async () => {
     if (!ok) return
     setBusy(true); setErr(null)
-    const e = await save(editing?.id || null, { flat_id: flatId, name: name.trim(), cadence, anchor_on: start, points: Number(points), rota })
+    const e = await save(editing?.id || null, { flat_id: flatId, name: name.trim(), cadence, anchor_on: start, points: Number(points), rota, on_day: onDay })
     setBusy(false)
     if (e) setErr(e); else onClose()
   }
@@ -229,7 +252,13 @@ export function ChoreModal({ c, open, onClose, editing, flatId, save, remove }: 
           </div>
         </div>
       </Field>
-      <Field T={T} label="First turn starts" htmlFor="ch-start"><input id="ch-start" className="fld" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
+      <Field T={T} label="Done on the day" hint={onDay ? 'Each turn is just the day it falls on — like bin day. Whoever it is hears the evening before and that morning.' : 'Each turn lasts until the next one starts — any day in between is fine.'}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ fontSize: 15 }}>{onDay ? 'Only on that day' : 'Any time in the turn'}</span>
+          <Toggle label="Done on the day" on={onDay} onChange={(v) => { haptic(6); setOnDay(v) }} />
+        </div>
+      </Field>
+      <Field T={T} label={onDay ? 'First day' : 'First turn starts'} htmlFor="ch-start"><input id="ch-start" className="fld" type="date" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
       <Field T={T} label="Size" hint="Bigger chores earn more points on this month's table.">
         <SegmentedControl T={T} label="Size" options={SIZES.map(([n, l]) => [String(n), `${l} · ${n}`] as [string, string])} value={points} onChange={setPoints} />
       </Field>
