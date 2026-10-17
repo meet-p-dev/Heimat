@@ -191,10 +191,13 @@ Deno.serve(async (req) => {
     }
 
     // A new build for the testers (announce_app_update): every phone of that kind — on
-    // iPhone the TestFlight / App Store app ('apns:', not the Xcode builds' 'apns-dev:'),
-    // on Android the app ('fcm:') — and tapping it opens the update: TestFlight, or the
-    // new APK's download. Whoever has updated already never sees the app's Update card;
-    // the notification itself can't know who has.
+    // iPhone the TestFlight app ('apns:', not the Xcode builds' 'apns-dev:'), on Android
+    // the app ('fcm:') — and tapping it opens the update: TestFlight, or the new APK's
+    // download. Copies from the App Store are left out (install_source, saved by the app):
+    // the App Store updates them by itself, and they have no TestFlight to open. Builds
+    // from before install_source say nothing (null); they all came from TestFlight.
+    // Whoever has updated already never sees the app's Update card; the notification
+    // itself can't know who has.
     if (body.event === 'app_update') {
       const build = Number(body.build)
       const android = body.platform === 'android'
@@ -205,6 +208,7 @@ Deno.serve(async (req) => {
       const url = android ? c.android_update_url : c.ios_update_url || 'itms-beta://'
       if (!url) return done(0, { sent: 0, reason: 'no download link' }, 'no url')
       const { data: subs, error } = await admin.from('push_subscriptions').select('endpoint,user_id,p256dh,auth').like('endpoint', android ? 'fcm:%' : 'apns:%')
+        .or('install_source.is.null,install_source.neq.appstore')
       if (error) throw error
       if (!subs?.length) return done(0, { sent: 0, reason: 'no subscriptions' }, 'no devices')
       const notice: Notice = android

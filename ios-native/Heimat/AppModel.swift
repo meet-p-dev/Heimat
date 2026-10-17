@@ -321,6 +321,19 @@ final class AppModel {
     /// This build's number (CFBundleVersion, e.g. 16).
     static let build = Int(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "")
 
+    /// Where this copy came from: "testflight", "appstore" or "development" (Xcode). iOS names
+    /// a TestFlight copy's receipt "sandboxReceipt" and an App Store copy's "receipt" —
+    /// whether or not the file is there yet. Saved with the push device, so only TestFlight
+    /// copies hear about new builds (announce_app_update).
+    static let installSource: String = {
+        #if DEBUG
+        return "development"
+        #else
+        guard let receipt = Bundle.main.appStoreReceiptURL else { return "development" }
+        return receipt.lastPathComponent == "sandboxReceipt" ? "testflight" : "appstore"
+        #endif
+    }()
+
     /// Is there a newer build than this one? Asked on launch and whenever the app comes
     /// back to the front, so a tester who missed the notification still sees Home's
     /// Update card. Quietly keeps what it knew when the server can't be reached.
@@ -334,7 +347,8 @@ final class AppModel {
             return
         }
         #endif
-        guard let mine = Self.build else { return }
+        // the App Store updates its copies by itself, and they have no TestFlight to open
+        guard Self.installSource != "appstore", let mine = Self.build else { return }
         struct Params: Encodable { let p_platform: String; let p_build: Int }
         do {
             let u: AppUpdate? = try await client.rpc("app_update", params: Params(p_platform: "ios", p_build: mine)).execute().value

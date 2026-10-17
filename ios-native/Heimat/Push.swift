@@ -105,7 +105,7 @@ final class Push: NSObject, ObservableObject {
         await forgetting?.value
         guard let m = model, m.uid != nil else { return false }
         do {
-            _ = try await m.client.rpc("save_push_device", params: ["p_endpoint": prefix + hex, "p_platform": "ios"]).execute()
+            _ = try await m.client.rpc("save_push_device", params: ["p_endpoint": prefix + hex, "p_platform": "ios", "p_source": AppModel.installSource]).execute()
             #if DEBUG
             // builds before 'apns-dev:' saved this same Xcode token as 'apns:', which the
             // server still delivers (via its retry on Apple's other server) — so without
